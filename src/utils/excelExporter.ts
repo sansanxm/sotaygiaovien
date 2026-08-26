@@ -32,8 +32,113 @@ const saveWorkbook = async (workbook: ExcelJS.Workbook, fileName: string) => {
 };
 
 /**
+ * 0. Tải File Mẫu Danh Sách Học Sinh Chuẩn Bộ Giáo Dục (Times New Roman, Kẻ Khung, Căn Lề Chuẩn)
+ */
+export const downloadStudentTemplateExcel = async () => {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'Sổ Tay Giáo Viên 4.0';
+  const worksheet = workbook.addWorksheet('Mau_Nhap_Hoc_Sinh');
+
+  worksheet.pageSetup.paperSize = 9; // A4
+  worksheet.pageSetup.orientation = 'landscape';
+
+  // 1. Dòng tiêu đề chính
+  worksheet.mergeCells('A1:H1');
+  const titleRow = worksheet.getCell('A1');
+  titleRow.value = 'DANH SÁCH HỌC SINH LỚP [TÊN LỚP] - NĂM HỌC 2026 - 2027';
+  titleRow.font = { name: FONT_FAMILY, size: 15, bold: true, color: { argb: 'FF1E3A8A' } };
+  titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(1).height = 32;
+
+  // 2. Dòng ghi chú hướng dẫn
+  worksheet.mergeCells('A2:H2');
+  const guideRow = worksheet.getCell('A2');
+  guideRow.value = '(*) Hướng dẫn: Thầy/Cô nhập thông tin học sinh từ dòng số 4 hoặc sao chép toàn bộ bảng dán vào ứng dụng';
+  guideRow.font = { name: FONT_FAMILY, size: 11, italic: true, color: { argb: 'FFDC2626' } };
+  guideRow.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(2).height = 20;
+
+  // 3. Tiêu đề các cột (Header)
+  const headers = [
+    'STT',
+    'Họ và tên học sinh',
+    'Giới tính',
+    'Ngày sinh',
+    'Họ tên phụ huynh',
+    'Số điện thoại',
+    'Địa chỉ thường trú',
+    'Ghi chú sức khỏe / Khác',
+  ];
+
+  const headerRow = worksheet.getRow(3);
+  headerRow.values = headers;
+  headerRow.height = 28;
+
+  headerRow.eachCell((cell) => {
+    cell.font = { name: FONT_FAMILY, size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1E40AF' }, // Blue 800
+    };
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cell.border = THIN_BORDER;
+  });
+
+  // 4. Mẫu 5 học sinh demo chuẩn
+  const sampleStudents = [
+    { stt: 1, name: 'Nguyễn Thảo An', gender: 'Nữ', dob: '15/03/2014', parent: 'Nguyễn Văn Nam', phone: '0912345601', addr: '128 Cầu Giấy, Hà Nội', note: 'Cận thị (ngồi bàn đầu)' },
+    { stt: 2, name: 'Trần Gia Bảo', gender: 'Nam', dob: '22/07/2014', parent: 'Trần Văn Hùng', phone: '0912345602', addr: '45 Trần Thái Tông, Hà Nội', note: 'Lớp trưởng' },
+    { stt: 3, name: 'Lê Minh Châu', gender: 'Nữ', dob: '05/11/2014', parent: 'Lê Thị Mai', phone: '0912345603', addr: '89 Xuân Thủy, Hà Nội', note: 'Lớp phó học tập' },
+    { stt: 4, name: 'Phạm Đức Dũng', gender: 'Nam', dob: '18/02/2014', parent: 'Phạm Văn Dũng', phone: '0912345604', addr: '12 Dịch Vọng Hậu, Hà Nội', note: '' },
+    { stt: 5, name: 'Hoàng Ngọc Hà', gender: 'Nữ', dob: '30/09/2014', parent: 'Hoàng Quốc Việt', phone: '0912345605', addr: '230 Hoàng Quốc Việt, Hà Nội', note: 'Dị ứng phấn hoa' },
+  ];
+
+  sampleStudents.forEach((st, idx) => {
+    const rowNum = 4 + idx;
+    const row = worksheet.getRow(rowNum);
+    row.values = [st.stt, st.name, st.gender, st.dob, st.parent, st.phone, st.addr, st.note];
+    row.height = 24;
+
+    row.eachCell((cell, colNum) => {
+      cell.font = { name: FONT_FAMILY, size: 12 };
+      cell.border = THIN_BORDER;
+
+      if (colNum === 1 || colNum === 3 || colNum === 4 || colNum === 6) {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      } else {
+        cell.alignment = { horizontal: 'left', vertical: 'middle' };
+      }
+
+      if (idx % 2 === 1) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF8FAFC' },
+        };
+      }
+    });
+  });
+
+  // Độ rộng cột tự động vừa văn bản
+  worksheet.columns = [
+    { width: 8 },  // STT
+    { width: 26 }, // Họ tên
+    { width: 12 }, // Giới tính
+    { width: 16 }, // Ngày sinh
+    { width: 24 }, // Phụ huynh
+    { width: 18 }, // Số điện thoại
+    { width: 34 }, // Địa chỉ
+    { width: 30 }, // Ghi chú
+  ];
+
+  await saveWorkbook(workbook, 'Mau_Danh_Sach_Hoc_Sinh_GVCN_4.0.xlsx');
+};
+
+/**
  * 1. Xuất Danh Sách Học Sinh Chuẩn Times New Roman 14
  */
+
 export const exportStudentsToExcel = async (
   students: Student[],
   className: string,

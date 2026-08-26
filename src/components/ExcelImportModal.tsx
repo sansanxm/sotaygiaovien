@@ -14,6 +14,7 @@ import * as XLSX from 'xlsx';
 import { useApp } from '../context/AppContext';
 import { db } from '../db/db';
 import type { Student, Gender } from '../types';
+import { downloadStudentTemplateExcel } from '../utils/excelExporter';
 
 interface Props {
   isOpen: boolean;
@@ -38,38 +39,11 @@ export const ExcelImportModal: React.FC<Props> = ({
   if (!isOpen) return null;
 
   // 1. Download Template
-  const handleDownloadTemplate = () => {
-    const sampleData = [
-      {
-        'STT': 1,
-        'Họ và tên': 'Nguyễn Thảo An',
-        'Giới tính': 'Nữ',
-        'Ngày sinh': '2013-03-12',
-        'Họ tên phụ huynh': 'Nguyễn Thị Mai',
-        'Số điện thoại': '0912345601',
-        'Địa chỉ': '128 Cầu Giấy, Hà Nội',
-        'Ghi chú sức khỏe': 'Cận 1.5 độ (ngồi bàn đầu)',
-        'Ghi chú khác': 'Lớp phó',
-      },
-      {
-        'STT': 2,
-        'Họ và tên': 'Trần Gia Bảo',
-        'Giới tính': 'Nam',
-        'Ngày sinh': '2013-05-18',
-        'Họ tên phụ huynh': 'Trần Văn Hùng',
-        'Số điện thoại': '0912345602',
-        'Địa chỉ': '45 Trần Thái Tông, Hà Nội',
-        'Ghi chú sức khỏe': '',
-        'Ghi chú khác': '',
-      },
-    ];
-
-    const worksheet = XLSX.utils.json_to_sheet(sampleData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Danh_Sach_Mau');
-    XLSX.writeFile(workbook, 'Mau_Danh_Sach_Hoc_Sinh_GVCN.xlsx');
+  const handleDownloadTemplate = async () => {
+    await downloadStudentTemplateExcel();
     triggerConfetti();
   };
+
 
   // 2. Parse Pasted TSV/Excel text
   const handleParsePastedText = () => {
