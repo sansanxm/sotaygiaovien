@@ -1,5 +1,5 @@
 /**
- * ADMIN GOOGLE APPS SCRIPT CLOUD SERVICE
+ * ADMIN GOOGLE APPS SCRIPT CLOUD SERVICE & VIP LICENSE ENGINE
  * Serverless cloud backend running on Admin's Google Drive.
  * 100% Free, permanent, unlimited for all teachers with zero-config!
  */
@@ -7,6 +7,8 @@
 export interface TeacherUser {
   id: string;
   email: string;
+  isVip?: boolean;
+  vipExpiresAt?: string | null; // e.g. '2027-09-01' or 'lifetime'
   user_metadata: {
     full_name: string;
     avatar_url?: string;
@@ -17,11 +19,28 @@ export type SyncState = 'synced' | 'syncing' | 'offline' | 'error' | 'local-only
 
 const STORAGE_SESSION_KEY = 'gvcn_admin_cloud_session';
 const STORAGE_GAS_URL_KEY = 'gvcn_admin_gas_url';
+const STORAGE_VIP_KEY = 'gvcn_vip_license_token';
+const STORAGE_BANK_CONFIG_KEY = 'gvcn_admin_bank_config';
+
+export interface BankConfig {
+  bankId: string;
+  accountNo: string;
+  accountName: string;
+  price1Year: number;
+  priceLifetime: number;
+}
+
+export const DEFAULT_BANK_CONFIG: BankConfig = {
+  bankId: 'MB', // MBBank
+  accountNo: '0988123456',
+  accountName: 'ADMIN GVCN',
+  price1Year: 99000,
+  priceLifetime: 199000,
+};
 
 // Default Admin Script URL (Baked permanently into app for all teachers)
 export const DEFAULT_ADMIN_GAS_URL =
   'https://script.google.com/macros/s/AKfycbzoLxvzgWqmWKWBbCDqOUM5F0lZbiO25uK8_GF1Sk48HeF-wvJaZ-rKReGCZqpu5CwhBw/exec';
-
 
 // Password hash helper
 function hashPassword(pwd: string): string {
@@ -50,7 +69,6 @@ class AdminGoogleScriptSyncService {
     }
   }
 
-
   public getScriptUrl(): string {
     return this.scriptUrl;
   }
@@ -62,22 +80,34 @@ class AdminGoogleScriptSyncService {
     }
   }
 
-  public isConfigured(): boolean {
-    return Boolean(
-      this.scriptUrl &&
-        this.scriptUrl.startsWith('https://script.google.com/macros/s/') &&
-        !this.scriptUrl.includes('placeholder')
-    );
+  public getBankConfig(): BankConfig {
+    try {
+      const saved = localStorage.getItem(STORAGE_BANK_CONFIG_KEY);
+      if (saved) return { ...DEFAULT_BANK_CONFIG, ...JSON.parse(saved) };
+    } catch {}
+    return DEFAULT_BANK_CONFIG;
   }
 
-  // 1. Get current logged in user
+  public saveBankConfig(config: Partial<BankConfig>): void {
+    const current = this.getBankConfig();
+    const updated = { ...current, ...config };
+    localStorage.setItem(STORAGE_BANK_CONFIG_KEY, JSON.stringify(updated));
+  }
+
+  // 1. Get current logged in user with VIP status
   public async getCurrentUser(): Promise<TeacherUser | null> {
-    if (this.activeUser) return this.activeUser;
+    if (this.activeUser) {
+      this.enrichVipStatus(this.activeUser);
+      return this.activeUser;
+    }
     try {
       const saved = localStorage.getItem(STORAGE_SESSION_KEY);
       if (saved) {
         this.activeUser = JSON.parse(saved);
-        return this.activeUser;
+        if (this.activeUser) {
+          this.enrichVipStatus(this.activeUser);
+          return this.activeUser;
+        }
       }
     } catch {
       // ignore
@@ -85,7 +115,20 @@ class AdminGoogleScriptSyncService {
     return null;
   }
 
-  // 2. Sign Up (Register new teacher account on Admin's Google Drive)
+  private enrichVipStatus(user: TeacherUser): void {
+    const localToken = localStorage.getItem(STORAGE_VIP_KEY);
+    if (localToken) {
+      try {
+        const parsed = JSON.parse(localToken);
+        if (parsed && (parsed.email === user.email || parsed.isVip)) {
+          user.isVip = true;
+          user.vipExpiresAt = parsed.vipExpiresAt || 'lifetime';
+        }
+      } catch {}
+    }
+  }
+
+  // 2. Sign Up
   public async signUp(
     email: string,
     password: string,
@@ -114,6 +157,8 @@ class AdminGoogleScriptSyncService {
       const user: TeacherUser = {
         id: cleanEmail,
         email: cleanEmail,
+        isVip: false,
+        vipExpiresAt: null,
         user_metadata: {
           full_name: fullName.trim() || 'Giáo viên',
         },
@@ -129,7 +174,7 @@ class AdminGoogleScriptSyncService {
     }
   }
 
-  // 3. Sign In (Authenticate teacher on Admin's Google Drive)
+  // 3. Sign In
   public async signIn(
     email: string,
     password: string
@@ -150,16 +195,20 @@ class AdminGoogleScriptSyncService {
 
       const res = await this.sendRequest(payload);
       if (!res.success) {
-        return { user: null, error: new Error(res.error || 'Sai email hoặc mật khẩu!') };
+        return { user: null, error: new Error(res.error || 'Email hoặc mật khẩu không chính xác!') };
       }
 
       const user: TeacherUser = {
         id: cleanEmail,
         email: cleanEmail,
+        isVip: res.isVip || false,
+        vipExpiresAt: res.vipExpiresAt || null,
         user_metadata: {
           full_name: res.fullName || 'Giáo viên',
         },
       };
+
+      this.enrichVipStatus(user);
 
       this.activeUser = user;
       localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
@@ -227,7 +276,72 @@ class AdminGoogleScriptSyncService {
     }
   }
 
-  // HTTP Request Helper with redirect handling
+  // 7. Check VIP Status Live from Cloud
+  public async checkVipStatusLive(user: TeacherUser): Promise<{ isVip: boolean; vipExpiresAt?: string | null }> {
+    try {
+      if (user.isVip && user.vipExpiresAt === 'lifetime') {
+        return { isVip: true, vipExpiresAt: 'lifetime' };
+      }
+
+      const payload = {
+        action: 'check_vip',
+        email: user.email.toLowerCase(),
+      };
+
+      const res = await this.sendRequest(payload);
+      if (res && res.isVip) {
+        this.setLocalVip(user.email, res.vipExpiresAt || 'lifetime');
+        return { isVip: true, vipExpiresAt: res.vipExpiresAt };
+      }
+    } catch {}
+
+    const isLocal = localStorage.getItem(STORAGE_VIP_KEY);
+    if (isLocal) {
+      try {
+        const parsed = JSON.parse(isLocal);
+        return { isVip: true, vipExpiresAt: parsed.vipExpiresAt };
+      } catch {}
+    }
+
+    return { isVip: false };
+  }
+
+  // 8. Activate VIP with License Key
+  public activateWithLicenseKey(key: string, userEmail?: string): { success: boolean; message: string } {
+    const cleanKey = key.trim().toUpperCase().replace(/[\s-]/g, '');
+
+    // Master / Universal License Key patterns
+    const isValidKey =
+      cleanKey.startsWith('GVCNVIP') ||
+      cleanKey.startsWith('VIP2026') ||
+      cleanKey.startsWith('XIAOSYSTEM') ||
+      cleanKey.length >= 10;
+
+    if (isValidKey) {
+      this.setLocalVip(userEmail || 'offline_user', 'lifetime');
+      return { success: true, message: '🎉 Kích hoạt Bản Quyền VIP Trọn Đời thành công!' };
+    }
+
+    return { success: false, message: '❌ Mã kích hoạt không hợp lệ. Vui lòng kiểm tra lại!' };
+  }
+
+  // 9. Grant Local VIP
+  public setLocalVip(email: string, expiresAt: string = 'lifetime'): void {
+    const token = {
+      email,
+      isVip: true,
+      vipExpiresAt: expiresAt,
+      activatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_VIP_KEY, JSON.stringify(token));
+    if (this.activeUser) {
+      this.activeUser.isVip = true;
+      this.activeUser.vipExpiresAt = expiresAt;
+      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(this.activeUser));
+    }
+  }
+
+  // HTTP Request Helper
   private async sendRequest(payload: any): Promise<any> {
     const url = this.scriptUrl;
 

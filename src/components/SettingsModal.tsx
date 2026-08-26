@@ -17,11 +17,16 @@ import {
   CheckCircle2,
   Cloud,
   LogOut,
+  Crown,
+  QrCode,
+  Zap,
+  Check,
 } from 'lucide-react';
 
 import { useApp, THEME_CONFIGS } from '../context/AppContext';
 import { db, exportDatabaseBackup, importDatabaseBackup } from '../db/db';
 import { GoogleAuthModal } from './GoogleAuthModal';
+import { adminGoogleSync, type BankConfig } from '../services/adminGoogleScriptSync';
 import type { TeacherTitle, AppTheme } from '../types';
 
 export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
@@ -43,16 +48,26 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
     user,
     syncState,
     lastSyncedAt,
+    isVip,
+    activateVip,
+    setShowVipModal,
     syncWithCloud,
+
     signOut,
     clearAllData,
   } = useApp();
 
-
-  const [activeTab, setActiveTab] = useState<'profile' | 'cloud' | 'years' | 'classes' | 'backup' | 'guide'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'cloud' | 'vip' | 'years' | 'classes' | 'backup' | 'guide'>('profile');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  // Bank Config for Admin VietQR
+  const [bankConfigState, setBankConfigState] = useState<BankConfig>(() => adminGoogleSync.getBankConfig());
+  const [bankSaveMsg, setBankSaveMsg] = useState(false);
+  const [manualKeyInput, setManualKeyInput] = useState('');
+  const [keyResult, setKeyResult] = useState<{ success: boolean; message: string } | null>(null);
+
 
 
 
@@ -256,6 +271,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
         <div className="flex border-b border-pink-100 bg-pink-50/50 px-6 pt-3 gap-2 overflow-x-auto">
           {[
             { id: 'profile', label: '🎨 Giao Diện & Danh Xưng', icon: <Palette className="w-4 h-4" /> },
+            { id: 'vip', label: '👑 Bản Quyền & VietQR', icon: <Crown className="w-4 h-4 text-amber-500" /> },
             { id: 'cloud', label: '☁️ Đồng Bộ Google & Cloud', icon: <Cloud className="w-4 h-4" /> },
             { id: 'years', label: 'Năm Học', icon: <Calendar className="w-4 h-4" /> },
             { id: 'classes', label: 'Lớp Học', icon: <GraduationCap className="w-4 h-4" /> },
@@ -280,9 +296,196 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
         {/* Tab Contents */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs sm:text-sm">
           
+          {/* Tab VIP & VietQR */}
+          {activeTab === 'vip' && (
+            <div className="space-y-6">
+              
+              {/* VIP Status Banner */}
+              <div className={`p-5 rounded-2xl border ${
+                isVip
+                  ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 border-amber-300 shadow-md'
+                  : 'bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 text-slate-800 border-amber-200'
+              }`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Crown className={`w-5 h-5 ${isVip ? 'fill-slate-900 text-slate-900' : 'text-amber-500'}`} />
+                      <span className="font-black text-sm uppercase tracking-wider">
+                        {isVip ? 'Tài Khoản Bản Quyền VIP Hoàng Gia 👑' : 'Bản Miễn Phí (Cơ Bản)'}
+                      </span>
+                    </div>
+                    <p className={`text-xs ${isVip ? 'text-slate-800 font-semibold' : 'text-slate-600'}`}>
+                      {isVip
+                        ? 'Toàn bộ tính năng cao cấp, đồng bộ đám mây và nhận diện AI không giới hạn đã mở khóa vĩnh viễn.'
+                        : 'Nâng cấp VIP để mở khóa không giới hạn lớp học, cắt ảnh khuôn mặt AI và đồng bộ đa thiết bị.'}
+                    </p>
+                  </div>
+
+                  {!isVip ? (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        setShowVipModal(true);
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:brightness-105 text-white font-black text-xs shadow-md shadow-amber-300/50 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 shrink-0"
+                    >
+                      <Zap className="w-4 h-4 fill-white" /> Quét VietQR Nâng Cấp (3s)
+                    </button>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-md text-xs font-black text-amber-900 border border-amber-300 shrink-0 self-start sm:self-auto">
+                      Vĩnh Viễn ♾️
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* License Key Quick Form */}
+              {!isVip && (
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+                  <div className="font-extrabold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-amber-500" /> Kích Hoạt Bằng Mã Bản Quyền (License Key):
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={manualKeyInput}
+                      onChange={(e) => {
+                        setManualKeyInput(e.target.value);
+                        setKeyResult(null);
+                      }}
+                      placeholder="Nhập mã ví dụ: GVCNVIP-XXXX-YYYY..."
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs font-bold uppercase focus:outline-none focus:ring-2 focus:ring-amber-400 bg-slate-50"
+                    />
+                    <button
+                      onClick={() => {
+                        if (!manualKeyInput.trim()) return;
+                        const res = adminGoogleSync.activateWithLicenseKey(manualKeyInput, user?.email);
+                        setKeyResult(res);
+                        if (res.success) {
+                          activateVip('lifetime');
+                          triggerConfetti();
+                        }
+                      }}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs cursor-pointer active:scale-98"
+                    >
+                      Kích Hoạt
+                    </button>
+                  </div>
+
+                  {keyResult && (
+                    <div className={`p-2.5 rounded-xl text-xs font-bold ${
+                      keyResult.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}>
+                      {keyResult.message}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Admin VietQR Payment Gateway Config */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-black text-xs uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                    <QrCode className="w-4 h-4 text-amber-600" /> Cấu Hình Tài Khoản Nhận Tiền VietQR (Dành Cho Chủ App / Admin):
+                  </div>
+                  {bankSaveMsg && (
+                    <span className="text-[11px] font-black text-emerald-600 flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Đã lưu cấu hình!
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Ngân Hàng (Napas)</label>
+                    <select
+                      value={bankConfigState.bankId}
+                      onChange={(e) => setBankConfigState({ ...bankConfigState, bankId: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs"
+                    >
+                      <option value="MB">MBBank (Quân Đội)</option>
+                      <option value="VCB">Vietcombank</option>
+                      <option value="TCB">Techcombank</option>
+                      <option value="BIDV">BIDV</option>
+                      <option value="CTG">VietinBank</option>
+                      <option value="ACB">ACB</option>
+                      <option value="VPB">VPBank</option>
+                      <option value="TPB">TPBank</option>
+                      <option value="STB">Sacombank</option>
+                      <option value="AGR">Agribank</option>
+                      <option value="HDB">HDBank</option>
+                      <option value="VIB">VIB</option>
+                      <option value="OCB">OCB</option>
+                      <option value="MSB">MSB</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Số Tài Khoản</label>
+                    <input
+                      type="text"
+                      value={bankConfigState.accountNo}
+                      onChange={(e) => setBankConfigState({ ...bankConfigState, accountNo: e.target.value })}
+                      placeholder="0988123456"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Tên Chủ Tài Khoản</label>
+                    <input
+                      type="text"
+                      value={bankConfigState.accountName}
+                      onChange={(e) => setBankConfigState({ ...bankConfigState, accountName: e.target.value.toUpperCase() })}
+                      placeholder="NGUYEN VAN A"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Giá Gói 1 Năm (VNĐ)</label>
+                    <input
+                      type="number"
+                      step={1000}
+                      value={bankConfigState.price1Year}
+                      onChange={(e) => setBankConfigState({ ...bankConfigState, price1Year: Number(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Giá Gói Trọn Đời (VNĐ)</label>
+                    <input
+                      type="number"
+                      step={1000}
+                      value={bankConfigState.priceLifetime}
+                      onChange={(e) => setBankConfigState({ ...bankConfigState, priceLifetime: Number(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    adminGoogleSync.saveBankConfig(bankConfigState);
+                    setBankSaveMsg(true);
+                    setTimeout(() => setBankSaveMsg(false), 2500);
+                  }}
+                  className="py-2.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-xs cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" /> Lưu Cài Đặt Cổng VietQR
+                </button>
+              </div>
+
+            </div>
+          )}
+          
           {/* Tab Cloud: Teacher Account & Cloud Sync */}
           {activeTab === 'cloud' && (
             <div className="space-y-5">
+
               
               {/* Account Status Card */}
               <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-50/80 via-rose-50/40 to-white border border-pink-200 space-y-4">

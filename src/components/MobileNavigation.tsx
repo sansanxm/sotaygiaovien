@@ -19,6 +19,7 @@ import {
   LogOut,
   Smartphone,
   Sparkles,
+  Crown,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import type { ActiveTab } from '../types';
@@ -38,10 +39,13 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
     currentYear,
     user,
     syncState,
+    isVip,
+    setShowVipModal,
     syncWithCloud,
     signOut,
     triggerConfetti,
   } = useApp();
+
 
   const [showDrawer, setShowDrawer] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -201,7 +205,14 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                       {(user.user_metadata?.full_name || user.email || 'GV').slice(0, 1).toUpperCase()}
                     </div>
                     <div>
-                      <div className="text-xs font-black text-slate-800">{user.user_metadata?.full_name || 'Giáo viên'}</div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-black text-slate-800">{user.user_metadata?.full_name || 'Giáo viên'}</span>
+                        {isVip && (
+                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-0.5 shrink-0">
+                            <Crown className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> VIP
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[11px] text-slate-500 font-medium">{user.email}</div>
                     </div>
                   </div>
@@ -217,6 +228,21 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                     <LogOut className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* VIP Upgrade button on mobile drawer */}
+                {!isVip && (
+                  <button
+                    onClick={() => {
+                      setShowDrawer(false);
+                      setShowVipModal(true);
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-98"
+                  >
+                    <Crown className="w-4 h-4 fill-white" />
+                    <span>Nâng Cấp VIP (Quét VietQR 3s)</span>
+                  </button>
+                )}
+
 
                 {/* Mobile Sync & Restore Buttons */}
                 <div className="grid grid-cols-2 gap-2 pt-1">

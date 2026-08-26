@@ -22,6 +22,7 @@ import {
   Edit2,
   Cloud,
   LogOut,
+  Crown,
 } from 'lucide-react';
 
 
@@ -53,9 +54,12 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
     user,
     syncState,
     lastSyncedAt,
+    isVip,
+    setShowVipModal,
     syncWithCloud,
     signOut,
   } = useApp();
+
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
@@ -307,8 +311,15 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
                   )}
                   {!isCollapsed && (
                     <div className="truncate text-left">
-                      <div className="text-xs font-bold text-slate-800 truncate">
-                        {user.user_metadata?.full_name || 'Giáo viên'}
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-xs font-bold text-slate-800 truncate">
+                          {user.user_metadata?.full_name || 'Giáo viên'}
+                        </span>
+                        {isVip && (
+                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-0.5 shrink-0">
+                            <Crown className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> VIP
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] text-slate-400 font-medium truncate">
                         {user.email}
@@ -327,6 +338,19 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
                   </button>
                 )}
               </div>
+
+              {/* VIP Upgrade Banner (for Free users) */}
+              {!isVip && !isCollapsed && (
+                <button
+                  onClick={() => setShowVipModal(true)}
+                  className="w-full py-1.5 px-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:brightness-105 text-white font-black text-[11px] flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-98 transition-all"
+                  title="Nâng cấp VIP tự động qua VietQR"
+                >
+                  <Crown className="w-3.5 h-3.5 fill-white" />
+                  <span>Nâng Cấp VIP (Quét QR 3s)</span>
+                </button>
+              )}
+
 
               {/* 2 Buttons: Sao lưu & Khôi phục (Nằm ngay dưới email) */}
               {!isCollapsed ? (
