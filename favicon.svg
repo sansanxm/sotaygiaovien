@@ -1,59 +1,113 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
+    <!-- Background Gradient -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF6595" />
-      <stop offset="50%" stop-color="#FF3366" />
-      <stop offset="100%" stop-color="#D81B60" />
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="50%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#DB2777" />
     </linearGradient>
-    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#FFF5F8" />
+
+    <!-- Notebook Leather Cover Gradient -->
+    <linearGradient id="leatherCover" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF3E6C" />
+      <stop offset="50%" stop-color="#E11D48" />
+      <stop offset="100%" stop-color="#9F1239" />
     </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFE082" />
-      <stop offset="100%" stop-color="#FFB300" />
+
+    <!-- Notebook Spine Gradient -->
+    <linearGradient id="spineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#881337" />
+      <stop offset="50%" stop-color="#BE123C" />
+      <stop offset="100%" stop-color="#4C0519" />
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#55001E" flood-opacity="0.35" />
+
+    <!-- Gold Foil / Accent Gradient -->
+    <linearGradient id="goldFoil" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="30%" stop-color="#FDE68A" />
+      <stop offset="70%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+
+    <!-- Pen Body Gradient -->
+    <linearGradient id="penBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    <!-- Page Shadow -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0F172A" flood-opacity="0.45" />
+    </filter>
+
+    <filter id="innerGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#FFE4E6" flood-opacity="0.3" />
     </filter>
   </defs>
 
-  <!-- Squircle Rounded Background for iOS / Android Homescreen -->
+  <!-- Squircle Rounded App Icon Base (iOS/Android standard) -->
   <rect width="512" height="512" rx="115" fill="url(#bgGrad)" />
 
-  <!-- Inner Subtle Border Glow -->
-  <rect x="8" y="8" width="496" height="496" rx="108" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="6" />
+  <!-- Subtle Rim Light -->
+  <rect x="6" y="6" width="500" height="500" rx="109" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="5" />
 
-  <!-- Main Illustration Group with Drop Shadow -->
-  <g filter="url(#shadow)" transform="translate(0, 10)">
+  <!-- Main 3D Notebook Illustration -->
+  <g filter="url(#dropShadow)" transform="translate(4, 0)">
     
-    <!-- Open Book Pages (Left & Right) -->
-    <path d="M256 360 C210 320 140 315 90 325 C80 327 72 320 72 310 L72 170 C72 160 82 153 92 150 C146 140 215 145 256 185 Z" fill="url(#bookGrad)" />
-    <path d="M256 360 C302 320 372 315 422 325 C432 327 440 320 440 310 L440 170 C440 160 430 153 420 150 C366 140 297 145 256 185 Z" fill="url(#bookGrad)" />
-    
-    <!-- Book Spine & Ribbon -->
-    <path d="M252 180 L260 180 L260 365 L252 365 Z" fill="#FF80AB" />
-    <path d="M250 185 L250 395 L256 385 L262 395 L262 185 Z" fill="#C2185B" />
+    <!-- Paper Stack Edges (White/Cream Page block under cover) -->
+    <path d="M125 110 L380 110 Q405 110 405 135 L405 400 Q405 425 380 425 L125 425 Z" fill="#F8FAFC" opacity="0.9" />
+    <!-- Page lines on side -->
+    <line x1="395" y1="125" x2="395" y2="410" stroke="#CBD5E1" stroke-width="4" stroke-linecap="round" />
+    <line x1="400" y1="130" x2="400" y2="405" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round" />
 
-    <!-- Cute Blossom / Lotus Flower in Center -->
-    <g transform="translate(256, 210)">
-      <path d="M0 -45 C-25 -25 -25 10 0 35 C25 10 25 -25 0 -45 Z" fill="#FF4081" />
-      <path d="M-35 -15 C-45 10 -15 25 0 35 C-15 15 -20 -5 -35 -15 Z" fill="#FF80AB" />
-      <path d="M35 -15 C45 10 15 25 0 35 C15 15 20 -5 35 -15 Z" fill="#FF80AB" />
-      <circle cx="0" cy="15" r="10" fill="url(#goldGrad)" />
+    <!-- Notebook Front Leather Cover -->
+    <rect x="110" y="95" width="280" height="325" rx="24" fill="url(#leatherCover)" />
+
+    <!-- Leather Stitching Border (Dotted Gold Line) -->
+    <rect x="122" y="107" width="256" height="301" rx="16" fill="none" stroke="url(#goldFoil)" stroke-width="3" stroke-dasharray="8 6" opacity="0.85" />
+
+    <!-- Notebook Spine (Gáy Sổ) -->
+    <path d="M110 95 L145 95 L145 420 L110 420 Q110 420 110 95 Z" fill="url(#spineGrad)" />
+    <line x1="145" y1="95" x2="145" y2="420" stroke="#FFE4E6" stroke-opacity="0.3" stroke-width="2" />
+
+    <!-- Bookmark Silk Ribbon (Ruy-băng đánh dấu trang) -->
+    <path d="M215 90 L245 90 L245 235 L230 215 L215 235 Z" fill="url(#goldFoil)" filter="url(#innerGlow)" />
+
+    <!-- Gold Embossed Crest on Notebook Cover -->
+    <!-- Teacher Apple / Open Book Emblem in Center -->
+    <g transform="translate(265, 255)">
+      <!-- Outer Gold Seal Ring -->
+      <circle cx="0" cy="0" r="54" fill="none" stroke="url(#goldFoil)" stroke-width="4" />
+      <circle cx="0" cy="0" r="48" fill="#881337" opacity="0.6" />
+      
+      <!-- Open Book Icon inside Crest -->
+      <path d="M-28 -4 C-15 -12 0 -8 0 16 C0 -8 15 -12 28 -4 L28 14 C15 6 0 10 0 30 C0 10 -15 6 -28 14 Z" fill="url(#goldFoil)" />
+      
+      <!-- Tiny Crown / Star above book -->
+      <path d="M0 -34 L4 -22 L16 -22 L6 -14 L10 -2 L0 -10 L-10 -2 L-6 -14 L-16 -22 L-4 -22 Z" fill="url(#goldFoil)" />
+
+      <!-- Text "GVCN" underneath -->
+      <text x="0" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="900" fill="url(#goldFoil)" text-anchor="middle" letter-spacing="2">GVCN 4.0</text>
     </g>
 
-    <!-- Floating Sparkles & Crown -->
-    <path d="M256 95 L264 120 L289 128 L264 136 L256 161 L248 136 L223 128 L248 120 Z" fill="url(#goldGrad)" />
-    <circle cx="140" cy="115" r="8" fill="#FFF" opacity="0.95" />
-    <circle cx="372" cy="115" r="8" fill="#FFF" opacity="0.95" />
-    <circle cx="392" cy="138" r="5" fill="#FFE082" />
-    <circle cx="120" cy="138" r="5" fill="#FFE082" />
-  </g>
+    <!-- Elastic Band Holder / Bookmark Strap -->
+    <rect x="360" y="95" width="14" height="325" fill="#4C0519" opacity="0.6" />
 
-  <!-- "4.0" Badge in Bottom Right Corner -->
-  <g transform="translate(335, 360)">
-    <rect width="125" height="56" rx="28" fill="url(#goldGrad)" filter="url(#shadow)" />
-    <text x="62" y="38" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#5D0038" text-anchor="middle">4.0 👑</text>
+    <!-- Stylus / Luxury Pen alongside the Notebook -->
+    <g transform="translate(420, 120)">
+      <!-- Pen Body -->
+      <rect x="0" y="20" width="16" height="230" rx="8" fill="url(#penBody)" filter="url(#dropShadow)" />
+      <!-- Gold Nib & Accents -->
+      <polygon points="0,20 16,20 8,0" fill="url(#goldFoil)" />
+      <rect x="0" y="50" width="16" height="8" fill="url(#goldFoil)" />
+      <rect x="0" y="210" width="16" height="12" fill="url(#goldFoil)" />
+      <!-- Pen Clip -->
+      <path d="M-3 55 L-3 120 Q-3 125 3 125" fill="none" stroke="url(#goldFoil)" stroke-width="4" stroke-linecap="round" />
+    </g>
+
+    <!-- Sparkles -->
+    <path d="M125 65 L130 78 L143 83 L130 88 L125 101 L120 88 L107 83 L120 78 Z" fill="url(#goldFoil)" />
+    <circle cx="360" cy="70" r="6" fill="#FFF" opacity="0.9" />
+    <circle cx="95" cy="350" r="5" fill="url(#goldFoil)" />
   </g>
 </svg>
