@@ -1,0 +1,19 @@
+{
+  "name": "Sổ Tay Giáo Viên 4.0",
+  "short_name": "GVCN 4.0",
+  "description": "Ứng dụng Quản lý Lớp học, Điểm danh & Sổ tay Giáo viên Chủ nhiệm 4.0",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF5F7",
+  "theme_color": "#ec4899",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

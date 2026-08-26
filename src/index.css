@@ -1,0 +1,300 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-heading: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    color: #1e293b;
+    font-size: 1rem;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    line-height: 1.3;
+  }
+}
+
+
+/* =========================================================
+   THEME COLOR PALETTES (Pink, Ocean, Mint, Lavender, Peach, Slate)
+   ========================================================= */
+
+/* 1. PINK THEME (Cô Giáo Sweet) */
+[data-theme="pink"] {
+  --theme-bg-gradient: radial-gradient(circle at top left, #fff0f5 0%, #fff7f9 40%, #fdf2f8 100%);
+  --theme-banner: linear-gradient(135deg, #f472b6 0%, #fb7185 50%, #ec4899 100%);
+  --theme-banner-btn: rgba(190, 24, 93, 0.4);
+  --theme-primary: #db2777;
+  --theme-primary-hover: #be185d;
+  --theme-primary-soft: #fdf2f8;
+  --theme-primary-border: #fbcfe8;
+  --theme-primary-text: #9d174d;
+  --theme-sidebar-active: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  --theme-scrollbar-thumb: #f472b6;
+  --theme-scrollbar-track: #fce7f3;
+  --theme-shadow: rgba(236, 72, 153, 0.25);
+  --theme-icon: #ec4899;
+  --theme-avatar-bg: #fce7f3;
+  --theme-avatar-text: #be185d;
+  --theme-quote-bg: linear-gradient(135deg, #fdf2f8 0%, #fff1f2 50%, #ffe4e6 100%);
+  --theme-quote-border: #fecdd3;
+  --theme-quote-text: #9f1239;
+  --theme-quote-accent: #e11d48;
+}
+
+/* 2. OCEAN BLUE THEME (Thầy Giáo Lịch Lãm) */
+[data-theme="ocean"] {
+  --theme-bg-gradient: radial-gradient(circle at top left, #eff6ff 0%, #f0f9ff 40%, #e0f2fe 100%);
+  --theme-banner: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 50%, #1d4ed8 100%);
+  --theme-banner-btn: rgba(29, 78, 216, 0.4);
+  --theme-primary: #2563eb;
+  --theme-primary-hover: #1d4ed8;
+  --theme-primary-soft: #eff6ff;
+  --theme-primary-border: #bfdbfe;
+  --theme-primary-text: #1e40af;
+  --theme-sidebar-active: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+  --theme-scrollbar-thumb: #60a5fa;
+  --theme-scrollbar-track: #dbeafe;
+  --theme-shadow: rgba(37, 99, 235, 0.25);
+  --theme-icon: #2563eb;
+  --theme-avatar-bg: #dbeafe;
+  --theme-avatar-text: #1d4ed8;
+  --theme-quote-bg: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 50%, #e0f2fe 100%);
+  --theme-quote-border: #bfdbfe;
+  --theme-quote-text: #1e40af;
+  --theme-quote-accent: #2563eb;
+}
+
+/* 3. MINT FRESH THEME (Xanh Bạc Hà Dịu Mắt) */
+[data-theme="mint"] {
+  --theme-bg-gradient: radial-gradient(circle at top left, #ecfdf5 0%, #f0fdf4 40%, #ccfbf1 100%);
+  --theme-banner: linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #059669 100%);
+  --theme-banner-btn: rgba(6, 95, 70, 0.4);
+  --theme-primary: #059669;
+  --theme-primary-hover: #047857;
+  --theme-primary-soft: #ecfdf5;
+  --theme-primary-border: #a7f3d0;
+  --theme-primary-text: #065f46;
+  --theme-sidebar-active: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  --theme-scrollbar-thumb: #34d399;
+  --theme-scrollbar-track: #d1fae5;
+  --theme-shadow: rgba(5, 150, 105, 0.25);
+  --theme-icon: #059669;
+  --theme-avatar-bg: #d1fae5;
+  --theme-avatar-text: #047857;
+  --theme-quote-bg: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #ccfbf1 100%);
+  --theme-quote-border: #a7f3d0;
+  --theme-quote-text: #065f46;
+  --theme-quote-accent: #059669;
+}
+
+/* 4. LAVENDER THEME (Tím Mộng Mơ) */
+[data-theme="lavender"] {
+  --theme-bg-gradient: radial-gradient(circle at top left, #faf5ff 0%, #f5f3ff 40%, #ede9fe 100%);
+  --theme-banner: linear-gradient(135deg, #a855f7 0%, #8b5cf6 50%, #7c3aed 100%);
+  --theme-banner-btn: rgba(109, 40, 217, 0.4);
+  --theme-primary: #7c3aed;
+  --theme-primary-hover: #6d28d9;
+  --theme-primary-soft: #faf5ff;
+  --theme-primary-border: #ddd6fe;
+  --theme-primary-text: #5b21b6;
+  --theme-sidebar-active: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  --theme-scrollbar-thumb: #c084fc;
+  --theme-scrollbar-track: #ede9fe;
+  --theme-shadow: rgba(124, 58, 237, 0.25);
+  --theme-icon: #7c3aed;
+  --theme-avatar-bg: #ede9fe;
+  --theme-avatar-text: #6d28d9;
+  --theme-quote-bg: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 50%, #ede9fe 100%);
+  --theme-quote-border: #ddd6fe;
+  --theme-quote-text: #5b21b6;
+  --theme-quote-accent: #7c3aed;
+}
+
+/* 5. PEACH THEME (Cam Đào Năng Động) */
+[data-theme="peach"] {
+  --theme-bg-gradient: radial-gradient(circle at top left, #fff7ed 0%, #fffbeb 40%, #ffedd5 100%);
+  --theme-banner: linear-gradient(135deg, #f97316 0%, #fb923c 50%, #ea580c 100%);
+  --theme-banner-btn: rgba(194, 65, 12, 0.4);
+  --theme-primary: #ea580c;
+  --theme-primary-hover: #c2410c;
+  --theme-primary-soft: #fff7ed;
+  --theme-primary-border: #fed7aa;
+  --theme-primary-text: #9a3412;
+  --theme-sidebar-active: linear-gradient(135deg, #ea580c 0%, #f59e0b 100%);
+  --theme-scrollbar-thumb: #fb923c;
+  --theme-scrollbar-track: #ffedd5;
+  --theme-shadow: rgba(234, 88, 12, 0.25);
+  --theme-icon: #ea580c;
+  --theme-avatar-bg: #ffedd5;
+  --theme-avatar-text: #c2410c;
+  --theme-quote-bg: linear-gradient(135deg, #fff7ed 0%, #fffbeb 50%, #ffedd5 100%);
+  --theme-quote-border: #fed7aa;
+  --theme-quote-text: #9a3412;
+  --theme-quote-accent: #ea580c;
+}
+
+/* 6. SLATE THEME (Xám Khói Hiện Đại) */
+[data-theme="slate"] {
+  --theme-bg-gradient: radial-gradient(circle at top left, #f8fafc 0%, #f1f5f9 40%, #e2e8f0 100%);
+  --theme-banner: linear-gradient(135deg, #475569 0%, #334155 50%, #1e293b 100%);
+  --theme-banner-btn: rgba(15, 23, 42, 0.4);
+  --theme-primary: #334155;
+  --theme-primary-hover: #1e293b;
+  --theme-primary-soft: #f1f5f9;
+  --theme-primary-border: #cbd5e1;
+  --theme-primary-text: #0f172a;
+  --theme-sidebar-active: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+  --theme-scrollbar-thumb: #94a3b8;
+  --theme-scrollbar-track: #e2e8f0;
+  --theme-shadow: rgba(51, 65, 85, 0.25);
+  --theme-icon: #334155;
+  --theme-avatar-bg: #e2e8f0;
+  --theme-avatar-text: #1e293b;
+  --theme-quote-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --theme-quote-border: #cbd5e1;
+  --theme-quote-text: #1e293b;
+  --theme-quote-accent: #334155;
+}
+
+/* =========================================================
+   UNIVERSAL THEME UTILITY CLASSES
+   ========================================================= */
+
+.theme-banner {
+  background: var(--theme-banner);
+  box-shadow: 0 12px 28px -6px var(--theme-shadow);
+}
+
+.theme-banner-btn {
+  background: var(--theme-banner-btn);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.theme-banner-btn:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.theme-btn-primary {
+  background: var(--theme-banner);
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--theme-shadow);
+  transition: all 0.2s ease;
+}
+
+.theme-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px var(--theme-shadow);
+  filter: brightness(1.05);
+}
+
+.theme-btn-secondary {
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary-text);
+  border: 1px solid var(--theme-primary-border);
+  transition: all 0.2s ease;
+}
+
+.theme-btn-secondary:hover {
+  background: var(--theme-primary-border);
+}
+
+.theme-sidebar-active {
+  background: var(--theme-sidebar-active);
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px var(--theme-shadow);
+}
+
+.theme-badge {
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary-text);
+  border: 1px solid var(--theme-primary-border);
+}
+
+.theme-card-border {
+  border-color: var(--theme-primary-border);
+}
+
+.theme-soft-bg {
+  background-color: var(--theme-primary-soft);
+}
+
+.theme-text {
+  color: var(--theme-primary);
+}
+
+.theme-avatar {
+  background-color: var(--theme-avatar-bg);
+  color: var(--theme-avatar-text);
+}
+
+.theme-quote-box {
+  background: var(--theme-quote-bg);
+  border: 1px solid var(--theme-quote-border);
+  color: var(--theme-quote-text);
+}
+
+.theme-quote-author {
+  color: var(--theme-quote-accent);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-scrollbar-track, #fce7f3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-scrollbar-thumb, #f472b6);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  filter: brightness(0.9);
+}
+
+/* Glassmorphism Cards */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--theme-primary-border, rgba(255, 228, 230, 0.9));
+  box-shadow: 0 10px 25px -5px var(--theme-shadow, rgba(244, 114, 182, 0.12));
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--theme-primary-border, rgba(254, 205, 211, 0.6));
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px var(--theme-shadow, rgba(244, 114, 182, 0.18));
+  border-color: var(--theme-primary, #f472b6);
+}
