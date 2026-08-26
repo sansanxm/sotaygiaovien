@@ -13,10 +13,12 @@ import {
 import { useApp } from '../context/AppContext';
 import { db } from '../db/db';
 import type { Student, AttendanceRecord, AttendanceStatus } from '../types';
-import { exportAttendanceToExcel } from '../utils/excelExporter';
+import { AttendanceExportModal } from './AttendanceExportModal';
 
 export const AttendanceView: React.FC = () => {
-  const { currentClass, teacherName, triggerConfetti } = useApp();
+  const { currentClass, triggerConfetti } = useApp();
+
+
 
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -24,6 +26,8 @@ export const AttendanceView: React.FC = () => {
   });
   const [session, setSession] = useState<'Sáng' | 'Chiều'>('Sáng');
   const [records, setRecords] = useState<Record<string, { status: AttendanceStatus; note: string }>>({});
+  const [showExportModal, setShowExportModal] = useState(false);
+
 
   const loadData = async () => {
     if (!currentClass) return;
@@ -139,30 +143,10 @@ export const AttendanceView: React.FC = () => {
     if (stStatus === 'present') presentCount++;
     else if (stStatus === 'late') lateCount++;
     else if (stStatus === 'excused') excusedCount++;
-    else if (stStatus === 'unexcused') unexcusedCount++;
   });
 
-  const handleExportAttendance = async () => {
-    if (students.length === 0 || !currentClass) return;
-
-    const exportRecords = students.map((st) => ({
-      student: st,
-      status: records[st.id]?.status || 'present',
-      note: records[st.id]?.note || '',
-    }));
-
-    await exportAttendanceToExcel(
-      exportRecords,
-      currentClass.name,
-      selectedDate,
-      session,
-      teacherName || currentClass.homeroomTeacher || 'Giáo viên'
-    );
-    triggerConfetti();
-  };
-
-
   return (
+
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* Top Controls Header */}
@@ -222,13 +206,14 @@ export const AttendanceView: React.FC = () => {
           </button>
 
           <button
-            onClick={handleExportAttendance}
+            onClick={() => setShowExportModal(true)}
             className="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Xuất bảng điểm danh ra Excel"
+            title="Xuất sổ điểm danh ra Excel theo Tuần, Tháng, Học Kỳ"
           >
-            <Download className="w-4 h-4" /> Xuất Excel
+            <Download className="w-4 h-4" /> Xuất Excel (Tuần / Tháng / Kỳ)
           </button>
         </div>
+
 
       </div>
 
@@ -362,7 +347,12 @@ export const AttendanceView: React.FC = () => {
           </table>
         </div>
       </div>
-
+      {/* Attendance Export Modal (Week / Month / Term) */}
+      <AttendanceExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        students={students}
+      />
     </div>
   );
 };

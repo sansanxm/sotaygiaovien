@@ -254,7 +254,7 @@ export const exportStudentsToExcel = async (
 };
 
 /**
- * 2. Xuất Bảng Điểm Danh Chuẩn Times New Roman 14
+ * 2. Xuất Sổ Điểm Danh Theo Ngày
  */
 export const exportAttendanceToExcel = async (
   records: { student: Student; status: string; note?: string }[],
@@ -264,7 +264,7 @@ export const exportAttendanceToExcel = async (
   teacherName: string
 ) => {
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Điểm Danh');
+  const worksheet = workbook.addWorksheet('Điểm Danh Ngày');
 
   worksheet.pageSetup.paperSize = 9;
   worksheet.pageSetup.orientation = 'portrait';
@@ -279,7 +279,7 @@ export const exportAttendanceToExcel = async (
 
   worksheet.mergeCells('A2:F2');
   const subRow = worksheet.getCell('A2');
-  subRow.value = `Ngày: ${dateStr}  |  Buổi: ${session === 'morning' ? 'Sáng' : 'Chiều'}  |  GVCN: ${teacherName}`;
+  subRow.value = `Ngày: ${dateStr}  |  Buổi: ${session === 'morning' || session === 'Sáng' ? 'Sáng' : 'Chiều'}  |  GVCN: ${teacherName}`;
   subRow.font = { name: FONT_FAMILY, size: 13, italic: true };
   subRow.alignment = { horizontal: 'center', vertical: 'middle' };
   worksheet.getRow(2).height = 22;
@@ -292,7 +292,7 @@ export const exportAttendanceToExcel = async (
   headerRow.height = 28;
 
   headerRow.eachCell((cell) => {
-    cell.font = { name: FONT_FAMILY, size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.font = { name: FONT_FAMILY, size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
     cell.fill = {
       type: 'pattern',
       pattern: 'solid',
@@ -326,7 +326,7 @@ export const exportAttendanceToExcel = async (
     row.height = 24;
 
     row.eachCell((cell, colNum) => {
-      cell.font = { name: FONT_FAMILY, size: 14 };
+      cell.font = { name: FONT_FAMILY, size: 13 };
       cell.border = THIN_BORDER;
 
       if (colNum === 1 || colNum === 3 || colNum === 4 || colNum === 5) {
@@ -334,28 +334,387 @@ export const exportAttendanceToExcel = async (
       } else {
         cell.alignment = { horizontal: 'left', vertical: 'middle' };
       }
-
-      if (rec.status === 'unexcused') {
-        cell.font = { name: FONT_FAMILY, size: 14, bold: true, color: { argb: 'FFC00000' } };
-      }
     });
   });
 
   worksheet.columns = [
     { width: 8 },
-    { width: 26 },
+    { width: 28 },
     { width: 12 },
     { width: 22 },
     { width: 18 },
-    { width: 25 },
+    { width: 26 },
   ];
 
   await saveWorkbook(workbook, `Diem_Danh_${className}_${dateStr}.xlsx`);
 };
 
 /**
+ * 2.1 Xuất Sổ Điểm Danh THEO TUẦN (Ma trận Thứ 2 -> Thứ 7 & Thống kê P, K, M)
+ */
+export const exportAttendanceWeeklyReport = async (
+  students: Student[],
+  allRecords: { studentId: string; date: string; session: string; status: string }[],
+  weekDays: { date: string; dayLabel: string }[],
+  weekTitle: string,
+  className: string,
+  yearName: string,
+  teacherName: string
+) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Diem_Danh_Tuan');
+
+  worksheet.pageSetup.paperSize = 9;
+  worksheet.pageSetup.orientation = 'landscape';
+
+  const totalCols = 2 + weekDays.length * 2 + 4; // STT, Name, (Sang+Chieu)*days, CoMat, P, K, M
+
+  // 1. Tiêu đề
+  worksheet.mergeCells(1, 1, 1, totalCols);
+  const title = worksheet.getCell('A1');
+  title.value = `SỔ THEO DÕI ĐIỂM DANH HỌC SINH THEO TUẦN - ${weekTitle.toUpperCase()}`;
+  title.font = { name: FONT_FAMILY, size: 15, bold: true, color: { argb: 'FF002060' } };
+  title.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(1).height = 30;
+
+  worksheet.mergeCells(2, 1, 2, totalCols);
+  const sub = worksheet.getCell('A2');
+  sub.value = `Lớp: ${className}  |  Năm học: ${yearName}  |  Giáo viên chủ nhiệm: ${teacherName}  |  Sĩ số: ${students.length}`;
+  sub.font = { name: FONT_FAMILY, size: 12, italic: true };
+  sub.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(2).height = 20;
+
+  // 2. Header Rows (2 Level Header)
+  // Row 4: Day Names & General Categories
+  worksheet.mergeCells('A4:A5');
+  worksheet.getCell('A4').value = 'STT';
+  worksheet.mergeCells('B4:B5');
+  worksheet.getCell('B4').value = 'Họ và tên học sinh';
+
+  let currentC = 3;
+  weekDays.forEach((wd) => {
+    worksheet.mergeCells(4, currentC, 4, currentC + 1);
+    const dayCell = worksheet.getCell(4, currentC);
+    dayCell.value = `${wd.dayLabel}\n(${wd.date.slice(5)})`;
+    dayCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+    worksheet.getCell(5, currentC).value = 'S';
+    worksheet.getCell(5, currentC + 1).value = 'C';
+    currentC += 2;
+  });
+
+  worksheet.mergeCells(4, currentC, 4, currentC + 3);
+  worksheet.getCell(4, currentC).value = 'Tổng kết tuần';
+  worksheet.getCell(5, currentC).value = 'Đủ';
+  worksheet.getCell(5, currentC + 1).value = 'P';
+  worksheet.getCell(5, currentC + 2).value = 'K';
+  worksheet.getCell(5, currentC + 3).value = 'M';
+
+  [4, 5].forEach((r) => {
+    const row = worksheet.getRow(r);
+    row.height = 24;
+    row.eachCell((cell) => {
+      cell.font = { name: FONT_FAMILY, size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E79' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = THIN_BORDER;
+    });
+  });
+
+  // 3. Map student rows
+  const recordMap = new Map<string, string>(); // `${studentId}_${date}_${session}` -> status
+  allRecords.forEach((r) => {
+    recordMap.set(`${r.studentId}_${r.date}_${r.session}`, r.status);
+  });
+
+  students.forEach((st, idx) => {
+    const rowNum = 6 + idx;
+    const row = worksheet.getRow(rowNum);
+    const values: any[] = [st.rollNumber || idx + 1, st.fullName];
+
+    let presentCount = 0;
+    let excusedCount = 0;
+    let unexcusedCount = 0;
+    let lateCount = 0;
+
+    weekDays.forEach((wd) => {
+      ['Sáng', 'Chiều'].forEach((sess) => {
+        const status = recordMap.get(`${st.id}_${wd.date}_${sess}`);
+        if (status === 'present') {
+          values.push('✓');
+          presentCount++;
+        } else if (status === 'excused') {
+          values.push('P');
+          excusedCount++;
+        } else if (status === 'unexcused') {
+          values.push('K');
+          unexcusedCount++;
+        } else if (status === 'late') {
+          values.push('M');
+          lateCount++;
+        } else {
+          values.push('');
+        }
+      });
+    });
+
+    values.push(presentCount, excusedCount, unexcusedCount, lateCount);
+    row.values = values;
+    row.height = 22;
+
+    row.eachCell((cell, colNum) => {
+      cell.font = { name: FONT_FAMILY, size: 11 };
+      cell.border = THIN_BORDER;
+      cell.alignment = { horizontal: colNum === 2 ? 'left' : 'center', vertical: 'middle' };
+
+      // Highlight absences
+      const val = cell.value;
+      if (val === 'K') {
+        cell.font = { name: FONT_FAMILY, size: 11, bold: true, color: { argb: 'FFDC2626' } };
+      } else if (val === 'P') {
+        cell.font = { name: FONT_FAMILY, size: 11, bold: true, color: { argb: 'FFD97706' } };
+      } else if (val === 'M') {
+        cell.font = { name: FONT_FAMILY, size: 11, bold: true, color: { argb: 'FF2563EB' } };
+      }
+    });
+  });
+
+  // Column Widths
+  const widths = [{ width: 6 }, { width: 24 }];
+  weekDays.forEach(() => {
+    widths.push({ width: 5 }, { width: 5 });
+  });
+  widths.push({ width: 6 }, { width: 6 }, { width: 6 }, { width: 6 });
+  worksheet.columns = widths;
+
+  await saveWorkbook(workbook, `Diem_Danh_Tuan_${className}_${weekTitle.replace(/\s+/g, '_')}.xlsx`);
+};
+
+/**
+ * 2.2 Xuất Sổ Điểm Danh THEO THÁNG (Ma trận Ngày 1 -> 31)
+ */
+export const exportAttendanceMonthlyReport = async (
+  students: Student[],
+  allRecords: { studentId: string; date: string; session: string; status: string }[],
+  monthNumber: number,
+  yearNumber: number,
+  className: string,
+  yearName: string,
+  teacherName: string
+) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(`Thang_${monthNumber}`);
+
+  worksheet.pageSetup.paperSize = 9;
+  worksheet.pageSetup.orientation = 'landscape';
+
+  const daysInMonth = new Date(yearNumber, monthNumber, 0).getDate();
+  const totalCols = 2 + daysInMonth + 4; // STT, Name, 1..N, CoMat, P, K, M
+
+  worksheet.mergeCells(1, 1, 1, totalCols);
+  const title = worksheet.getCell('A1');
+  title.value = `SỔ THEO DÕI ĐIỂM DANH HỌC SINH THÁNG ${monthNumber} NĂM ${yearNumber}`;
+  title.font = { name: FONT_FAMILY, size: 15, bold: true, color: { argb: 'FF002060' } };
+  title.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(1).height = 30;
+
+  worksheet.mergeCells(2, 1, 2, totalCols);
+  const sub = worksheet.getCell('A2');
+  sub.value = `Lớp: ${className}  |  Năm học: ${yearName}  |  Giáo viên chủ nhiệm: ${teacherName}  |  Sĩ số: ${students.length} học sinh`;
+  sub.font = { name: FONT_FAMILY, size: 12, italic: true };
+  sub.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(2).height = 20;
+
+  // Header
+  const headers = ['STT', 'Họ và tên học sinh'];
+  for (let d = 1; d <= daysInMonth; d++) {
+    headers.push(String(d));
+  }
+  headers.push('Tổng Đủ', 'Vắng P', 'Vắng K', 'Muộn');
+
+  const headerRow = worksheet.getRow(4);
+  headerRow.values = headers;
+  headerRow.height = 26;
+
+  headerRow.eachCell((cell) => {
+    cell.font = { name: FONT_FAMILY, size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E79' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = THIN_BORDER;
+  });
+
+  const recordMap = new Map<string, string>();
+  allRecords.forEach((r) => {
+    recordMap.set(`${r.studentId}_${r.date}`, r.status);
+  });
+
+  students.forEach((st, idx) => {
+    const rowNum = 5 + idx;
+    const row = worksheet.getRow(rowNum);
+    const values: any[] = [st.rollNumber || idx + 1, st.fullName];
+
+    let present = 0;
+    let pCount = 0;
+    let kCount = 0;
+    let mCount = 0;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dStr = String(d).padStart(2, '0');
+      const mStr = String(monthNumber).padStart(2, '0');
+      const fullDate = `${yearNumber}-${mStr}-${dStr}`;
+
+      const status = recordMap.get(`${st.id}_${fullDate}`);
+      if (status === 'present') {
+        values.push('✓');
+        present++;
+      } else if (status === 'excused') {
+        values.push('P');
+        pCount++;
+      } else if (status === 'unexcused') {
+        values.push('K');
+        kCount++;
+      } else if (status === 'late') {
+        values.push('M');
+        mCount++;
+      } else {
+        values.push('');
+      }
+    }
+
+    values.push(present, pCount, kCount, mCount);
+    row.values = values;
+    row.height = 20;
+
+    row.eachCell((cell, colNum) => {
+      cell.font = { name: FONT_FAMILY, size: 10 };
+      cell.border = THIN_BORDER;
+      cell.alignment = { horizontal: colNum === 2 ? 'left' : 'center', vertical: 'middle' };
+    });
+  });
+
+  const colWidths = [{ width: 6 }, { width: 24 }];
+  for (let d = 1; d <= daysInMonth; d++) {
+    colWidths.push({ width: 3.5 });
+  }
+  colWidths.push({ width: 8 }, { width: 7 }, { width: 7 }, { width: 7 });
+  worksheet.columns = colWidths;
+
+  await saveWorkbook(workbook, `Diem_Danh_Thang_${monthNumber}_${className}.xlsx`);
+};
+
+/**
+ * 2.3 Xuất Báo Cáo Điểm Danh THEO HỌC KỲ / CẢ NĂM (Tổng hợp chuyên cần & Nề nếp)
+ */
+export const exportAttendanceTermReport = async (
+  students: Student[],
+  summaryData: {
+    student: Student;
+    totalPresent: number;
+    totalExcused: number;
+    totalUnexcused: number;
+    totalLate: number;
+    attendanceRate: string;
+    conductNote: string;
+  }[],
+  termName: string,
+  className: string,
+  yearName: string,
+  teacherName: string
+) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Tong_Ket_Chuyen_Can');
+
+  worksheet.pageSetup.paperSize = 9;
+  worksheet.pageSetup.orientation = 'portrait';
+
+  worksheet.mergeCells('A1:H1');
+  const title = worksheet.getCell('A1');
+  title.value = `BẢNG TỔNG HỢP CHUYÊN CẦN & ĐIỂM DANH - ${termName.toUpperCase()}`;
+  title.font = { name: FONT_FAMILY, size: 15, bold: true, color: { argb: 'FF002060' } };
+  title.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(1).height = 30;
+
+  worksheet.mergeCells('A2:H2');
+  const sub = worksheet.getCell('A2');
+  sub.value = `Lớp: ${className}  |  Năm học: ${yearName}  |  GVCN: ${teacherName}  |  Sĩ số: ${students.length}`;
+  sub.font = { name: FONT_FAMILY, size: 12, italic: true };
+  sub.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(2).height = 20;
+
+  const headers = [
+    'STT',
+    'Họ và tên học sinh',
+    'Số buổi có mặt',
+    'Vắng có phép (P)',
+    'Vắng không phép (K)',
+    'Số lần đi muộn (M)',
+    'Tỷ lệ chuyên cần',
+    'Đánh giá chuyên cần',
+  ];
+
+  const headerRow = worksheet.getRow(4);
+  headerRow.values = headers;
+  headerRow.height = 28;
+
+  headerRow.eachCell((cell) => {
+    cell.font = { name: FONT_FAMILY, size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E40AF' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cell.border = THIN_BORDER;
+  });
+
+  summaryData.forEach((item, idx) => {
+    const rowNum = 5 + idx;
+    const row = worksheet.getRow(rowNum);
+    row.values = [
+      item.student.rollNumber || idx + 1,
+      item.student.fullName,
+      item.totalPresent,
+      item.totalExcused,
+      item.totalUnexcused,
+      item.totalLate,
+      item.attendanceRate,
+      item.conductNote,
+    ];
+    row.height = 22;
+
+    row.eachCell((cell, colNum) => {
+      cell.font = { name: FONT_FAMILY, size: 12 };
+      cell.border = THIN_BORDER;
+      cell.alignment = { horizontal: colNum === 2 || colNum === 8 ? 'left' : 'center', vertical: 'middle' };
+    });
+  });
+
+  worksheet.columns = [
+    { width: 8 },
+    { width: 28 },
+    { width: 16 },
+    { width: 18 },
+    { width: 20 },
+    { width: 18 },
+    { width: 18 },
+    { width: 25 },
+  ];
+
+  // Chữ ký cuối bảng
+  const signRowIdx = 5 + summaryData.length + 2;
+  worksheet.mergeCells(`B${signRowIdx}:C${signRowIdx}`);
+  worksheet.getCell(`B${signRowIdx}`).value = 'HIỆU TRƯỞNG\n(Ký và ghi rõ họ tên)';
+  worksheet.getCell(`B${signRowIdx}`).font = { name: FONT_FAMILY, size: 12, bold: true };
+  worksheet.getCell(`B${signRowIdx}`).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+  worksheet.mergeCells(`F${signRowIdx}:H${signRowIdx}`);
+  worksheet.getCell(`F${signRowIdx}`).value = `GIÁO VIÊN CHỦ NHIỆM\n${teacherName}`;
+  worksheet.getCell(`F${signRowIdx}`).font = { name: FONT_FAMILY, size: 12, bold: true };
+  worksheet.getCell(`F${signRowIdx}`).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+  await saveWorkbook(workbook, `Tong_Hop_Diem_Danh_${termName.replace(/\s+/g, '_')}_${className}.xlsx`);
+};
+
+/**
  * 3. Xuất Báo Cáo Thu Chi Quỹ Lớp Chuẩn Times New Roman 14
  */
+
 export const exportFundToExcel = async (
   transactions: FundTransaction[],
   className: string,
