@@ -43,12 +43,13 @@ export interface BankConfig {
 
 // Cố định thông tin tài khoản Admin nhận tiền (Bảo mật - Người dùng cuối không thể sửa)
 export const FIXED_ADMIN_BANK_CONFIG: BankConfig = {
-  bankId: 'MB', // Ngân hàng Quân Đội MBBank (Napas 247)
-  accountNo: '0988123456',
-  accountName: 'ADMIN GVCN',
+  bankId: 'VCB', // Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank - Napas 247)
+  accountNo: '9889917686',
+  accountName: 'VIETCOMBANK',
   price1Year: 99000,
   priceLifetime: 199000,
 };
+
 
 // Default Admin Script URL (Baked permanently into app for all teachers)
 export const DEFAULT_ADMIN_GAS_URL =
