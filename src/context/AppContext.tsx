@@ -318,12 +318,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     [user]
   );
 
-  // Initialize Admin Google Auth state
+  // Initialize Admin Google Auth state on mount (runs once)
   useEffect(() => {
+    let isMounted = true;
+
     const initAuth = async () => {
       try {
         const currentUser = await adminGoogleSync.getCurrentUser();
-        if (currentUser) {
+        if (currentUser && isMounted) {
           setUser(currentUser);
           setSyncState('synced');
           // If local database is completely empty on new device, download cloud data
@@ -340,9 +342,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     initAuth();
 
-    // Listen to network status: automatically push local changes to cloud
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Online / Offline network listeners
+  useEffect(() => {
     const handleOnline = () => {
-      if (user) syncWithCloud('upload');
+      if (user) {
+        syncWithCloud('upload');
+      }
     };
     const handleOffline = () => {
       setSyncState('offline');
@@ -356,6 +366,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.removeEventListener('offline', handleOffline);
     };
   }, [user, syncWithCloud]);
+
 
 
   useEffect(() => {

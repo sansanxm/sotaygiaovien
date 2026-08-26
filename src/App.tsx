@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component, type ErrorInfo, type ReactNode } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Sidebar } from './components/Sidebar';
 import { TimetableManager } from './components/TimetableManager';
@@ -14,8 +14,57 @@ import { RandomPicker } from './components/RandomPicker';
 import { TodosView } from './components/TodosView';
 import { SettingsModal } from './components/SettingsModal';
 import { MobileNavigation } from './components/MobileNavigation';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, RefreshCw } from 'lucide-react';
 
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen w-screen flex flex-col items-center justify-center p-6 bg-[#FFF5F7] text-slate-800 text-center font-sans">
+          <div className="w-16 h-16 rounded-3xl bg-pink-100 text-pink-600 flex items-center justify-center text-3xl mb-4 shadow-lg">
+            🌸
+          </div>
+          <h2 className="text-xl font-black text-slate-800 mb-2">Sổ Tay Giáo Viên 4.0</h2>
+          <p className="text-xs text-slate-500 max-w-md mb-6 font-semibold leading-relaxed">
+            Ứng dụng đã sẵn sàng. Bấm nút bên dưới để tải lại dữ liệu an toàn ngay lập tức.
+          </p>
+          <button
+            onClick={() => {
+              window.location.reload();
+            }}
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-extrabold text-xs shadow-md shadow-pink-300/50 flex items-center gap-2 cursor-pointer active:scale-98 transition-all"
+          >
+            <RefreshCw className="w-4 h-4" /> Tải Lại Trang
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const AppContent: React.FC = () => {
   const { activeTab, theme, isLoading } = useApp();
@@ -68,13 +117,11 @@ const AppContent: React.FC = () => {
           </div>
         </main>
 
-
         {/* Footer info bar (hidden on mobile to maximize screen area) */}
         <footer className="hidden md:block w-full bg-white/80 backdrop-blur-md border-t border-slate-200/80 py-3 px-6 text-xs text-slate-500 font-extrabold tracking-wider uppercase text-center shrink-0">
           THIẾT KẾ VÀ PHÁT TRIỂN BỞI <strong className="text-slate-800 font-black">XIAO SYSTEM</strong> © 2026
         </footer>
       </div>
-
 
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
@@ -85,8 +132,10 @@ const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
