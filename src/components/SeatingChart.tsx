@@ -46,28 +46,28 @@ export const SeatingChart: React.FC = () => {
   const applyLayoutPreset = async (preset: SeatingLayoutType) => {
     if (!currentClass) return;
 
+    let targetRows = 4;
+    let targetCols = 6;
+
+    if (preset === '3-dãy') {
+      targetRows = 4;
+      targetCols = 6; // 3 blocks of 2 cols
+    } else if (preset === '2-dãy') {
+      targetRows = 5;
+      targetCols = 4; // 2 blocks of 2 cols
+    } else if (preset === '4-dãy') {
+      targetRows = 4;
+      targetCols = 4; // 4 single cols
+    } else if (preset === 'nhóm-u') {
+      targetRows = 4;
+      targetCols = 4; // 4 table clusters
+    }
+
+    setLayoutType(preset);
+    setRows(targetRows);
+    setCols(targetCols);
+
     try {
-      let targetRows = 4;
-      let targetCols = 6;
-
-      if (preset === '3-dãy') {
-        targetRows = 4;
-        targetCols = 6; // 3 blocks of 2 cols
-      } else if (preset === '2-dãy') {
-        targetRows = 5;
-        targetCols = 4; // 2 blocks of 2 cols
-      } else if (preset === '4-dãy') {
-        targetRows = 4;
-        targetCols = 4; // 4 single cols
-      } else if (preset === 'nhóm-u') {
-        targetRows = 4;
-        targetCols = 4; // 4 table clusters
-      }
-
-      setLayoutType(preset);
-      setRows(targetRows);
-      setCols(targetCols);
-
       const studentList = await db.students
         .where('classId')
         .equals(currentClass.id)
@@ -78,7 +78,7 @@ export const SeatingChart: React.FC = () => {
       for (let r = 0; r < targetRows; r++) {
         for (let c = 0; c < targetCols; c++) {
           newSeats.push({
-            id: `seat-${currentClass.id}-${preset}-${r}-${c}-${Date.now()}`,
+            id: `seat-${currentClass.id}-${r}-${c}`,
             classId: currentClass.id,
             row: r,
             col: c,
@@ -88,15 +88,14 @@ export const SeatingChart: React.FC = () => {
         }
       }
 
-      await db.transaction('rw', [db.classes, db.seats], async () => {
-        await db.classes.update(currentClass.id, {
-          layoutType: preset,
-          rows: targetRows,
-          cols: targetCols,
-        });
-        await db.seats.where('classId').equals(currentClass.id).delete();
-        await db.seats.bulkPut(newSeats);
+      await db.classes.update(currentClass.id, {
+        layoutType: preset,
+        rows: targetRows,
+        cols: targetCols,
       });
+
+      await db.seats.where('classId').equals(currentClass.id).delete();
+      await db.seats.bulkPut(newSeats);
 
       setSeats(newSeats);
       triggerConfetti();
@@ -105,9 +104,17 @@ export const SeatingChart: React.FC = () => {
     }
   };
 
-
   const loadSeatingData = async () => {
     if (!currentClass) return;
+
+    const freshClass = await db.classes.get(currentClass.id);
+    const currentLayout = (freshClass?.layoutType as SeatingLayoutType) || (currentClass.layoutType as SeatingLayoutType) || '3-dãy';
+    setLayoutType(currentLayout);
+
+    let defaultRows = freshClass?.rows || currentClass.rows || 4;
+    let defaultCols = freshClass?.cols || currentClass.cols || (currentLayout === '3-dãy' ? 6 : 4);
+    setRows(defaultRows);
+    setCols(defaultCols);
 
     const studentList = await db.students
       .where('classId')
@@ -116,13 +123,6 @@ export const SeatingChart: React.FC = () => {
     setStudents(studentList);
 
     const seatList = await db.seats.where('classId').equals(currentClass.id).toArray();
-    const currentLayout = (currentClass.layoutType as SeatingLayoutType) || '3-dãy';
-    setLayoutType(currentLayout);
-
-    let defaultRows = currentClass.rows || 4;
-    let defaultCols = currentClass.cols || (currentLayout === '3-dãy' ? 6 : 4);
-    setRows(defaultRows);
-    setCols(defaultCols);
 
     if (seatList.length === 0) {
       const initialSeats: Seat[] = [];
@@ -140,7 +140,7 @@ export const SeatingChart: React.FC = () => {
         }
       }
       setSeats(initialSeats);
-      await db.seats.bulkAdd(initialSeats);
+      await db.seats.bulkPut(initialSeats);
     } else {
       setSeats(seatList);
     }
@@ -148,7 +148,8 @@ export const SeatingChart: React.FC = () => {
 
   useEffect(() => {
     loadSeatingData();
-  }, [currentClass]);
+  }, [currentClass?.id]);
+
 
   const getStudentById = (id: string | null): Student | undefined => {
     if (!id) return undefined;
