@@ -15,7 +15,9 @@ import { TodosView } from './components/TodosView';
 import { SettingsModal } from './components/SettingsModal';
 import { MobileNavigation } from './components/MobileNavigation';
 import { TrialExpiredPaywall } from './components/TrialExpiredPaywall';
+import { AuthAndPlanOnboarding } from './components/AuthAndPlanOnboarding';
 import { Sparkles, RefreshCw, Crown } from 'lucide-react';
+
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -68,7 +70,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 const AppContent: React.FC = () => {
-  const { activeTab, theme, isLoading, licenseStatus, setShowVipModal } = useApp();
+  const { activeTab, theme, isLoading, user, licenseStatus, setShowVipModal } = useApp();
 
   const [showSettings, setShowSettings] = useState(false);
 
@@ -86,10 +88,16 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // 1. If 30-day Free Trial is Expired and User is not VIP -> Lock app with Paywall
+  // 1. Mandatory Login / Sign Up Onboarding Screen on first launch
+  if (!user) {
+    return <AuthAndPlanOnboarding />;
+  }
+
+  // 2. If 30-day Free Trial is Expired and User is not VIP -> Lock app with Paywall
   if (licenseStatus.isExpired) {
     return <TrialExpiredPaywall />;
   }
+
 
   return (
     <div
