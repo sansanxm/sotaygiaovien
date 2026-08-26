@@ -46,66 +46,65 @@ export const SeatingChart: React.FC = () => {
   const applyLayoutPreset = async (preset: SeatingLayoutType) => {
     if (!currentClass) return;
 
-    let targetRows = 4;
-    let targetCols = 6;
+    try {
+      let targetRows = 4;
+      let targetCols = 6;
 
-    if (preset === '3-dãy') {
-      targetRows = 4;
-      targetCols = 6; // 3 blocks of 2 cols
-    } else if (preset === '2-dãy') {
-      targetRows = 5;
-      targetCols = 4; // 2 blocks of 2 cols
-    } else if (preset === '4-dãy') {
-      targetRows = 4;
-      targetCols = 4; // 4 single cols
-    } else if (preset === 'nhóm-u') {
-      targetRows = 4;
-      targetCols = 4; // 4 table clusters
-    }
-
-    setLayoutType(preset);
-    setRows(targetRows);
-    setCols(targetCols);
-
-    await db.classes.update(currentClass.id, {
-      layoutType: preset,
-      rows: targetRows,
-      cols: targetCols,
-    });
-
-    // Re-seat students maintaining existing order
-    const studentList = await db.students
-      .where('classId')
-      .equals(currentClass.id)
-      .sortBy('rollNumber');
-
-    // Keep existing seat map if possible
-    const currentSeatMap = new Map<string, string>(); // studentId -> old position
-    seats.forEach((s) => {
-      if (s.studentId) currentSeatMap.set(s.studentId, `${s.row}-${s.col}`);
-    });
-
-    const newSeats: Seat[] = [];
-    let sIdx = 0;
-    for (let r = 0; r < targetRows; r++) {
-      for (let c = 0; c < targetCols; c++) {
-        newSeats.push({
-          id: `seat-${currentClass.id}-${preset}-${r}-${c}`,
-          classId: currentClass.id,
-          row: r,
-          col: c,
-          studentId: sIdx < studentList.length ? studentList[sIdx].id : null,
-        });
-        sIdx++;
+      if (preset === '3-dãy') {
+        targetRows = 4;
+        targetCols = 6; // 3 blocks of 2 cols
+      } else if (preset === '2-dãy') {
+        targetRows = 5;
+        targetCols = 4; // 2 blocks of 2 cols
+      } else if (preset === '4-dãy') {
+        targetRows = 4;
+        targetCols = 4; // 4 single cols
+      } else if (preset === 'nhóm-u') {
+        targetRows = 4;
+        targetCols = 4; // 4 table clusters
       }
-    }
 
-    // Replace seats in db
-    await db.seats.where('classId').equals(currentClass.id).delete();
-    await db.seats.bulkAdd(newSeats);
-    setSeats(newSeats);
-    triggerConfetti();
+      setLayoutType(preset);
+      setRows(targetRows);
+      setCols(targetCols);
+
+      const studentList = await db.students
+        .where('classId')
+        .equals(currentClass.id)
+        .sortBy('rollNumber');
+
+      const newSeats: Seat[] = [];
+      let sIdx = 0;
+      for (let r = 0; r < targetRows; r++) {
+        for (let c = 0; c < targetCols; c++) {
+          newSeats.push({
+            id: `seat-${currentClass.id}-${preset}-${r}-${c}-${Date.now()}`,
+            classId: currentClass.id,
+            row: r,
+            col: c,
+            studentId: sIdx < studentList.length ? studentList[sIdx].id : null,
+          });
+          sIdx++;
+        }
+      }
+
+      await db.transaction('rw', [db.classes, db.seats], async () => {
+        await db.classes.update(currentClass.id, {
+          layoutType: preset,
+          rows: targetRows,
+          cols: targetCols,
+        });
+        await db.seats.where('classId').equals(currentClass.id).delete();
+        await db.seats.bulkPut(newSeats);
+      });
+
+      setSeats(newSeats);
+      triggerConfetti();
+    } catch (err) {
+      console.error('Error applying layout preset:', err);
+    }
   };
+
 
   const loadSeatingData = async () => {
     if (!currentClass) return;
