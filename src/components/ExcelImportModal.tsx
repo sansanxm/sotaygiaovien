@@ -45,6 +45,176 @@ export const ExcelImportModal: React.FC<Props> = ({
   };
 
 
+  // Universal Date Normalizer
+  const normalizeExcelDate = (val: any): string => {
+    if (!val) return '2014-01-01';
+    if (typeof val === 'number') {
+      // Excel serial date number
+      const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+      const d = String(date.getDate()).padStart(2, '0');
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+    return String(val).trim();
+  };
+
+  // Universal Robust Row Parser
+  const parseRawRows = (rows: any[][]): Student[] => {
+    if (!currentClass || rows.length === 0) return [];
+
+    let headerRowIdx = -1;
+    let colSTT = -1;
+    let colName = -1;
+    let colLastName = -1;
+    let colFirstName = -1;
+    let colGender = -1;
+    let colDob = -1;
+    let colParent = -1;
+    let colPhone = -1;
+    let colAddress = -1;
+    let colHealth = -1;
+    let colNote = -1;
+
+    // 1. Scan rows to find the actual header row
+    for (let r = 0; r < Math.min(rows.length, 10); r++) {
+      const row = rows[r].map((cell) => String(cell || '').toLowerCase().trim());
+      const hasName = row.some((c) => c.includes('họ') || c.includes('tên') || c.includes('học sinh'));
+      const hasSTT = row.some((c) => c === 'stt' || c.includes('số tt'));
+      const hasGender = row.some((c) => c.includes('giới tính') || c.includes('nam') || c.includes('nữ'));
+
+      if (hasName || (hasSTT && hasGender)) {
+        headerRowIdx = r;
+        row.forEach((cell, idx) => {
+          if (cell === 'stt' || cell.includes('số tt') || cell.includes('thứ tự')) colSTT = idx;
+          else if (cell.includes('họ và tên') || cell.includes('họ tên') || cell.includes('họ và tên học sinh') || cell.includes('tên học sinh')) colName = idx;
+          else if (cell.includes('họ đệm') || cell.includes('họ và chữ lót') || cell === 'họ') colLastName = idx;
+          else if (cell === 'tên' || cell === 'ten') colFirstName = idx;
+          else if (cell.includes('giới tính') || cell.includes('phái') || cell === 'nam/nữ' || cell === 'nam / nữ') colGender = idx;
+          else if (cell.includes('ngày sinh') || cell.includes('năm sinh') || cell.includes('sinh ngày') || cell.includes('dob') || cell.includes('ngày, tháng, năm sinh')) colDob = idx;
+          else if (cell.includes('phụ huynh') || cell.includes('cha mẹ') || cell.includes('bố mẹ') || cell.includes('người giám hộ') || cell.includes('họ tên cha') || cell.includes('họ tên mẹ')) colParent = idx;
+          else if (cell.includes('điện thoại') || cell.includes('sđt') || cell.includes('phone') || cell.includes('liên hệ') || cell.includes('di động') || cell.includes('zalo')) colPhone = idx;
+          else if (cell.includes('địa chỉ') || cell.includes('nơi ở') || cell.includes('thường trú') || cell.includes('tạm trú') || cell.includes('hộ khẩu') || cell.includes('chỗ ở')) colAddress = idx;
+          else if (cell.includes('sức khỏe') || cell.includes('bệnh') || cell.includes('cận')) colHealth = idx;
+          else if (cell.includes('ghi chú') || cell.includes('khác') || cell.includes('chức vụ') || cell.includes('lưu ý')) colNote = idx;
+        });
+        break;
+      }
+    }
+
+    // Heuristic fallbacks if header not explicitly recognized
+    const startRow = headerRowIdx >= 0 ? headerRowIdx + 1 : 0;
+    if (colName === -1 && colFirstName === -1) {
+      colSTT = 0;
+      colName = 1;
+      colGender = 2;
+      colDob = 3;
+      colParent = 4;
+      colPhone = 5;
+      colAddress = 6;
+      colNote = 7;
+    }
+
+    const students: Student[] = [];
+
+    for (let r = startRow; r < rows.length; r++) {
+      const row = rows[r];
+      if (!row || row.length === 0) continue;
+
+      let fullName = '';
+      if (colName >= 0 && row[colName]) {
+        fullName = String(row[colName]).trim();
+      } else if (colLastName >= 0 && colFirstName >= 0) {
+        const last = String(row[colLastName] || '').trim();
+        const first = String(row[colFirstName] || '').trim();
+        fullName = `${last} ${first}`.trim();
+      } else if (colName === -1 && row[1]) {
+        fullName = String(row[1]).trim();
+      }
+
+      // Filter out footer rows or title noise
+      const lowerName = fullName.toLowerCase();
+      if (
+        !fullName ||
+        lowerName.includes('tổng số') ||
+        lowerName.includes('giáo viên') ||
+        lowerName.includes('danh sách') ||
+        lowerName.includes('năm học') ||
+        lowerName.includes('hướng dẫn') ||
+        lowerName.includes('chữ ký') ||
+        lowerName.startsWith('(*)')
+      ) {
+        continue;
+      }
+
+      // Extract rollNumber
+      let roll = existingCount + students.length + 1;
+      if (colSTT >= 0 && row[colSTT] && !isNaN(Number(row[colSTT]))) {
+        roll = Number(row[colSTT]);
+      }
+
+      // Extract gender
+      let gender: Gender = 'Nữ';
+      if (colGender >= 0 && row[colGender]) {
+        const gStr = String(row[colGender]).toLowerCase().trim();
+        if (gStr.includes('nam') || gStr === 'm' || gStr === '1') {
+          gender = 'Nam';
+        }
+      }
+
+      // Extract DOB
+      let dob = '2014-01-01';
+      if (colDob >= 0 && row[colDob]) {
+        dob = normalizeExcelDate(row[colDob]);
+      }
+
+      // Extract Parent
+      let parentName = '';
+      if (colParent >= 0 && row[colParent]) {
+        parentName = String(row[colParent]).trim();
+      }
+
+      // Extract Phone
+      let parentPhone = '';
+      if (colPhone >= 0 && row[colPhone]) {
+        parentPhone = String(row[colPhone]).replace(/[^\d+]/g, '').trim();
+      }
+
+      // Extract Address
+      let address = '';
+      if (colAddress >= 0 && row[colAddress]) {
+        address = String(row[colAddress]).trim();
+      }
+
+      // Extract Notes
+      let note = '';
+      if (colHealth >= 0 && row[colHealth]) {
+        note = String(row[colHealth]).trim();
+      }
+      if (colNote >= 0 && row[colNote]) {
+        const otherNote = String(row[colNote]).trim();
+        note = note ? `${note} - ${otherNote}` : otherNote;
+      }
+
+      students.push({
+        id: `st-${Date.now()}-${r}-${Math.random().toString(36).slice(2, 6)}`,
+        classId: currentClass.id,
+        rollNumber: roll,
+        fullName,
+        gender,
+        dob,
+        parentName,
+        parentPhone,
+        parentZalo: parentPhone,
+        address,
+        healthNote: note,
+        status: 'Đang học',
+      });
+    }
+
+    return students;
+  };
+
   // 2. Parse Pasted TSV/Excel text
   const handleParsePastedText = () => {
     setParseError(null);
@@ -52,81 +222,11 @@ export const ExcelImportModal: React.FC<Props> = ({
 
     try {
       const lines = pastedText.trim().split('\n');
-      if (lines.length === 0) {
-        setParseError('Không có dữ liệu văn bản để phân tích!');
-        return;
-      }
-
-      const results: Student[] = [];
-
-      lines.forEach((line, idx) => {
-        const cols = line.split('\t').map((c) => c.trim());
-        if (cols.length === 0 || !cols.some(Boolean)) return;
-
-        // Skip header row if contains "Họ tên" or "Họ và tên"
-        const firstCol = cols[0].toLowerCase();
-        const secondCol = (cols[1] || '').toLowerCase();
-        if (
-          firstCol.includes('stt') ||
-          firstCol.includes('họ và tên') ||
-          secondCol.includes('họ và tên') ||
-          secondCol.includes('họ tên')
-        ) {
-          return;
-        }
-
-        let roll = existingCount + idx + 1;
-        let name = '';
-        let gender: Gender = 'Nữ';
-        let dob = '2013-01-01';
-        let parentName = '';
-        let parentPhone = '';
-        let address = '';
-        let healthNote = '';
-
-        if (!isNaN(Number(cols[0])) && cols.length > 1) {
-          // Format with STT as first col: STT | Họ tên | Giới tính | Ngày sinh | PH | SĐT | Địa chỉ
-          roll = Number(cols[0]);
-          name = cols[1] || '';
-          const gStr = (cols[2] || '').toLowerCase();
-          gender = gStr.includes('nam') || gStr === 'm' || gStr === '1' ? 'Nam' : 'Nữ';
-          dob = cols[3] || '2013-01-01';
-          parentName = cols[4] || '';
-          parentPhone = cols[5] || '';
-          address = cols[6] || '';
-          healthNote = cols[7] || '';
-        } else {
-          // Format starting with name: Họ tên | Giới tính | Ngày sinh | ...
-          name = cols[0] || '';
-          const gStr = (cols[1] || '').toLowerCase();
-          gender = gStr.includes('nam') || gStr === 'm' || gStr === '1' ? 'Nam' : 'Nữ';
-          dob = cols[2] || '2013-01-01';
-          parentName = cols[3] || '';
-          parentPhone = cols[4] || '';
-          address = cols[5] || '';
-          healthNote = cols[6] || '';
-        }
-
-        if (name.trim()) {
-          results.push({
-            id: `st-${Date.now()}-${idx}`,
-            classId: currentClass.id,
-            rollNumber: roll,
-            fullName: name.trim(),
-            gender,
-            dob: dob.trim(),
-            parentName: parentName.trim(),
-            parentPhone: parentPhone.trim(),
-            parentZalo: parentPhone.trim(),
-            address: address.trim(),
-            healthNote: healthNote.trim(),
-            status: 'Đang học',
-          });
-        }
-      });
+      const rawRows = lines.map((line) => line.split('\t').map((c) => c.trim()));
+      const results = parseRawRows(rawRows);
 
       if (results.length === 0) {
-        setParseError('Không nhận diện được học sinh nào. Cô hãy kiểm tra lại định dạng copy!');
+        setParseError('Không nhận diện được học sinh nào. Cô hãy kiểm tra lại bảng dữ liệu copy!');
       } else {
         setParsedStudents(results);
       }
@@ -147,43 +247,31 @@ export const ExcelImportModal: React.FC<Props> = ({
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
+        
+        // Read as 2D Array of rows to handle any custom header layout accurately
+        const rawRows = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: '' });
 
-        if (!jsonData || jsonData.length === 0) {
+        if (!rawRows || rawRows.length === 0) {
           setParseError('File Excel không có dữ liệu!');
           return;
         }
 
-        const results: Student[] = jsonData.map((row, idx) => {
-          const name = row['Họ và tên'] || row['Họ tên'] || row['Ho va ten'] || row['Name'] || `Học sinh ${idx + 1}`;
-          const g = (row['Giới tính'] || row['Gioi tinh'] || row['Gender'] || '').toString().toLowerCase().includes('nam') ? 'Nam' : 'Nữ';
-          const dobVal = row['Ngày sinh'] || row['Ngay sinh'] || row['DOB'] || '2013-01-01';
+        const results = parseRawRows(rawRows);
 
-          return {
-            id: `st-${Date.now()}-${idx}`,
-            classId: currentClass.id,
-            rollNumber: Number(row['STT']) || (existingCount + idx + 1),
-            fullName: name.toString().trim(),
-            gender: g,
-            dob: dobVal.toString(),
-            address: (row['Địa chỉ'] || row['Dia chi'] || '').toString(),
-            parentName: (row['Họ tên phụ huynh'] || row['Phụ huynh'] || '').toString(),
-            parentPhone: (row['Số điện thoại'] || row['SĐT'] || '').toString(),
-            parentZalo: (row['Số điện thoại'] || row['SĐT'] || '').toString(),
-            healthNote: (row['Ghi chú sức khỏe'] || '').toString(),
-            status: 'Đang học',
-          };
-        });
-
-        setParsedStudents(results);
-        setParseError(null);
+        if (results.length === 0) {
+          setParseError('Không nhận diện được học sinh nào trong file Excel. Vui lòng kiểm tra lại file!');
+        } else {
+          setParsedStudents(results);
+          setParseError(null);
+        }
       } catch (err) {
-        setParseError('Có lỗi khi mở file Excel!');
+        setParseError('Có lỗi khi đọc file Excel!');
       }
     };
     reader.readAsArrayBuffer(file);
     e.target.value = '';
   };
+
 
   // 4. Save parsed students to DB
   const handleSaveToDatabase = async () => {
