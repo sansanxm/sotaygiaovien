@@ -9,6 +9,7 @@ export interface TeacherUser {
   email: string;
   isVip?: boolean;
   vipExpiresAt?: string | null; // e.g. '2027-09-01' or 'lifetime'
+  createdAt?: string;
   user_metadata: {
     full_name: string;
     avatar_url?: string;
@@ -17,10 +18,20 @@ export interface TeacherUser {
 
 export type SyncState = 'synced' | 'syncing' | 'offline' | 'error' | 'local-only';
 
+export interface LicenseStatus {
+  isVip: boolean;
+  vipExpiresAt: string | null;
+  isTrial: boolean;
+  trialDaysLeft: number;
+  trialExpiresAt: Date;
+  isExpired: boolean;
+}
+
 const STORAGE_SESSION_KEY = 'gvcn_admin_cloud_session';
 const STORAGE_GAS_URL_KEY = 'gvcn_admin_gas_url';
 const STORAGE_VIP_KEY = 'gvcn_vip_license_token';
-const STORAGE_BANK_CONFIG_KEY = 'gvcn_admin_bank_config';
+const STORAGE_INSTALL_TIMESTAMP_KEY = 'gvcn_install_timestamp';
+const TRIAL_DAYS = 30;
 
 export interface BankConfig {
   bankId: string;
@@ -30,8 +41,9 @@ export interface BankConfig {
   priceLifetime: number;
 }
 
-export const DEFAULT_BANK_CONFIG: BankConfig = {
-  bankId: 'MB', // MBBank
+// Cố định thông tin tài khoản Admin nhận tiền (Bảo mật - Người dùng cuối không thể sửa)
+export const FIXED_ADMIN_BANK_CONFIG: BankConfig = {
+  bankId: 'MB', // Ngân hàng Quân Đội MBBank (Napas 247)
   accountNo: '0988123456',
   accountName: 'ADMIN GVCN',
   price1Year: 99000,
@@ -59,6 +71,11 @@ class AdminGoogleScriptSyncService {
     this.scriptUrl = DEFAULT_ADMIN_GAS_URL;
     localStorage.setItem(STORAGE_GAS_URL_KEY, DEFAULT_ADMIN_GAS_URL);
 
+    // Initialize installation date if first time
+    if (!localStorage.getItem(STORAGE_INSTALL_TIMESTAMP_KEY)) {
+      localStorage.setItem(STORAGE_INSTALL_TIMESTAMP_KEY, Date.now().toString());
+    }
+
     try {
       const savedUser = localStorage.getItem(STORAGE_SESSION_KEY);
       if (savedUser) {
@@ -81,17 +98,61 @@ class AdminGoogleScriptSyncService {
   }
 
   public getBankConfig(): BankConfig {
-    try {
-      const saved = localStorage.getItem(STORAGE_BANK_CONFIG_KEY);
-      if (saved) return { ...DEFAULT_BANK_CONFIG, ...JSON.parse(saved) };
-    } catch {}
-    return DEFAULT_BANK_CONFIG;
+    return FIXED_ADMIN_BANK_CONFIG;
   }
 
-  public saveBankConfig(config: Partial<BankConfig>): void {
-    const current = this.getBankConfig();
-    const updated = { ...current, ...config };
-    localStorage.setItem(STORAGE_BANK_CONFIG_KEY, JSON.stringify(updated));
+  // 0. Compute 30-Day Free Trial & VIP License Status
+  public getLicenseStatus(): LicenseStatus {
+    // 1. Check VIP
+    const isVipToken = localStorage.getItem(STORAGE_VIP_KEY);
+    if (isVipToken) {
+      try {
+        const parsed = JSON.parse(isVipToken);
+        if (parsed.isVip) {
+          return {
+            isVip: true,
+            vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
+            isTrial: false,
+            trialDaysLeft: 9999,
+            trialExpiresAt: new Date(Date.now() + 9999 * 86400000),
+            isExpired: false,
+          };
+        }
+      } catch {}
+    }
+
+    if (this.activeUser && this.activeUser.isVip) {
+      return {
+        isVip: true,
+        vipExpiresAt: this.activeUser.vipExpiresAt || 'lifetime',
+        isTrial: false,
+        trialDaysLeft: 9999,
+        trialExpiresAt: new Date(Date.now() + 9999 * 86400000),
+        isExpired: false,
+      };
+    }
+
+    // 2. Check 30-Day Trial from local installation timestamp
+    let installTimestamp = Number(localStorage.getItem(STORAGE_INSTALL_TIMESTAMP_KEY));
+    if (!installTimestamp || isNaN(installTimestamp)) {
+      installTimestamp = Date.now();
+      localStorage.setItem(STORAGE_INSTALL_TIMESTAMP_KEY, installTimestamp.toString());
+    }
+
+    const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    const trialExpiresAt = new Date(installTimestamp + trialDurationMs);
+    const msRemaining = trialExpiresAt.getTime() - Date.now();
+    const trialDaysLeft = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
+    const isExpired = msRemaining <= 0;
+
+    return {
+      isVip: false,
+      vipExpiresAt: null,
+      isTrial: !isExpired,
+      trialDaysLeft,
+      trialExpiresAt,
+      isExpired,
+    };
   }
 
   // 1. Get current logged in user with VIP status

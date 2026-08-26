@@ -2,11 +2,12 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import confetti from 'canvas-confetti';
 import { db, exportDatabaseBackup, importDatabaseBackup } from '../db/db';
 import { seedInitialDatabase } from '../db/initialData';
-import { adminGoogleSync, type TeacherUser as CloudUser, type SyncState } from '../services/adminGoogleScriptSync';
+import { adminGoogleSync, type TeacherUser as CloudUser, type SyncState, type LicenseStatus } from '../services/adminGoogleScriptSync';
 import type { SchoolYear, ClassRoom, ActiveTab, TeacherTitle, AppTheme } from '../types';
 import { VipUpgradeModal } from '../components/VipUpgradeModal';
 
-export type { AppTheme, SyncState, CloudUser };
+export type { AppTheme, SyncState, CloudUser, LicenseStatus };
+
 
 
 
@@ -145,6 +146,7 @@ export interface AppContextType {
   lastSyncedAt: Date | null;
   isVip: boolean;
   vipExpiresAt: string | null;
+  licenseStatus: LicenseStatus;
   showVipModal: boolean;
   setShowVipModal: (show: boolean) => void;
   activateVip: (expiresAt?: string) => void;
@@ -188,32 +190,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [syncState, setSyncState] = useState<SyncState>('local-only');
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
 
-  // VIP License State
-  const [isVip, setIsVip] = useState<boolean>(() => {
-    const saved = localStorage.getItem('gvcn_vip_license_token');
-    if (saved) {
-      try {
-        return JSON.parse(saved).isVip === true;
-      } catch {}
-    }
-    return false;
-  });
-  const [vipExpiresAt, setVipExpiresAt] = useState<string | null>(() => {
-    const saved = localStorage.getItem('gvcn_vip_license_token');
-    if (saved) {
-      try {
-        return JSON.parse(saved).vipExpiresAt || 'lifetime';
-      } catch {}
-    }
-    return null;
-  });
+  // VIP & 30-Day Trial License State
+  const [licenseStatus, setLicenseStatus] = useState<LicenseStatus>(() => adminGoogleSync.getLicenseStatus());
+  const [isVip, setIsVip] = useState<boolean>(() => licenseStatus.isVip);
+  const [vipExpiresAt, setVipExpiresAt] = useState<string | null>(() => licenseStatus.vipExpiresAt);
   const [showVipModal, setShowVipModal] = useState(false);
 
   const activateVip = (expiresAt: string = 'lifetime') => {
     setIsVip(true);
     setVipExpiresAt(expiresAt);
     adminGoogleSync.setLocalVip(user?.email || 'local_user', expiresAt);
+    setLicenseStatus(adminGoogleSync.getLicenseStatus());
   };
+
 
 
   const syncingRef = useRef(false);
@@ -489,8 +478,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         lastSyncedAt,
         isVip,
         vipExpiresAt,
+        licenseStatus,
         showVipModal,
         setShowVipModal,
+
         activateVip,
         signIn,
         signUp,

@@ -18,16 +18,16 @@ import {
   Cloud,
   LogOut,
   Crown,
-  QrCode,
   Zap,
-  Check,
 } from 'lucide-react';
+
 
 import { useApp, THEME_CONFIGS } from '../context/AppContext';
 import { db, exportDatabaseBackup, importDatabaseBackup } from '../db/db';
 import { GoogleAuthModal } from './GoogleAuthModal';
-import { adminGoogleSync, type BankConfig } from '../services/adminGoogleScriptSync';
+import { adminGoogleSync } from '../services/adminGoogleScriptSync';
 import type { TeacherTitle, AppTheme } from '../types';
+
 
 export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
@@ -62,11 +62,9 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
-  // Bank Config for Admin VietQR
-  const [bankConfigState, setBankConfigState] = useState<BankConfig>(() => adminGoogleSync.getBankConfig());
-  const [bankSaveMsg, setBankSaveMsg] = useState(false);
   const [manualKeyInput, setManualKeyInput] = useState('');
   const [keyResult, setKeyResult] = useState<{ success: boolean; message: string } | null>(null);
+
 
 
 
@@ -382,102 +380,19 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                 </div>
               )}
 
-              {/* Admin VietQR Payment Gateway Config */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="font-black text-xs uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                    <QrCode className="w-4 h-4 text-amber-600" /> Cấu Hình Tài Khoản Nhận Tiền VietQR (Dành Cho Chủ App / Admin):
-                  </div>
-                  {bankSaveMsg && (
-                    <span className="text-[11px] font-black text-emerald-600 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> Đã lưu cấu hình!
-                    </span>
-                  )}
+              {/* VIP Benefits Card */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2.5">
+                <div className="font-extrabold text-xs text-amber-900 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4 text-amber-600" /> Đặc Quyền Khi Sử Dụng Bản Quyền VIP:
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Ngân Hàng (Napas)</label>
-                    <select
-                      value={bankConfigState.bankId}
-                      onChange={(e) => setBankConfigState({ ...bankConfigState, bankId: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs"
-                    >
-                      <option value="MB">MBBank (Quân Đội)</option>
-                      <option value="VCB">Vietcombank</option>
-                      <option value="TCB">Techcombank</option>
-                      <option value="BIDV">BIDV</option>
-                      <option value="CTG">VietinBank</option>
-                      <option value="ACB">ACB</option>
-                      <option value="VPB">VPBank</option>
-                      <option value="TPB">TPBank</option>
-                      <option value="STB">Sacombank</option>
-                      <option value="AGR">Agribank</option>
-                      <option value="HDB">HDBank</option>
-                      <option value="VIB">VIB</option>
-                      <option value="OCB">OCB</option>
-                      <option value="MSB">MSB</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Số Tài Khoản</label>
-                    <input
-                      type="text"
-                      value={bankConfigState.accountNo}
-                      onChange={(e) => setBankConfigState({ ...bankConfigState, accountNo: e.target.value })}
-                      placeholder="0988123456"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-xs"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Tên Chủ Tài Khoản</label>
-                    <input
-                      type="text"
-                      value={bankConfigState.accountName}
-                      onChange={(e) => setBankConfigState({ ...bankConfigState, accountName: e.target.value.toUpperCase() })}
-                      placeholder="NGUYEN VAN A"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs uppercase"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Giá Gói 1 Năm (VNĐ)</label>
-                    <input
-                      type="number"
-                      step={1000}
-                      value={bankConfigState.price1Year}
-                      onChange={(e) => setBankConfigState({ ...bankConfigState, price1Year: Number(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Giá Gói Trọn Đời (VNĐ)</label>
-                    <input
-                      type="number"
-                      step={1000}
-                      value={bankConfigState.priceLifetime}
-                      onChange={(e) => setBankConfigState({ ...bankConfigState, priceLifetime: Number(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    adminGoogleSync.saveBankConfig(bankConfigState);
-                    setBankSaveMsg(true);
-                    setTimeout(() => setBankSaveMsg(false), 2500);
-                  }}
-                  className="py-2.5 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-xs cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
-                >
-                  <Check className="w-4 h-4" /> Lưu Cài Đặt Cổng VietQR
-                </button>
+                <ul className="list-disc list-inside space-y-1 text-xs text-amber-800 font-semibold">
+                  <li>Không giới hạn số năm học, lớp học và học sinh.</li>
+                  <li>Cắt ảnh chân dung tự động từ ảnh tập thể bằng AI.</li>
+                  <li>Tự động sao lưu và đồng bộ đa thiết bị (Máy tính + Điện thoại) 24/7.</li>
+                  <li>Hỗ trợ kỹ thuật ưu tiên trực tiếp từ đội ngũ phát triển.</li>
+                </ul>
               </div>
+
 
             </div>
           )}
