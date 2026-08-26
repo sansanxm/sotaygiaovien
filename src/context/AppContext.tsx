@@ -162,12 +162,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [teacherTitle, setTeacherTitleState] = useState<TeacherTitle>(() => {
-    return (localStorage.getItem('gvcn_teacher_title') as TeacherTitle) || 'Cô giáo';
+    return (localStorage.getItem('gvcn_teacher_title') as TeacherTitle) || 'Thầy/Cô';
   });
 
   const [teacherName, setTeacherNameState] = useState<string>(() => {
-    return localStorage.getItem('gvcn_teacher_name') || 'Nguyễn Nga';
+    return localStorage.getItem('gvcn_teacher_name') || '';
   });
+
 
   const [years, setYears] = useState<SchoolYear[]>([]);
   const [currentYear, setCurrentYear] = useState<SchoolYear | null>(null);

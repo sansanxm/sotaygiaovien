@@ -180,9 +180,14 @@ export const Dashboard: React.FC = () => {
 
   if (!currentClass) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-xl font-bold text-slate-700">Chưa chọn lớp học nào!</h2>
-        <p className="text-sm text-slate-500 mt-2">Vui lòng tạo hoặc chọn một lớp học ở góc trên.</p>
+      <div className="text-center py-20 px-4 max-w-md mx-auto space-y-4 animate-in fade-in">
+        <div className="w-20 h-20 mx-auto rounded-3xl theme-btn-primary flex items-center justify-center text-4xl shadow-xl">
+          🌸
+        </div>
+        <h2 className="text-2xl font-black text-slate-800">Chào Mừng Thầy/Cô!</h2>
+        <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+          Ứng dụng Sổ Tay Giáo Viên 4.0 đã sẵn sàng. Hãy bấm nút <strong>"+ Lớp mới"</strong> ở thanh menu bên trái (hoặc trên thanh đầu trang điện thoại) để bắt đầu tạo lớp học đầu tiên!
+        </p>
       </div>
     );
   }
@@ -201,12 +206,13 @@ export const Dashboard: React.FC = () => {
             <Sparkles className="w-3.5 h-3.5 text-amber-300" /> {currentYear?.name || 'Năm học mới'}
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
-            Chào mừng {teacherTitle} {teacherName || ''} đến với {currentClass.name}! 💖
+            Chào mừng {teacherName ? `${teacherTitle} ${teacherName}` : teacherTitle} đến với {currentClass.name}! 💖
           </h1>
           <p className="text-sm sm:text-base text-white/90 font-medium leading-relaxed">
             {currentClass.homeroomTeacher ? `${currentClass.homeroomTeacher} • ` : ''} 
             {currentClass.roomNumber || 'Phòng học chính'}. Chúc {teacherTitle.toLowerCase()} một ngày giảng dạy tràn ngập niềm vui và năng lượng tích cực!
           </p>
+
 
           <div className="mt-5 flex flex-wrap gap-2.5">
             <button
