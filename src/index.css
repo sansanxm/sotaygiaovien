@@ -4,13 +4,14 @@
   :root {
     --font-heading: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 16px;
+    font-size: 16.5px;
   }
 
   html {
-    font-size: 16px;
+    font-size: 16.5px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
@@ -27,9 +28,10 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 800;
-    line-height: 1.3;
+    line-height: 1.35;
   }
 }
+
 
 
 /* =========================================================

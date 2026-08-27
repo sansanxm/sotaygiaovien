@@ -457,7 +457,7 @@ export const Dashboard: React.FC = () => {
 
                 {/* Slogan / Bio Quote */}
                 <div className="pt-1 flex items-center justify-center sm:justify-start gap-2">
-                  <p className="text-xs text-slate-500 italic max-w-lg font-medium">
+                  <p className="text-sm text-slate-600 italic max-w-xl font-medium">
                     "{teacherBio || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui'}"
                   </p>
                   <button
@@ -470,7 +470,7 @@ export const Dashboard: React.FC = () => {
                     className="p-1 text-slate-400 hover:text-pink-600 cursor-pointer rounded-lg hover:bg-pink-50"
                     title="Chỉnh sửa thông tin & châm ngôn"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
+                    <Edit3 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -478,24 +478,24 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Right: Quick Action Buttons (Facebook Header Style) */}
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-2 md:pt-0 sm:pb-2">
+            <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2 md:pt-0 sm:pb-2">
               <button
                 onClick={() => setActiveTab('attendance')}
-                className="px-4 py-2.5 rounded-xl theme-btn-primary text-white font-extrabold text-xs shadow-sm hover:brightness-105 flex items-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+                className="px-4 py-2.5 rounded-xl theme-btn-primary text-white font-extrabold text-sm shadow-sm hover:brightness-105 flex items-center gap-2 cursor-pointer active:scale-98 transition-all"
               >
                 <CalendarCheck className="w-4 h-4" /> Điểm danh
               </button>
 
               <button
                 onClick={() => setActiveTab('random-picker')}
-                className="px-4 py-2.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-extrabold text-xs border border-pink-200 flex items-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+                className="px-4 py-2.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-extrabold text-sm border border-pink-200 flex items-center gap-2 cursor-pointer active:scale-98 transition-all"
               >
                 <Dices className="w-4 h-4" /> Vòng quay gọi tên
               </button>
 
               <button
                 onClick={() => setActiveTab('behavior')}
-                className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs border border-amber-200 flex items-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+                className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-sm border border-amber-200 flex items-center gap-2 cursor-pointer active:scale-98 transition-all"
               >
                 <Star className="w-4 h-4 text-amber-500 fill-amber-400" /> Tích sao
               </button>
@@ -507,7 +507,7 @@ export const Dashboard: React.FC = () => {
                   setEditBio(teacherBio);
                   setIsEditingProfile(true);
                 }}
-                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-1 cursor-pointer"
+                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm border border-slate-200 flex items-center gap-1.5 cursor-pointer"
                 title="Chỉnh sửa thông tin trang cá nhân"
               >
                 <Edit3 className="w-4 h-4" />
@@ -524,7 +524,7 @@ export const Dashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
           <div className="bg-white rounded-3xl shadow-2xl border border-pink-200 w-full max-w-md overflow-hidden animate-in zoom-in-95">
             <div className="p-5 bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2 font-black text-sm sm:text-base">
+              <div className="flex items-center gap-2 font-black text-base">
                 <Edit3 className="w-5 h-5" /> Chỉnh sửa hồ sơ Thầy/Cô
               </div>
               <button
@@ -535,13 +535,13 @@ export const Dashboard: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="p-6 space-y-4 text-xs sm:text-sm">
+            <form onSubmit={handleSaveProfile} className="p-6 space-y-4 text-sm">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Xưng hô:</label>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Xưng hô:</label>
                 <select
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value as TeacherTitle)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50 text-sm"
                 >
                   <option value="Cô giáo">Cô giáo 👩‍🏫</option>
                   <option value="Thầy giáo">Thầy giáo 👨‍🏫</option>
@@ -550,24 +550,24 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Họ và tên giáo viên:</label>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Họ và tên giáo viên:</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Ví dụ: Nguyễn Thị Nga..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50 text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Lời nhắn / Châm ngôn giảng dạy:</label>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Lời nhắn / Châm ngôn giảng dạy:</label>
                 <textarea
                   rows={2}
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
                   placeholder="Ví dụ: Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50 text-sm"
                 />
               </div>
 
@@ -575,13 +575,13 @@ export const Dashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsEditingProfile(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl theme-btn-primary text-white font-black text-xs shadow-md cursor-pointer"
+                  className="px-5 py-2 rounded-xl theme-btn-primary text-white font-black text-sm shadow-md cursor-pointer"
                 >
                   Lưu thay đổi
                 </button>
@@ -611,9 +611,9 @@ export const Dashboard: React.FC = () => {
             <span className="text-3xl sm:text-4xl font-black text-slate-800">{students.length}</span>
             <span className="text-sm font-bold text-pink-600">học sinh</span>
           </div>
-          <div className="mt-2 text-xs sm:text-sm font-bold text-slate-500 flex items-center gap-3">
-            <span>👦 Nam: <strong className="text-slate-700">{boysCount}</strong></span>
-            <span>👧 Nữ: <strong className="text-slate-700">{girlsCount}</strong></span>
+          <div className="mt-2 text-sm font-bold text-slate-600 flex items-center gap-3">
+            <span>👦 Nam: <strong className="text-slate-800">{boysCount}</strong></span>
+            <span>👧 Nữ: <strong className="text-slate-800">{girlsCount}</strong></span>
           </div>
         </div>
 
@@ -624,18 +624,18 @@ export const Dashboard: React.FC = () => {
           className="glass-card p-5 rounded-3xl cursor-pointer group hover:border-emerald-300"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Điểm danh hôm nay</span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <CalendarCheck className="w-5 h-5" />
+            <span className="text-xs sm:text-sm font-extrabold text-slate-500 uppercase tracking-wider">Điểm danh hôm nay</span>
+            <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+              <CalendarCheck className="w-6 h-6" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-emerald-600">
+            <span className="text-3xl sm:text-4xl font-black text-emerald-600">
               {todayAttendance.length > 0 ? `${presentCount}/${students.length}` : 'Chưa'}
             </span>
-            <span className="text-xs font-bold text-slate-500">có mặt</span>
+            <span className="text-sm font-bold text-slate-500">có mặt</span>
           </div>
-          <div className="mt-2 text-xs font-semibold text-slate-500 flex items-center gap-2">
+          <div className="mt-2 text-sm font-bold text-slate-600 flex items-center gap-2">
             {todayAttendance.length === 0 ? (
               <span className="text-amber-600 font-bold">Chưa điểm danh buổi này ⚠️</span>
             ) : (
@@ -654,19 +654,19 @@ export const Dashboard: React.FC = () => {
           className="glass-card p-5 rounded-3xl cursor-pointer group hover:border-purple-300"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Số dư quỹ lớp</span>
-            <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Wallet className="w-5 h-5" />
+            <span className="text-xs sm:text-sm font-extrabold text-slate-500 uppercase tracking-wider">Số dư quỹ lớp</span>
+            <div className="w-11 h-11 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+              <Wallet className="w-6 h-6" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-1">
             <span className="text-2xl sm:text-3xl font-black text-purple-700">
               {fundBalance.toLocaleString('vi-VN')}
             </span>
-            <span className="text-xs font-bold text-purple-500">đ</span>
+            <span className="text-sm font-bold text-purple-500">đ</span>
           </div>
-          <div className="mt-2 text-xs font-semibold text-purple-600/90 flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> Minh bạch & đầy đủ hóa đơn
+          <div className="mt-2 text-sm font-bold text-purple-700 flex items-center gap-1.5">
+            <TrendingUp className="w-4 h-4" /> Minh bạch & đầy đủ hóa đơn
           </div>
         </div>
 
@@ -676,9 +676,9 @@ export const Dashboard: React.FC = () => {
           className="glass-card p-5 rounded-3xl cursor-pointer group hover:border-amber-300 bg-gradient-to-br from-amber-50/50 to-white"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Ngôi sao tuần này</span>
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Award className="w-5 h-5" />
+            <span className="text-xs sm:text-sm font-extrabold text-amber-700 uppercase tracking-wider">Ngôi sao tuần này</span>
+            <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+              <Award className="w-6 h-6" />
             </div>
           </div>
           <div className="mt-3">
@@ -687,13 +687,13 @@ export const Dashboard: React.FC = () => {
                 <div className="text-base font-extrabold text-slate-800 truncate">
                   👑 {topStars[0].student.fullName}
                 </div>
-                <div className="text-xs font-bold text-amber-600 mt-1 flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <div className="text-sm font-bold text-amber-600 mt-1 flex items-center gap-1">
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   Đạt {topStars[0].points} điểm tích cực
                 </div>
               </div>
             ) : (
-              <span className="text-xs font-semibold text-slate-400">Chưa có lượt chấm điểm</span>
+              <span className="text-sm font-semibold text-slate-500">Chưa có lượt chấm điểm</span>
             )}
           </div>
         </div>
@@ -703,38 +703,38 @@ export const Dashboard: React.FC = () => {
       {/* Today's Schedule Banner */}
       <div className="glass-card p-5 sm:p-6 rounded-3xl space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl theme-btn-primary text-white shadow-md">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-800 flex items-center gap-2 flex-wrap">
+              <h3 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2 flex-wrap">
                 Lịch học hôm nay
 
-                <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full theme-badge">
+                <span className="text-xs font-extrabold px-3 py-1 rounded-full theme-badge">
                   {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </span>
               </h3>
-              <p className="text-xs text-slate-500 font-medium">Các tiết học của Lớp {currentClass?.name} trong ngày</p>
+              <p className="text-sm text-slate-600 font-semibold">Các tiết học của Lớp {currentClass?.name} trong ngày</p>
             </div>
           </div>
 
           <button
             onClick={() => setActiveTab('timetable')}
-            className="text-xs font-bold theme-text hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-sm font-bold theme-text hover:underline flex items-center gap-1.5 cursor-pointer"
           >
-            Xem toàn bộ TKB tuần <ArrowRight className="w-3.5 h-3.5" />
+            Xem toàn bộ TKB tuần <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
         {todayLessons.length === 0 ? (
-          <div className="py-5 text-center text-slate-400 text-xs font-semibold bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+          <div className="py-7 px-4 text-center text-slate-600 text-sm sm:text-base font-semibold bg-slate-50 rounded-2xl border border-dashed border-slate-300">
             Hôm nay không có tiết học nào hoặc là ngày nghỉ. 
             <button
               onClick={() => setActiveTab('timetable')}
-              className="theme-text font-bold ml-1 hover:underline cursor-pointer"
+              className="theme-text font-bold ml-1.5 hover:underline cursor-pointer inline-flex items-center gap-1"
             >
-              Xem / Xếp thời khóa biểu tại đây
+              Xem / Xếp thời khóa biểu tại đây <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         ) : (
@@ -746,24 +746,24 @@ export const Dashboard: React.FC = () => {
                   backgroundColor: `${lesson.color || 'var(--theme-primary)'}10`,
                   borderColor: `${lesson.color || 'var(--theme-primary)'}30`,
                 }}
-                className="p-3 rounded-2xl border-2 space-y-1 hover:shadow-md transition-all"
+                className="p-3.5 rounded-2xl border-2 space-y-1.5 hover:shadow-md transition-all"
               >
-                <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold">
+                <div className="flex items-center justify-between text-xs text-slate-600 font-bold">
                   <span>Tiết {lesson.period} ({lesson.session === 'morning' ? 'Sáng' : 'Chiều'})</span>
                 </div>
                 <div
                   style={{ color: lesson.color || 'var(--theme-primary)' }}
-                  className="font-black text-sm truncate"
+                  className="font-black text-base truncate"
                 >
                   {lesson.subject}
                 </div>
                 {lesson.teacher && (
-                  <div className="text-[11px] text-slate-600 font-semibold truncate">
+                  <div className="text-xs text-slate-700 font-bold truncate">
                     👤 {lesson.teacher}
                   </div>
                 )}
                 {lesson.room && (
-                  <div className="text-[10px] text-slate-400 font-medium truncate">
+                  <div className="text-xs text-slate-500 font-semibold truncate">
                     📍 {lesson.room}
                   </div>
                 )}
@@ -783,25 +783,25 @@ export const Dashboard: React.FC = () => {
           {/* Top 3 Stars Leaderboard */}
           <div className="glass-card p-6 rounded-3xl">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-amber-100 text-amber-600">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
                   <Flame className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Bảng vàng thi đua & khen thưởng</h3>
-                  <p className="text-xs text-slate-500 font-medium">Học sinh có nhiều điểm tốt và tiến bộ vượt bậc</p>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-800">Bảng vàng thi đua & khen thưởng</h3>
+                  <p className="text-sm text-slate-600 font-semibold">Học sinh có nhiều điểm tốt và tiến bộ vượt bậc</p>
                 </div>
               </div>
               <button
                 onClick={() => setActiveTab('behavior')}
-                className="text-xs font-bold theme-text hover:underline flex items-center gap-1"
+                className="text-sm font-bold theme-text hover:underline flex items-center gap-1"
               >
-                Xem tất cả <ArrowRight className="w-3.5 h-3.5" />
+                Xem tất cả <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             {topStars.length === 0 ? (
-              <div className="text-center py-6 text-slate-400 text-xs font-semibold">
+              <div className="text-center py-8 px-4 text-slate-600 text-sm sm:text-base font-semibold bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                 Chưa có điểm tích lũy tuần này. Hãy bấm vào mục "Nề nếp & thi đua" để cộng sao cho các em!
               </div>
             ) : (
@@ -814,13 +814,13 @@ export const Dashboard: React.FC = () => {
                       key={item.student.id}
                       className={`p-4 rounded-2xl border ${bgColors[idx]} text-center relative overflow-hidden`}
                     >
-                      <div className="text-xs font-black text-amber-700 mb-1">{medals[idx]}</div>
-                      <div className="w-12 h-12 mx-auto rounded-full theme-avatar border-2 border-white shadow-xs flex items-center justify-center font-bold text-sm mb-2">
+                      <div className="text-sm font-black text-amber-700 mb-1">{medals[idx]}</div>
+                      <div className="w-12 h-12 mx-auto rounded-full theme-avatar border-2 border-white shadow-xs flex items-center justify-center font-bold text-base mb-2">
                         {item.student.fullName.slice(-2)}
                       </div>
-                      <div className="text-sm font-bold text-slate-800 truncate">{item.student.fullName}</div>
-                      <div className="text-xs font-extrabold text-amber-600 mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white shadow-2xs">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> +{item.points} sao
+                      <div className="text-sm sm:text-base font-bold text-slate-800 truncate">{item.student.fullName}</div>
+                      <div className="text-xs font-extrabold text-amber-600 mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white shadow-2xs">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> +{item.points} sao
                       </div>
                     </div>
                   );
@@ -832,13 +832,13 @@ export const Dashboard: React.FC = () => {
           {/* Teacher Todo list */}
           <div className="glass-card p-6 rounded-3xl">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl theme-btn-primary text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl theme-btn-primary text-white">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Sổ tay công việc</h3>
-                  <p className="text-xs text-slate-500 font-medium">Nhắc nhở công tác chủ nhiệm và kế hoạch tuần</p>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-800">Sổ tay công việc</h3>
+                  <p className="text-sm text-slate-600 font-semibold">Nhắc nhở công tác chủ nhiệm và kế hoạch tuần</p>
                 </div>
               </div>
             </div>
@@ -850,11 +850,11 @@ export const Dashboard: React.FC = () => {
                 value={newTodoTitle}
                 onChange={(e) => setNewTodoTitle(e.target.value)}
                 placeholder="Thêm việc cần làm (Vd: Thu sổ khám sức khỏe, họp chi bộ...)"
-                className="flex-1 px-4 py-2.5 rounded-xl border theme-card-border focus:outline-none focus:ring-2 focus:ring-slate-300 text-xs sm:text-sm font-semibold theme-soft-bg"
+                className="flex-1 px-4 py-3 rounded-xl border theme-card-border focus:outline-none focus:ring-2 focus:ring-slate-300 text-sm font-semibold theme-soft-bg"
               />
               <button
                 type="submit"
-                className="px-4 py-2.5 rounded-xl theme-btn-primary text-white font-bold text-xs shadow-md flex items-center gap-1 cursor-pointer"
+                className="px-5 py-3 rounded-xl theme-btn-primary text-white font-bold text-sm shadow-md flex items-center gap-1.5 cursor-pointer active:scale-98"
               >
                 <Plus className="w-4 h-4" /> Thêm
               </button>
@@ -865,10 +865,10 @@ export const Dashboard: React.FC = () => {
                 <div
                   key={t.id}
                   onClick={() => handleToggleTodo(t)}
-                  className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+                  className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
                     t.isDone
                       ? 'bg-slate-50 border-slate-200 text-slate-400 line-through'
-                      : 'bg-white border-slate-100 hover:border-slate-300 text-slate-700 shadow-2xs'
+                      : 'bg-white border-slate-100 hover:border-slate-300 text-slate-800 shadow-2xs'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -877,10 +877,10 @@ export const Dashboard: React.FC = () => {
                     ) : (
                       <Circle className="w-5 h-5 theme-text shrink-0" />
                     )}
-                    <span className="text-xs sm:text-sm font-semibold">{t.title}</span>
+                    <span className="text-sm sm:text-base font-semibold">{t.title}</span>
                   </div>
                   {t.dueDate && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg theme-badge shrink-0">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-lg theme-badge shrink-0">
                       {t.dueDate}
                     </span>
                   )}
@@ -896,43 +896,45 @@ export const Dashboard: React.FC = () => {
           
           {/* Upcoming Birthdays Card */}
           <div className="glass-card p-6 rounded-3xl">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-xl theme-soft-bg theme-text">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-2.5 rounded-xl theme-soft-bg theme-text">
                 <Cake className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-800">Sinh nhật sắp tới 🎂</h3>
-                <p className="text-xs text-slate-500 font-medium">Nhắc nhở chúc mừng sinh nhật học sinh</p>
+                <h3 className="text-base sm:text-lg font-bold text-slate-800">Sinh nhật sắp tới 🎂</h3>
+                <p className="text-sm text-slate-600 font-semibold">Nhắc nhở chúc mừng sinh nhật học sinh</p>
               </div>
             </div>
 
             {upcomingBirthdays.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-4">Không có sinh nhật nào trong 45 ngày tới.</p>
+              <p className="text-sm text-slate-600 font-semibold text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                Không có sinh nhật nào trong 45 ngày tới.
+              </p>
             ) : (
               <div className="space-y-3">
                 {upcomingBirthdays.map((b) => (
                   <div
                     key={b.student.id}
-                    className="flex items-center justify-between p-3 rounded-2xl theme-soft-bg border theme-card-border hover:brightness-95 transition-colors"
+                    className="flex items-center justify-between p-3.5 rounded-2xl theme-soft-bg border theme-card-border hover:brightness-95 transition-colors"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full theme-avatar flex items-center justify-center font-bold text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full theme-avatar flex items-center justify-center font-bold text-sm">
                         {b.student.fullName.slice(-2)}
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-slate-800">{b.student.fullName}</div>
-                        <div className="text-[11px] theme-text font-medium">Ngày {b.displayDate}</div>
+                        <div className="text-sm font-bold text-slate-800">{b.student.fullName}</div>
+                        <div className="text-xs theme-text font-bold">Ngày {b.displayDate}</div>
                       </div>
                     </div>
 
                     <div className="text-right">
                       {b.daysLeft === 0 ? (
-                        <span className="px-2 py-1 rounded-lg bg-rose-500 text-white text-[10px] font-extrabold animate-bounce inline-block">
+                        <span className="px-2.5 py-1 rounded-lg bg-rose-500 text-white text-xs font-extrabold animate-bounce inline-block">
                           HÔM NAY 🎉
                         </span>
                       ) : (
-                        <span className="text-xs font-bold text-slate-600">
-                          còn <strong className="theme-text">{b.daysLeft}</strong> ngày
+                        <span className="text-sm font-bold text-slate-700">
+                          còn <strong className="theme-text text-sm">{b.daysLeft}</strong> ngày
                         </span>
                       )}
                     </div>
@@ -944,13 +946,13 @@ export const Dashboard: React.FC = () => {
 
           {/* Teacher's Motivation Box */}
           <div className="rounded-3xl p-6 theme-quote-box shadow-xs">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider mb-2 flex items-center gap-1.5 opacity-90">
+            <h4 className="text-sm font-extrabold uppercase tracking-wider mb-2 flex items-center gap-2 opacity-95">
               💡 Lời nhắn yêu thương
             </h4>
-            <p className="text-xs font-medium italic leading-relaxed opacity-95">
+            <p className="text-sm sm:text-base font-semibold italic leading-relaxed opacity-95">
               "Mỗi học sinh là một bông hoa với vẻ đẹp và thời điểm nở rộ riêng. Sự dịu dàng và kiên nhẫn của Thầy/Cô chính là ánh nắng ấm áp nhất."
             </p>
-            <div className="mt-3 text-right text-[11px] font-bold theme-quote-author">
+            <div className="mt-3 text-right text-xs sm:text-sm font-extrabold theme-quote-author">
               — Sổ Tay GVCN 🌸
             </div>
           </div>
@@ -963,4 +965,5 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
 
