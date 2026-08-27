@@ -70,7 +70,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 const AppContent: React.FC = () => {
-  const { activeTab, theme, isLoading, user, licenseStatus, setShowVipModal } = useApp();
+  const { activeTab, theme, isLoading, user, licenseStatus, isVip, setShowVipModal } = useApp();
 
   const [showSettings, setShowSettings] = useState(false);
 
@@ -94,7 +94,7 @@ const AppContent: React.FC = () => {
   }
 
   // 2. If 30-day Free Trial is Expired and User is not VIP -> Lock app with Paywall
-  if (licenseStatus.isExpired) {
+  if (!isVip && !licenseStatus.isVip && licenseStatus.isExpired) {
     return <TrialExpiredPaywall />;
   }
 
@@ -115,8 +115,8 @@ const AppContent: React.FC = () => {
       {/* 3. Main Content Canvas with Full 2-Way Scrolling (Scroll X & Y) */}
       <div className="flex-1 h-screen flex flex-col overflow-hidden">
         
-        {/* Trial Countdown Notice Bar (Top of Content) */}
-        {licenseStatus.isTrial && !licenseStatus.isVip && (
+        {/* Trial Countdown Notice Bar (Top of Content) - ONLY shown when user is NOT VIP */}
+        {!isVip && !licenseStatus.isVip && licenseStatus.isTrial && (
           <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-900 px-4 py-1.5 text-xs font-black flex items-center justify-between shadow-xs shrink-0 z-30">
             <div className="flex items-center gap-1.5 truncate">
               <Sparkles className="w-3.5 h-3.5 text-slate-900 shrink-0" />
@@ -132,6 +132,7 @@ const AppContent: React.FC = () => {
             </button>
           </div>
         )}
+
 
         {/* Main Scrollable Viewport with Mobile Top/Bottom Safe Area Insets */}
         <main className="flex-1 overflow-y-auto overflow-x-auto p-3 sm:p-6 lg:p-8 pt-16 pb-24 md:pt-6 md:pb-8 custom-scrollbar">

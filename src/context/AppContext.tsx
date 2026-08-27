@@ -506,11 +506,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setUser(currentUser);
           setSyncState('synced');
 
-          // Check VIP live from Cloud
+          // Check VIP live from Cloud or Local
           const liveVip = await adminGoogleSync.checkVipStatusLive(currentUser);
           if (liveVip.isVip) {
             setIsVip(true);
             setVipExpiresAt(liveVip.vipExpiresAt || 'lifetime');
+            adminGoogleSync.setLocalVip(currentUser.email, liveVip.vipExpiresAt || 'lifetime');
+            setLicenseStatus(adminGoogleSync.getLicenseStatus(currentUser.email));
+          } else {
+            const lic = adminGoogleSync.getLicenseStatus(currentUser.email);
+            setLicenseStatus(lic);
+            setIsVip(lic.isVip);
+            setVipExpiresAt(lic.vipExpiresAt);
           }
 
           // Auto-download cloud data if online
@@ -529,6 +536,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isMounted = false;
     };
   }, []);
+
 
 
 
