@@ -235,7 +235,6 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
       setInternalSyncing(true);
       try {
         await db.transaction('rw', [
-
           db.years,
           db.classes,
           db.students,
@@ -250,14 +249,33 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
           db.noteFolders,
           db.teacherNotes,
         ], async () => {
-          if (Array.isArray(data.years)) {
-            await db.years.clear();
-            if (data.years.length) await db.years.bulkAdd(data.years);
-          }
+          const importedYears = Array.isArray(data.years) && data.years.length > 0 ? data.years : [
+            {
+              id: `year-${Date.now()}`,
+              name: 'Năm học 2025 - 2026',
+              isCurrent: true,
+              startDate: '2025-09-05',
+              endDate: '2026-05-31',
+            }
+          ];
+
+          await db.years.clear();
+          await db.years.bulkAdd(importedYears);
+
+          const validYearIds = new Set(importedYears.map((y: any) => y.id));
+          const primaryYearId = importedYears.find((y: any) => y.isCurrent)?.id || importedYears[0]?.id;
+
           if (Array.isArray(data.classes)) {
             await db.classes.clear();
-            if (data.classes.length) await db.classes.bulkAdd(data.classes);
+            const normalizedClasses = data.classes.map((c: any) => {
+              if (!validYearIds.has(c.yearId) && primaryYearId) {
+                return { ...c, yearId: primaryYearId };
+              }
+              return c;
+            });
+            if (normalizedClasses.length) await db.classes.bulkAdd(normalizedClasses);
           }
+
           if (Array.isArray(data.students)) {
             await db.students.clear();
             if (data.students.length) await db.students.bulkAdd(data.students);

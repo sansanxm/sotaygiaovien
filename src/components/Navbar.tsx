@@ -11,7 +11,9 @@ import {
   Heart,
   Plus,
   BookOpen,
+  Cloud,
 } from 'lucide-react';
+
 import { useApp, type AppTheme } from '../context/AppContext';
 import { exportDatabaseBackup, importDatabaseBackup, db } from '../db/db';
 
@@ -27,6 +29,9 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
     setCurrentClassId,
     refreshAppData,
     triggerConfetti,
+    user,
+    syncWithCloud,
+    syncState,
   } = useApp();
 
   const [showThemeMenu, setShowThemeMenu] = useState(false);
@@ -35,6 +40,8 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
   const [newClassGrade, setNewClassGrade] = useState('6');
   const [newClassType, setNewClassType] = useState<'gvcn' | 'bomon'>('gvcn');
   const [newClassSubject, setNewClassSubject] = useState('');
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+
 
 
   const themes: { id: AppTheme; label: string; bg: string; dot: string }[] = [
@@ -220,23 +227,61 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
               )}
             </div>
 
-            {/* Backup & Export */}
+            {/* Cloud Sync Button */}
+            {user ? (
+              <button
+                disabled={isCloudSyncing}
+                onClick={async () => {
+                  setIsCloudSyncing(true);
+                  const ok = await syncWithCloud('upload');
+                  setIsCloudSyncing(false);
+                  if (ok) {
+                    triggerConfetti();
+                    alert(`🎉 Đã đồng bộ an toàn toàn bộ Năm học, Lớp học & Dữ liệu lên Cloud với tài khoản (${user.email})!`);
+                  } else {
+                    alert('Không thể kết nối máy chủ Cloud. Vui lòng kiểm tra lại mạng internet!');
+                  }
+                }}
+                className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs ${
+                  syncState === 'synced'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                    : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                }`}
+                title={`Bấm để đồng bộ Cloud ngay lập tức với tài khoản ${user.email}`}
+              >
+                <Cloud className={`w-4 h-4 ${isCloudSyncing ? 'animate-bounce text-amber-600' : 'text-emerald-600'}`} />
+                <span className="hidden sm:inline">
+                  {isCloudSyncing ? 'Đang đồng bộ...' : 'Đồng bộ Cloud'}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={onOpenSettings}
+                className="p-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                title="Bấm để đăng nhập và đồng bộ Cloud"
+              >
+                <Cloud className="w-4 h-4 text-pink-500" />
+                <span className="hidden sm:inline">Đăng nhập Cloud</span>
+              </button>
+            )}
+
+            {/* Offline JSON Export */}
             <button
               onClick={handleExport}
               className="p-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 transition-colors flex items-center gap-1.5 text-xs font-bold"
-              title="Sao lưu dữ liệu về máy (JSON)"
+              title="Xuất file sao lưu .JSON lưu về máy tính"
             >
               <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Sao lưu</span>
+              <span className="hidden sm:inline">Xuất file</span>
             </button>
 
-            {/* Restore */}
+            {/* Offline JSON Import */}
             <label
               className="p-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-200 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-              title="Phục hồi dữ liệu từ file"
+              title="Phục hồi dữ liệu từ file .JSON"
             >
               <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">Nạp lại</span>
+              <span className="hidden sm:inline">Nạp file</span>
               <input type="file" accept=".json" onChange={handleImport} className="hidden" />
             </label>
 
@@ -244,13 +289,14 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
             <button
               onClick={onOpenSettings}
               className="p-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-xs shadow-pink-300 transition-colors"
-              title="Cài đặt hệ thống"
+              title="Cài đặt hệ thống & Quản lý Cloud"
             >
               <Settings className="w-4 h-4" />
             </button>
           </div>
 
         </div>
+
       </div>
 
       {/* Modal Quick Add Class */}
