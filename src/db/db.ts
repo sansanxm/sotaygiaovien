@@ -86,13 +86,12 @@ export async function exportDatabaseBackup(): Promise<string> {
 // Import & restore database from JSON (including profile & VIP status)
 export async function importDatabaseBackup(jsonString: string): Promise<boolean> {
   try {
+    if (!jsonString || typeof jsonString !== 'string') return false;
     const data = JSON.parse(jsonString);
-    if (!data.years && !data.classes && !data.students) {
-      throw new Error('Dữ liệu không đúng định dạng sao lưu GVCN!');
-    }
+    if (!data || typeof data !== 'object') return false;
 
     // 1. Restore User Profile & Settings
-    if (data.userSettings) {
+    if (data.userSettings && typeof data.userSettings === 'object') {
       try {
         if (data.userSettings.teacherTitle) {
           localStorage.setItem('gvcn_teacher_title', data.userSettings.teacherTitle);
@@ -126,49 +125,74 @@ export async function importDatabaseBackup(jsonString: string): Promise<boolean>
       }
     }
 
-    // 3. Restore Dexie Database Tables
-    await db.transaction('rw', [
-      db.years,
-      db.classes,
-      db.students,
-      db.attendance,
-      db.behaviorLogs,
-      db.fundTransactions,
-      db.seats,
-      db.commentTemplates,
-      db.evaluations,
-      db.todos,
-      db.timetable,
-    ], async () => {
-      await db.years.clear();
-      await db.classes.clear();
-      await db.students.clear();
-      await db.attendance.clear();
-      await db.behaviorLogs.clear();
-      await db.fundTransactions.clear();
-      await db.seats.clear();
-      await db.commentTemplates.clear();
-      await db.evaluations.clear();
-      await db.todos.clear();
-      await db.timetable.clear();
-
-      if (data.years?.length) await db.years.bulkAdd(data.years);
-      if (data.classes?.length) await db.classes.bulkAdd(data.classes);
-      if (data.students?.length) await db.students.bulkAdd(data.students);
-      if (data.attendance?.length) await db.attendance.bulkAdd(data.attendance);
-      if (data.behaviorLogs?.length) await db.behaviorLogs.bulkAdd(data.behaviorLogs);
-      if (data.fundTransactions?.length) await db.fundTransactions.bulkAdd(data.fundTransactions);
-      if (data.seats?.length) await db.seats.bulkAdd(data.seats);
-      if (data.commentTemplates?.length) await db.commentTemplates.bulkAdd(data.commentTemplates);
-      if (data.evaluations?.length) await db.evaluations.bulkAdd(data.evaluations);
-      if (data.todos?.length) await db.todos.bulkAdd(data.todos);
-      if (data.timetable?.length) await db.timetable.bulkAdd(data.timetable);
-    });
+    // 3. Restore Dexie Database Tables (only if array data is provided)
+    const hasAnyTable = Array.isArray(data.years) || Array.isArray(data.classes) || Array.isArray(data.students);
+    if (hasAnyTable) {
+      await db.transaction('rw', [
+        db.years,
+        db.classes,
+        db.students,
+        db.attendance,
+        db.behaviorLogs,
+        db.fundTransactions,
+        db.seats,
+        db.commentTemplates,
+        db.evaluations,
+        db.todos,
+        db.timetable,
+      ], async () => {
+        if (Array.isArray(data.years)) {
+          await db.years.clear();
+          if (data.years.length) await db.years.bulkAdd(data.years);
+        }
+        if (Array.isArray(data.classes)) {
+          await db.classes.clear();
+          if (data.classes.length) await db.classes.bulkAdd(data.classes);
+        }
+        if (Array.isArray(data.students)) {
+          await db.students.clear();
+          if (data.students.length) await db.students.bulkAdd(data.students);
+        }
+        if (Array.isArray(data.attendance)) {
+          await db.attendance.clear();
+          if (data.attendance.length) await db.attendance.bulkAdd(data.attendance);
+        }
+        if (Array.isArray(data.behaviorLogs)) {
+          await db.behaviorLogs.clear();
+          if (data.behaviorLogs.length) await db.behaviorLogs.bulkAdd(data.behaviorLogs);
+        }
+        if (Array.isArray(data.fundTransactions)) {
+          await db.fundTransactions.clear();
+          if (data.fundTransactions.length) await db.fundTransactions.bulkAdd(data.fundTransactions);
+        }
+        if (Array.isArray(data.seats)) {
+          await db.seats.clear();
+          if (data.seats.length) await db.seats.bulkAdd(data.seats);
+        }
+        if (Array.isArray(data.commentTemplates)) {
+          await db.commentTemplates.clear();
+          if (data.commentTemplates.length) await db.commentTemplates.bulkAdd(data.commentTemplates);
+        }
+        if (Array.isArray(data.evaluations)) {
+          await db.evaluations.clear();
+          if (data.evaluations.length) await db.evaluations.bulkAdd(data.evaluations);
+        }
+        if (Array.isArray(data.todos)) {
+          await db.todos.clear();
+          if (data.todos.length) await db.todos.bulkAdd(data.todos);
+        }
+        if (Array.isArray(data.timetable)) {
+          await db.timetable.clear();
+          if (data.timetable.length) await db.timetable.bulkAdd(data.timetable);
+        }
+      });
+    }
 
     return true;
   } catch (err) {
     console.error('Import error:', err);
-    throw err;
+    return false;
   }
 }
+
 

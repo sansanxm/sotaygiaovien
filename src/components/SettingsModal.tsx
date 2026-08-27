@@ -450,9 +450,20 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                           </div>
                         )}
                         <div>
-                          <h4 className="font-black text-sm text-slate-800">
-                            {user.user_metadata?.full_name || 'Giáo viên'}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-black text-sm text-slate-800">
+                              {user.user_metadata?.full_name || 'Giáo viên'}
+                            </h4>
+                            {isVip ? (
+                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black border border-amber-300 flex items-center gap-1">
+                                <Crown className="w-3 h-3 text-amber-600 fill-amber-500" /> VIP
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                                Dùng thử
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-slate-500 font-medium">{user.email}</p>
                           {lastSyncedAt && (
                             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -470,6 +481,24 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                       </button>
                     </div>
 
+                    {/* Sync Summary Badges */}
+                    <div className="grid grid-cols-3 gap-2 py-2 px-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px]">
+                      <div className="text-center">
+                        <span className="text-slate-400 font-semibold block">Bản quyền</span>
+                        <strong className="text-slate-800 font-bold">{isVip ? '👑 VIP Vĩnh viễn' : '⏳ Dùng thử'}</strong>
+                      </div>
+                      <div className="text-center border-x border-slate-200">
+                        <span className="text-slate-400 font-semibold block">Lớp & Học sinh</span>
+                        <strong className="text-slate-800 font-bold">{classes.length} lớp</strong>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-slate-400 font-semibold block">Ảnh bìa & Avatar</span>
+                        <strong className="text-pink-600 font-bold">
+                          {localStorage.getItem('gvcn_teacher_cover') || localStorage.getItem('gvcn_teacher_avatar') ? '📸 Đã thiết lập' : 'Chưa có'}
+                        </strong>
+                      </div>
+                    </div>
+
                     {/* Sync Actions */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                       <button
@@ -481,33 +510,34 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                           setIsSyncing(false);
                           if (ok) {
                             triggerConfetti();
-                            setSyncMsg('Đã lưu & ghi đè dữ liệu máy tính hiện tại lên Cloud thành công!');
+                            setSyncMsg('🎉 Đã đẩy toàn bộ Dữ liệu, Ảnh bìa, Avatar & Bản quyền VIP lên Cloud thành công!');
                           } else {
                             setSyncMsg('Không thể đồng bộ. Vui lòng kiểm tra kết nối mạng.');
                           }
                         }}
-                        className="py-2.5 px-3 rounded-xl theme-btn-primary text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
-                        title="Đẩy dữ liệu trên máy tính này lên Cloud (Ghi đè bản cũ)"
+                        className="py-2.5 px-3 rounded-xl theme-btn-primary text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-98 transition-all"
+                        title="Đẩy dữ liệu, ảnh và bản quyền VIP từ thiết bị này lên Cloud"
                       >
                         <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                        <span>Lưu & ghi đè lên Cloud</span>
+                        <span>Lưu & đẩy lên Cloud</span>
                       </button>
-
 
                       <button
                         disabled={isSyncing}
                         onClick={async () => {
-                          if (window.confirm('Tải dữ liệu từ Đám mây về sẽ cập nhật toàn bộ dữ liệu trên máy tính này. Tiếp tục?')) {
-                            setIsSyncing(true);
-                            const ok = await syncWithCloud('download');
-                            setIsSyncing(false);
-                            if (ok) {
-                              triggerConfetti();
-                              setSyncMsg('Đã nạp toàn bộ dữ liệu mới nhất từ Đám mây về máy!');
-                            }
+                          setIsSyncing(true);
+                          setSyncMsg(null);
+                          const ok = await syncWithCloud('download');
+                          setIsSyncing(false);
+                          if (ok) {
+                            triggerConfetti();
+                            setSyncMsg('🎉 Đã nạp thành công toàn bộ Dữ liệu, Ảnh bìa, Avatar & Bản quyền VIP từ Cloud!');
+                          } else {
+                            setSyncMsg('Không thể tải từ Cloud. Vui lòng kiểm tra kết nối mạng.');
                           }
                         }}
-                        className="py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+                        title="Tải dữ liệu, ảnh và bản quyền VIP từ Cloud về thiết bị này"
                       >
                         <Download className="w-4 h-4" />
                         <span>Tải từ Cloud về máy</span>
@@ -516,13 +546,14 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
 
                     {syncMsg && (
                       <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                         <span>{syncMsg}</span>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="p-6 rounded-2xl bg-white border border-pink-100 text-center space-y-3">
+
                     <p className="text-xs text-slate-600 font-medium">
                       Đăng nhập tài khoản để tự động đồng bộ dữ liệu trên nhiều máy tính và sao lưu an toàn khi đổi thiết bị.
                     </p>

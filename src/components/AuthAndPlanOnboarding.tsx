@@ -92,10 +92,11 @@ export const AuthAndPlanOnboarding: React.FC = () => {
       setTeacherName(teacherDisplayName);
       setTeacherTitle(selectedTitle);
       triggerConfetti();
-      await syncWithCloud('upload');
+      await syncWithCloud('download');
       await refreshAppData();
       setJustAuthenticated(true);
     }
+
   };
 
   // PHASE 2: WELCOME & PLAN SELECTION SCREEN (Shown right after auth)
