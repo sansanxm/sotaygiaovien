@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+
 import {
   Users,
   CalendarCheck,
@@ -62,47 +63,64 @@ export const Dashboard: React.FC = () => {
   const [editName, setEditName] = useState(teacherName);
   const [editBio, setEditBio] = useState(teacherBio);
 
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
-  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  // Handle Photo Upload & Image Compression (Optimized for Mobile PWA & Desktop)
 
-  // Handle Photo Upload & Image Compression
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size / type
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG, WEBP)!');
+      return;
+    }
+
     const reader = new FileReader();
+    reader.onerror = () => {
+      alert('Không thể đọc file ảnh. Vui lòng thử lại!');
+    };
+
     reader.onload = (event) => {
       const img = new Image();
+      img.onerror = () => {
+        alert('Lỗi khi tải ảnh. Vui lòng chọn ảnh khác!');
+      };
+
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDimension = type === 'cover' ? 1400 : 450;
-        let width = img.width;
-        let height = img.height;
+        try {
+          const canvas = document.createElement('canvas');
+          const maxDimension = type === 'cover' ? 1200 : 400;
+          let width = img.width;
+          let height = img.height;
 
-        if (width > height) {
-          if (width > maxDimension) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
-          }
-        } else {
-          if (height > maxDimension) {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressed = canvas.toDataURL('image/jpeg', 0.85);
-          if (type === 'avatar') {
-            setTeacherAvatar(compressed);
+          if (width > height) {
+            if (width > maxDimension) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            }
           } else {
-            setTeacherCover(compressed);
+            if (height > maxDimension) {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
           }
-          triggerConfetti();
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL('image/jpeg', type === 'cover' ? 0.78 : 0.82);
+            if (type === 'avatar') {
+              setTeacherAvatar(compressed);
+            } else {
+              setTeacherCover(compressed);
+            }
+            triggerConfetti();
+          }
+        } catch (err) {
+          console.error('Lỗi nén ảnh:', err);
+          alert('Không thể xử lý ảnh này trên thiết bị. Vui lòng chọn ảnh có dung lượng nhỏ hơn!');
         }
       };
       img.src = event.target?.result as string;
@@ -111,6 +129,7 @@ export const Dashboard: React.FC = () => {
     // Reset file input so re-selecting same file triggers onChange
     e.target.value = '';
   };
+
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,24 +302,9 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
-      {/* Hidden File Inputs for Cover and Avatar */}
-      <input
-        type="file"
-        ref={coverInputRef}
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handlePhotoUpload(e, 'cover')}
-      />
-      <input
-        type="file"
-        ref={avatarInputRef}
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handlePhotoUpload(e, 'avatar')}
-      />
-
       {/* Facebook-style Teacher Profile Header Card */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-md overflow-hidden relative transition-all duration-300">
+
         
         {/* 1. COVER PHOTO BANNER */}
         <div className="relative w-full h-48 sm:h-64 md:h-72 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 overflow-hidden group">
@@ -342,14 +346,19 @@ export const Dashboard: React.FC = () => {
 
           {/* Cover Photo Action Buttons (Bottom-Right) */}
           <div className="absolute bottom-3.5 right-4 z-10 flex items-center gap-2">
-            <button
-              onClick={() => coverInputRef.current?.click()}
-              className="px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white text-slate-800 font-bold text-xs shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-102 active:scale-98"
-              title="Tải ảnh bìa mới từ máy tính"
+            <label
+              className="px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white text-slate-800 font-bold text-xs shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-102 active:scale-98 select-none"
+              title="Tải ảnh bìa mới từ thiết bị"
             >
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => handlePhotoUpload(e, 'cover')}
+              />
               <Camera className="w-4 h-4 text-slate-700" />
               <span>{teacherCover ? 'Đổi ảnh bìa' : 'Thêm ảnh bìa'}</span>
-            </button>
+            </label>
 
             {teacherCover && (
               <button
@@ -390,14 +399,19 @@ export const Dashboard: React.FC = () => {
                   )}
                 </div>
 
-                {/* Camera Badge to Upload Avatar */}
-                <button
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center shadow-lg border-2 border-white cursor-pointer active:scale-95 transition-transform"
+                {/* Camera Badge to Upload Avatar (Direct Native Touch Label) */}
+                <label
+                  className="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center shadow-lg border-2 border-white cursor-pointer active:scale-95 transition-transform select-none"
                   title="Thay đổi ảnh đại diện"
                 >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => handlePhotoUpload(e, 'avatar')}
+                  />
                   <Camera className="w-4 h-4" />
-                </button>
+                </label>
 
                 {teacherAvatar && (
                   <button
@@ -413,6 +427,7 @@ export const Dashboard: React.FC = () => {
                   </button>
                 )}
               </div>
+
 
               {/* Name & Metadata */}
               <div className="space-y-1 sm:pb-2">

@@ -20,7 +20,9 @@ import {
   Smartphone,
   Sparkles,
   Crown,
+  RefreshCw,
 } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
 import type { ActiveTab } from '../types';
 import { GoogleAuthModal } from './GoogleAuthModal';
@@ -126,6 +128,14 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
           )}
 
           <button
+            onClick={() => window.location.reload()}
+            className="p-1.5 rounded-xl bg-slate-100 hover:brightness-95 text-slate-600 transition-colors cursor-pointer"
+            title="Tải lại / Làm mới ứng dụng"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+
+          <button
             onClick={onOpenSettings}
             className="p-1.5 rounded-xl bg-slate-100 hover:brightness-95 text-slate-600 transition-colors cursor-pointer"
             title="Cài đặt"
@@ -134,6 +144,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
           </button>
         </div>
       </header>
+
 
       {/* 2. Mobile Bottom Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t theme-card-border px-2 py-1.5 flex items-center justify-around shadow-lg pb-[max(0.375rem,env(safe-area-inset-bottom))]">
