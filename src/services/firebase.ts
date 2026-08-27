@@ -165,14 +165,10 @@ class FirebaseService {
   public async checkVipStatusLive(user: TeacherUser | { email: string }): Promise<{ isVip: boolean; vipExpiresAt?: string | null }> {
     const cleanEmail = (user.email || '').trim().toLowerCase();
     const lic = this.getLicenseStatus(cleanEmail);
-    if (lic.isVip) {
-      return { isVip: true, vipExpiresAt: lic.vipExpiresAt || 'lifetime' };
-    }
-    return { isVip: true, vipExpiresAt: 'lifetime' }; // Every signed-in teacher gets lifetime VIP automatically
+    return { isVip: lic.isVip, vipExpiresAt: lic.vipExpiresAt };
   }
 
   // 2. Authentication (Firebase Auth with Offline Fallback)
-
   public async signIn(
     email: string,
     password: string
@@ -185,11 +181,13 @@ class FirebaseService {
       return { user: null, error: new Error('Mật khẩu phải có ít nhất 6 ký tự!') };
     }
 
+    const lic = this.getLicenseStatus(cleanEmail);
+
     let teacherUser: TeacherUser = {
       id: cleanEmail,
       email: cleanEmail,
-      isVip: true,
-      vipExpiresAt: 'lifetime',
+      isVip: lic.isVip,
+      vipExpiresAt: lic.vipExpiresAt,
       user_metadata: {
         full_name: 'Giáo viên',
       },
@@ -221,7 +219,6 @@ class FirebaseService {
       }
     } catch {}
 
-    this.setLocalVip(cleanEmail, 'lifetime');
     this.activeUser = teacherUser;
     localStorage.setItem('gvcn_active_user_email', cleanEmail);
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(teacherUser));
@@ -242,11 +239,12 @@ class FirebaseService {
       return { user: null, error: new Error('Mật khẩu phải có ít nhất 6 ký tự!') };
     }
 
+    // New signups start with standard 30-day Free Trial
     let teacherUser: TeacherUser = {
       id: cleanEmail,
       email: cleanEmail,
-      isVip: true,
-      vipExpiresAt: 'lifetime',
+      isVip: false,
+      vipExpiresAt: null,
       user_metadata: {
         full_name: fullName.trim() || 'Giáo viên',
       },
@@ -261,13 +259,13 @@ class FirebaseService {
       }
     } catch {}
 
-    this.setLocalVip(cleanEmail, 'lifetime');
     this.activeUser = teacherUser;
     localStorage.setItem('gvcn_active_user_email', cleanEmail);
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(teacherUser));
 
     return { user: teacherUser, error: null };
   }
+
 
   public async signOut(): Promise<void> {
     try {
