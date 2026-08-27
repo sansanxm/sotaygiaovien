@@ -34,7 +34,11 @@ export interface ClassRoom {
   cols: number;
   layoutType?: SeatingLayoutType;
   note?: string;
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
+  bio?: string | null;
 }
+
 
 export interface Student {
   id: string;

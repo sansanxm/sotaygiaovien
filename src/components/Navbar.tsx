@@ -146,12 +146,17 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
 
             {/* Class Selector */}
             <div className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-xl shadow-xs border border-pink-100">
-              <GraduationCap className="w-4 h-4 text-pink-500" />
+              {currentClass?.avatarUrl ? (
+                <img src={currentClass.avatarUrl} alt="Class Avatar" className="w-4 h-4 rounded-full object-cover shrink-0 border border-pink-300" />
+              ) : (
+                <GraduationCap className="w-4 h-4 text-pink-500" />
+              )}
               <select
                 value={currentClass?.id || ''}
                 onChange={(e) => setCurrentClassId(e.target.value)}
                 className="text-xs font-bold text-slate-700 bg-transparent border-none focus:outline-none cursor-pointer pr-2"
               >
+
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.roomNumber || 'Phòng học'})

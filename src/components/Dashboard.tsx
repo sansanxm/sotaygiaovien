@@ -43,6 +43,7 @@ export const Dashboard: React.FC = () => {
     setTeacherCover,
     teacherBio,
     setTeacherBio,
+    updateClassPhoto,
     isVip,
     setActiveTab,
     triggerConfetti,
@@ -57,19 +58,27 @@ export const Dashboard: React.FC = () => {
   const [todayLessons, setTodayLessons] = useState<TimetableEntry[]>([]);
   const [newTodoTitle, setNewTodoTitle] = useState('');
 
+  // Class-scoped Cover & Avatar
+  const effectiveCover = currentClass?.coverUrl || teacherCover || null;
+  const effectiveAvatar = currentClass?.avatarUrl || teacherAvatar || null;
+  const effectiveBio = currentClass?.bio || teacherBio;
+
   // Profile Edit Modal State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editTitle, setEditTitle] = useState<TeacherTitle>(teacherTitle);
   const [editName, setEditName] = useState(teacherName);
-  const [editBio, setEditBio] = useState(teacherBio);
+  const [editBio, setEditBio] = useState(effectiveBio);
 
-  // Handle Photo Upload & Image Compression (Optimized for Mobile PWA & Desktop)
+  // Sync editBio when currentClass changes
+  useEffect(() => {
+    setEditBio(currentClass?.bio || teacherBio);
+  }, [currentClass?.id, currentClass?.bio, teacherBio]);
 
+  // Handle Photo Upload & Image Compression (Class-Scoped)
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size / type
     if (!file.type.startsWith('image/')) {
       alert('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG, WEBP)!');
       return;
@@ -86,7 +95,7 @@ export const Dashboard: React.FC = () => {
         alert('Lỗi khi tải ảnh. Vui lòng chọn ảnh khác!');
       };
 
-      img.onload = () => {
+      img.onload = async () => {
         try {
           const canvas = document.createElement('canvas');
           const maxDimension = type === 'cover' ? 1200 : 400;
@@ -111,10 +120,14 @@ export const Dashboard: React.FC = () => {
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
             const compressed = canvas.toDataURL('image/jpeg', type === 'cover' ? 0.78 : 0.82);
-            if (type === 'avatar') {
-              setTeacherAvatar(compressed);
+            if (currentClass) {
+              await updateClassPhoto(currentClass.id, type, compressed);
             } else {
-              setTeacherCover(compressed);
+              if (type === 'avatar') {
+                setTeacherAvatar(compressed);
+              } else {
+                setTeacherCover(compressed);
+              }
             }
             triggerConfetti();
           }
@@ -126,19 +139,21 @@ export const Dashboard: React.FC = () => {
       img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
-    // Reset file input so re-selecting same file triggers onChange
     e.target.value = '';
   };
 
-
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setTeacherTitle(editTitle);
     setTeacherName(editName);
     setTeacherBio(editBio);
+    if (currentClass) {
+      await updateClassPhoto(currentClass.id, 'bio', editBio);
+    }
     setIsEditingProfile(false);
     triggerConfetti();
   };
+
 
 
 
@@ -308,10 +323,10 @@ export const Dashboard: React.FC = () => {
         
         {/* 1. COVER PHOTO BANNER */}
         <div className="relative w-full h-48 sm:h-64 md:h-72 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 overflow-hidden group">
-          {teacherCover ? (
+          {effectiveCover ? (
             <img
-              src={teacherCover}
-              alt="Ảnh bìa giáo viên"
+              src={effectiveCover}
+              alt={`Ảnh bìa lớp ${currentClass.name}`}
               className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-101"
             />
           ) : (
@@ -344,11 +359,11 @@ export const Dashboard: React.FC = () => {
             <Sparkles className="w-3 h-3 text-amber-300" /> {currentYear?.name || 'Năm học mới'} • Lớp {currentClass.name}
           </div>
 
-          {/* Cover Photo Action Buttons (Top-Right - avoids overlapping with profile buttons below) */}
+          {/* Cover Photo Action Buttons */}
           <div className="absolute top-3.5 right-4 z-30 flex items-center gap-2">
             <label
               className="px-3.5 py-2 rounded-xl bg-white/95 hover:bg-white text-slate-800 font-extrabold text-xs shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105 active:scale-95 select-none"
-              title="Tải ảnh bìa mới từ thiết bị"
+              title={`Tải ảnh bìa riêng cho lớp ${currentClass.name}`}
             >
               <input
                 type="file"
@@ -357,18 +372,21 @@ export const Dashboard: React.FC = () => {
                 onChange={(e) => handlePhotoUpload(e, 'cover')}
               />
               <Camera className="w-4 h-4 text-slate-700" />
-              <span>{teacherCover ? 'Đổi ảnh bìa' : 'Thêm ảnh bìa'}</span>
+              <span>{effectiveCover ? 'Đổi ảnh bìa lớp' : 'Thêm ảnh bìa lớp'}</span>
             </label>
 
-            {teacherCover && (
+            {effectiveCover && (
               <button
-                onClick={() => {
-                  if (window.confirm('Thầy/Cô có muốn xóa ảnh bìa và quay về ảnh nền mặc định?')) {
+                onClick={async () => {
+                  if (window.confirm(`Thầy/Cô có muốn xóa ảnh bìa riêng của lớp ${currentClass.name}?`)) {
+                    if (currentClass) {
+                      await updateClassPhoto(currentClass.id, 'cover', null);
+                    }
                     setTeacherCover(null);
                   }
                 }}
                 className="p-2 rounded-xl bg-black/40 hover:bg-rose-600/90 text-white backdrop-blur-md transition-colors cursor-pointer"
-                title="Xóa ảnh bìa tùy chỉnh"
+                title="Xóa ảnh bìa lớp"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -387,15 +405,15 @@ export const Dashboard: React.FC = () => {
               {/* Avatar Circle Container */}
               <div className="relative group">
                 <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-white shadow-xl bg-gradient-to-tr from-pink-400 to-rose-500 overflow-hidden relative flex items-center justify-center text-white text-4xl sm:text-5xl font-black shrink-0">
-                  {teacherAvatar ? (
+                  {effectiveAvatar ? (
                     <img
-                      src={teacherAvatar}
-                      alt="Ảnh đại diện giáo viên"
+                      src={effectiveAvatar}
+                      alt={`Ảnh đại diện lớp ${currentClass.name}`}
                       className="w-full h-full object-cover object-center"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-pink-400 via-rose-400 to-amber-300 text-white font-black text-4xl sm:text-5xl select-none">
-                      {(teacherName || teacherTitle || 'GV').slice(0, 1).toUpperCase()}
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-pink-400 via-rose-400 to-amber-300 text-white font-black text-3xl sm:text-4xl select-none">
+                      {currentClass.name || 'LỚP'}
                     </div>
                   )}
                 </div>
@@ -403,7 +421,7 @@ export const Dashboard: React.FC = () => {
                 {/* Camera Badge to Upload Avatar (Direct Native Touch Label) */}
                 <label
                   className="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center shadow-lg border-2 border-white cursor-pointer active:scale-95 transition-transform select-none"
-                  title="Thay đổi ảnh đại diện"
+                  title={`Thay đổi ảnh đại diện riêng cho lớp ${currentClass.name}`}
                 >
                   <input
                     type="file"
@@ -414,10 +432,13 @@ export const Dashboard: React.FC = () => {
                   <Camera className="w-4 h-4" />
                 </label>
 
-                {teacherAvatar && (
+                {effectiveAvatar && (
                   <button
-                    onClick={() => {
-                      if (window.confirm('Thầy/Cô có muốn xóa ảnh đại diện tùy chỉnh?')) {
+                    onClick={async () => {
+                      if (window.confirm(`Thầy/Cô có muốn xóa ảnh đại diện riêng của lớp ${currentClass.name}?`)) {
+                        if (currentClass) {
+                          await updateClassPhoto(currentClass.id, 'avatar', null);
+                        }
                         setTeacherAvatar(null);
                       }
                     }}
@@ -460,8 +481,9 @@ export const Dashboard: React.FC = () => {
                 {/* Slogan / Bio Quote */}
                 <div className="pt-1 flex items-center justify-center sm:justify-start gap-2">
                   <p className="text-sm text-slate-600 italic max-w-xl font-medium">
-                    "{teacherBio || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui'}"
+                    "{effectiveBio || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui'}"
                   </p>
+
                   <button
                     onClick={() => {
                       setEditTitle(teacherTitle);

@@ -163,9 +163,11 @@ export interface AppContextType {
   signIn: (email: string, password: string) => Promise<{ user: CloudUser | null; error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ user: CloudUser | null; error: Error | null }>;
   signOut: () => Promise<void>;
+  updateClassPhoto: (classId: string, type: 'avatar' | 'cover' | 'bio', value: string | null) => Promise<void>;
   syncWithCloud: (direction?: 'upload' | 'download' | 'both') => Promise<boolean>;
   clearAllData: () => Promise<void>;
 }
+
 
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -298,6 +300,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTimeout(() => syncWithCloud('upload'), 500);
     }
   };
+
+  const updateClassPhoto = async (classId: string, type: 'avatar' | 'cover' | 'bio', value: string | null) => {
+    const updatePayload: Partial<ClassRoom> = {};
+    if (type === 'avatar') updatePayload.avatarUrl = value;
+    if (type === 'cover') updatePayload.coverUrl = value;
+    if (type === 'bio') updatePayload.bio = value;
+
+    await db.classes.update(classId, updatePayload);
+
+    setClasses((prev) =>
+      prev.map((c) => (c.id === classId ? { ...c, ...updatePayload } : c))
+    );
+
+    if (currentClass && currentClass.id === classId) {
+      setCurrentClass((prev) => (prev ? { ...prev, ...updatePayload } : null));
+    }
+
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 500);
+    }
+  };
+
 
   const triggerConfetti = () => {
 
@@ -737,6 +761,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         showVipModal,
         setShowVipModal,
 
+        updateClassPhoto,
         activateVip,
         signIn,
         signUp,
@@ -744,6 +769,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         syncWithCloud,
         clearAllData,
       }}
+
     >
       {children}
       <VipUpgradeModal isOpen={showVipModal} onClose={() => setShowVipModal(false)} />

@@ -80,9 +80,14 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
       {/* 1. Mobile Top Bar */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b theme-card-border px-3.5 py-2.5 flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-8 h-8 rounded-xl theme-btn-primary flex items-center justify-center text-white font-black text-sm shrink-0 shadow-2xs">
-            🌸
-          </div>
+          {currentClass?.avatarUrl ? (
+            <img src={currentClass.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-xl object-cover shrink-0 border border-pink-300 shadow-2xs" />
+          ) : (
+            <div className="w-8 h-8 rounded-xl theme-btn-primary flex items-center justify-center text-white font-black text-sm shrink-0 shadow-2xs">
+              🌸
+            </div>
+          )}
+
 
           {/* Quick Class Selector */}
           <div className="flex flex-col text-left truncate">

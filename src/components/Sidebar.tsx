@@ -168,12 +168,17 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
             {/* Class */}
             <div className="flex items-center justify-between gap-1.5">
               <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200/80 text-sm font-bold text-slate-800 flex-1 truncate shadow-2xs">
-                <GraduationCap className="w-4 h-4 theme-text shrink-0" />
+                {currentClass?.avatarUrl ? (
+                  <img src={currentClass.avatarUrl} alt="Class Avatar" className="w-4 h-4 rounded-full object-cover shrink-0 border border-pink-300" />
+                ) : (
+                  <GraduationCap className="w-4 h-4 theme-text shrink-0" />
+                )}
                 <select
                   value={currentClass?.id || ''}
                   onChange={(e) => setCurrentClassId(e.target.value)}
                   className="w-full bg-transparent border-none focus:outline-none cursor-pointer truncate font-bold text-sm text-slate-800"
                 >
+
                   {classes.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.roomNumber || 'Phòng học'})

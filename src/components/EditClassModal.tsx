@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { GraduationCap, Check, X, Building, UserCheck } from 'lucide-react';
+import { GraduationCap, Check, X, Building, UserCheck, Camera, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+
+
 
 import { db } from '../db/db';
 import type { ClassRoom } from '../types';
@@ -26,6 +28,9 @@ export const EditClassModal: React.FC<Props> = ({
   const [homeroomTeacher, setHomeroomTeacher] = useState('');
   const [rows, setRows] = useState(4);
   const [cols, setCols] = useState(4);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
     if (targetClass) {
@@ -35,10 +40,60 @@ export const EditClassModal: React.FC<Props> = ({
       setHomeroomTeacher(targetClass.homeroomTeacher || '');
       setRows(targetClass.rows || 4);
       setCols(targetClass.cols || 4);
+      setAvatarUrl(targetClass.avatarUrl || null);
+      setCoverUrl(targetClass.coverUrl || null);
+      setBio(targetClass.bio || '');
     }
   }, [targetClass, isOpen]);
 
   if (!isOpen || !targetClass) return null;
+
+  const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG, WEBP)!');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDimension = type === 'cover' ? 1200 : 400;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', type === 'cover' ? 0.78 : 0.82);
+          if (type === 'avatar') {
+            setAvatarUrl(compressed);
+          } else {
+            setCoverUrl(compressed);
+          }
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,13 +107,17 @@ export const EditClassModal: React.FC<Props> = ({
       rows: Number(rows) || 4,
       cols: Number(cols) || 4,
       totalDesks: (Number(rows) || 4) * (Number(cols) || 4),
+      avatarUrl,
+      coverUrl,
+      bio: bio.trim() || null,
     });
 
     await onUpdated();
     triggerConfetti();
-    alert(`Đã cập nhật thành công thông tin lớp ${name}! 🎉`);
+    alert(`Đã cập nhật thành công thông tin & ảnh riêng của lớp ${name}! 🎉`);
     onClose();
   };
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
@@ -146,6 +205,95 @@ export const EditClassModal: React.FC<Props> = ({
             />
           </div>
 
+          {/* Class Photo & Cover Customization */}
+          <div className="p-3.5 rounded-2xl bg-pink-50/50 border border-pink-200 space-y-3">
+            <span className="font-extrabold text-xs text-pink-700 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-pink-500" /> Ảnh đại diện & ảnh bìa riêng của lớp {name || targetClass.name}:
+            </span>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Class Avatar */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-600">Ảnh đại diện lớp</label>
+                <div className="flex items-center gap-2">
+                  <div className="w-12 h-12 rounded-full border-2 border-pink-300 overflow-hidden bg-pink-100 flex items-center justify-center text-pink-700 font-bold text-xs shrink-0">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{name ? name.slice(0, 3) : 'LỚP'}</span>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="px-2.5 py-1 rounded-lg bg-white border border-pink-200 text-pink-700 font-bold text-[11px] hover:bg-pink-50 cursor-pointer inline-flex items-center gap-1">
+                      <Camera className="w-3 h-3" /> Tải ảnh
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(e) => handleImagePick(e, 'avatar')}
+                      />
+                    </label>
+                    {avatarUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setAvatarUrl(null)}
+                        className="text-[10px] text-rose-500 hover:underline block font-semibold"
+                      >
+                        Xóa ảnh
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Class Cover Photo */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-600">Ảnh bìa lớp</label>
+                <div className="flex items-center gap-2">
+                  <div className="w-16 h-12 rounded-xl border-2 border-pink-300 overflow-hidden bg-pink-100 flex items-center justify-center text-pink-700 font-bold text-[10px] shrink-0">
+                    {coverUrl ? (
+                      <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 text-pink-400" />
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="px-2.5 py-1 rounded-lg bg-white border border-pink-200 text-pink-700 font-bold text-[11px] hover:bg-pink-50 cursor-pointer inline-flex items-center gap-1">
+                      <Camera className="w-3 h-3" /> Tải ảnh
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(e) => handleImagePick(e, 'cover')}
+                      />
+                    </label>
+                    {coverUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setCoverUrl(null)}
+                        className="text-[10px] text-rose-500 hover:underline block font-semibold"
+                      >
+                        Xóa ảnh
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Class Bio / Slogan */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Khẩu hiệu / Giới thiệu riêng của lớp</label>
+              <input
+                type="text"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Ví dụ: Đoàn kết là sức mạnh • Học hết sức, chơi hết mình!"
+                className="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              />
+            </div>
+          </div>
+
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <span className="font-extrabold text-xs text-slate-700 block">
               Sơ đồ bàn ghế mặc định của lớp:
@@ -175,6 +323,7 @@ export const EditClassModal: React.FC<Props> = ({
               </div>
             </div>
           </div>
+
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
             <button
