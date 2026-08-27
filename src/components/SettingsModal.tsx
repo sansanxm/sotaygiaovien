@@ -576,6 +576,28 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                 )}
               </div>
 
+              {/* Firebase Cloud Project Configuration Box */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50/70 to-orange-50/70 border border-amber-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🔥</span>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-amber-950">Hệ Thống Đám Mây Firebase Google</h4>
+                      <p className="text-[11px] text-amber-800">Cơ sở dữ liệu Firestore NoSQL thời gian thực & sao lưu đa tầng</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Đang hoạt động
+                  </span>
+                </div>
+                <div className="text-[11px] text-amber-900 leading-relaxed bg-white/80 p-3 rounded-xl border border-amber-100 space-y-1">
+                  <p className="font-bold text-slate-800">📌 Thầy/Cô có cần tạo dự án trên Firebase không?</p>
+                  <p>• <strong>Mặc định</strong>: Ứng dụng đã được tích hợp sẵn hệ thống Firebase Cloud tự động. Thầy/Cô chỉ cần <strong>Đăng ký / Đăng nhập tài khoản Email</strong> là có thể sử dụng ngay lập tức mà <strong>không cần cài đặt bất kỳ thứ gì trên Firebase</strong>.</p>
+                  <p>• <strong>Nếu muốn dùng tài khoản Firebase riêng của Thầy/Cô</strong>: Thầy/Cô có thể tạo dự án miễn phí tại <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline">console.firebase.google.com</a>, bật Firestore Database & Authentication rồi dán mã cấu hình vào mục cài đặt.</p>
+                </div>
+              </div>
+
               {/* Offline-First Information Box */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs text-slate-600">
                 <div className="font-bold text-slate-800 flex items-center gap-1">
