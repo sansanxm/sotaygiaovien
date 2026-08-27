@@ -1,12 +1,11 @@
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 
-// Pre-configured Central Cloud Server for all teachers
-// Built into the app packaging so teachers don't have to configure anything!
+// Pre-configured Supabase Project for Sổ Tay Giáo Viên 4.0
 const DEFAULT_SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || 'https://gvcn-cloud.supabase.co';
+  import.meta.env.VITE_SUPABASE_URL || 'https://msheiqwtzwaaysqfuigy.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2Y24tY2xvdWQiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3MDAwMDAwMCwiZXhwIjoxOTgwMDAwMDAwfQ.placeholder';
+  'sb_publishable_N0tXH2iBEmZvnktpESPVpw_DucbkeWB';
 
 export type SyncState = 'synced' | 'syncing' | 'offline' | 'error' | 'local-only';
 
@@ -31,13 +30,18 @@ class CloudSyncService {
           autoRefreshToken: true,
           detectSessionInUrl: true,
         },
+        realtime: {
+          params: {
+            eventsPerSecond: 10,
+          },
+        },
       });
     }
     return this.client;
   }
 
   public isConfigured(): boolean {
-    return Boolean(this.url && this.anonKey && !this.url.includes('example-project'));
+    return Boolean(this.url && this.anonKey);
   }
 
   // 1. Email & Password Sign In
@@ -98,7 +102,7 @@ class CloudSyncService {
     }
   }
 
-  // 5. Upload class database to Cloud
+  // 5. Upload class database to Cloud (Supabase Postgres)
   public async uploadBackupToCloud(
     user: User,
     dataJson: string
@@ -161,7 +165,42 @@ class CloudSyncService {
       return { success: false, error: (err as Error).message };
     }
   }
+
+  // 7. Realtime Subscription (WebSocket Auto-Sync between multiple devices)
+  public subscribeToRealtime(
+    userId: string,
+    onRemoteChange: (data: any) => void
+  ): () => void {
+    try {
+      const client = this.getClient();
+      const channel = client
+        .channel(`realtime:teacher_clouds:${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'teacher_clouds',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            if (payload.new && (payload.new as any).data) {
+              onRemoteChange((payload.new as any).data);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        client.removeChannel(channel);
+      };
+    } catch (err) {
+      console.warn('Realtime subscription error:', err);
+      return () => {};
+    }
+  }
 }
 
 export const supabaseService = new CloudSyncService();
 export const cloudSyncService = supabaseService;
+

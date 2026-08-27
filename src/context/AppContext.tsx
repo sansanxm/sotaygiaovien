@@ -4,8 +4,10 @@ import { db, exportDatabaseBackup, importDatabaseBackup, getUserScopedKey } from
 
 import { seedInitialDatabase } from '../db/initialData';
 import { adminGoogleSync, type TeacherUser as CloudUser, type SyncState, type LicenseStatus } from '../services/adminGoogleScriptSync';
+import { supabaseService } from '../services/supabase';
 import type { SchoolYear, ClassRoom, ActiveTab, TeacherTitle, AppTheme } from '../types';
 import { VipUpgradeModal } from '../components/VipUpgradeModal';
+
 
 export type { AppTheme, SyncState, CloudUser, LicenseStatus };
 
@@ -469,18 +471,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       try {
         if (direction === 'download') {
-          const res = await adminGoogleSync.downloadBackupFromCloud(user);
-          if (res.success && res.dataJson && !res.empty) {
-            await importDatabaseBackup(res.dataJson, user.email);
-            await refreshAppData(user.email);
+          // 1. Try Supabase Cloud first
+          let downloaded = false;
+          try {
+            const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
+            if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
+              await importDatabaseBackup(sbRes.dataJson, user.email);
+              await refreshAppData(user.email);
+              downloaded = true;
+            }
+          } catch (e) {
+            console.warn('Supabase download fallback:', e);
+          }
+
+          // 2. Fallback to Google Cloud if Supabase didn't have data
+          if (!downloaded) {
+            const res = await adminGoogleSync.downloadBackupFromCloud(user);
+            if (res.success && res.dataJson && !res.empty) {
+              await importDatabaseBackup(res.dataJson, user.email);
+              await refreshAppData(user.email);
+            }
           }
         } else {
-          // 'upload' - Always export current user's local data and overwrite Cloud
+          // 'upload' - Export current user's local data and send to Cloud
           const backupJson = await exportDatabaseBackup(user.email);
-          const uploadRes = await adminGoogleSync.uploadBackupToCloud(user, backupJson);
-          if (!uploadRes.success) {
-            console.warn('Sync upload warning:', uploadRes.error);
-          }
+          
+          // Dual sync: Supabase Realtime + Google Cloud Backup
+          await Promise.allSettled([
+            supabaseService.uploadBackupToCloud(user as any, backupJson),
+            adminGoogleSync.uploadBackupToCloud(user, backupJson),
+          ]);
         }
 
         setSyncState('synced');
@@ -539,6 +559,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isMounted = false;
     };
   }, []);
+
+  // Supabase Realtime WebSocket Listener (Auto-sync between PC, Phone, iPad in ~0.05s)
+  useEffect(() => {
+    if (!user || !user.id) return;
+
+    const unsubscribe = supabaseService.subscribeToRealtime(user.id, async (remoteData) => {
+      try {
+        if (remoteData && typeof remoteData === 'object') {
+          console.log('⚡ Supabase Realtime Sync Event received from another device!');
+          await importDatabaseBackup(JSON.stringify(remoteData), user.email);
+          await refreshAppData(user.email);
+          setSyncState('synced');
+          setLastSyncedAt(new Date());
+        }
+      } catch (err) {
+        console.warn('Realtime import warning:', err);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user]);
+
 
 
 
