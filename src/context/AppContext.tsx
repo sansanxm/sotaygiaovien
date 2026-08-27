@@ -461,8 +461,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activateVip(liveVip.vipExpiresAt || 'lifetime');
       }
 
-      // 3. Download cloud data safely (protects local data from empty cloud overwrite)
-      await syncWithCloud('download');
+      // 3. Smart sync safely (preserves local data and pulls cloud updates)
+      await syncWithCloud('smart');
 
       // 4. Refresh local memory & UI with cloud data
       await refreshAppData(res.user.email);
@@ -479,18 +479,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setUser(res.user);
       setSyncState('synced');
 
-      // Auto-activate 30-Day VIP for new signups
+      // Auto-activate lifetime VIP for signups
       activateVip('lifetime');
 
       // Seed & Refresh
       await refreshAppData(res.user.email);
       triggerConfetti();
 
-      // Upload state to Cloud for this account
-      await syncWithCloud('upload');
+      // Smart Sync to Cloud
+      await syncWithCloud('smart');
     }
     return res;
   };
+
 
 
   // Sign Out (Completely wipes active memory to ensure total account isolation)

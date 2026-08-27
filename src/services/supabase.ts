@@ -478,7 +478,8 @@ class SupabaseCloudSyncService {
       const isVipUser = Boolean(
         (user as any).isVip ||
         parsedData?.vipToken?.isVip ||
-        localStorage.getItem(getUserScopedKey('vip_token', email))
+        localStorage.getItem(getUserScopedKey('vip_token', email)) ||
+        localStorage.getItem('gvcn_vip_token')
       );
       const vipExpiresAt =
         (user as any).vipExpiresAt ||
@@ -499,6 +500,8 @@ class SupabaseCloudSyncService {
         email: email,
         full_name: fullName,
         avatar_url: avatarUrl,
+        is_vip: isVipUser,
+        vip_expires_at: isVipUser ? vipExpiresAt : null,
         data: {
           ...parsedData,
           _clientId: CLIENT_SESSION_ID,
@@ -506,6 +509,7 @@ class SupabaseCloudSyncService {
         },
         updated_at: new Date().toISOString(),
       };
+
 
       const { error } = await client.from('teacher_clouds').upsert(payload, {
         onConflict: 'user_id',
