@@ -1,8 +1,9 @@
 {
   "name": "Sổ Tay Giáo Viên 4.0",
-  "short_name": "GVCN 4.0",
-  "description": "Ứng dụng Quản lý Lớp học, Điểm danh & Sổ tay Giáo viên Chủ nhiệm 4.0",
+  "short_name": "Sổ Tay Giáo Viên 4.0",
+  "description": "Ứng dụng Quản lý Lớp học, Điểm danh & Sổ tay Giáo viên 4.0",
   "start_url": "./",
+
   "scope": "./",
   "display": "standalone",
   "background_color": "#FFF5F7",

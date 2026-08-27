@@ -10,6 +10,7 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 700,
     title: 'Sổ tay Giáo viên 4.0',
+    icon: path.join(__dirname, '../build/icon.png'),
     backgroundColor: '#FFF5F7',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -18,6 +19,7 @@ function createWindow() {
       sandbox: false,
     },
   });
+
 
   Menu.setApplicationMenu(null);
 

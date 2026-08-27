@@ -443,18 +443,19 @@ export const Dashboard: React.FC = () => {
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 font-extrabold text-[11px]">
-                      <Sparkles className="w-3 h-3 text-pink-500" /> GVCN
+                      <Sparkles className="w-3 h-3 text-pink-500" /> Giáo viên
                     </span>
                   )}
                 </div>
 
                 <p className="text-xs sm:text-sm text-slate-600 font-semibold flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <span>GVCN Lớp <strong className="text-slate-800 font-bold">{currentClass.name}</strong></span>
+                  <span>Giáo viên Lớp <strong className="text-slate-800 font-bold">{currentClass.name}</strong></span>
                   <span>•</span>
                   <span>{currentClass.roomNumber || 'Phòng học chính'}</span>
                   <span>•</span>
                   <span>Sĩ số: <strong className="text-pink-600 font-bold">{students.length} em</strong></span>
                 </p>
+
 
                 {/* Slogan / Bio Quote */}
                 <div className="pt-1 flex items-center justify-center sm:justify-start gap-2">
@@ -954,8 +955,9 @@ export const Dashboard: React.FC = () => {
               "Mỗi học sinh là một bông hoa với vẻ đẹp và thời điểm nở rộ riêng. Sự dịu dàng và kiên nhẫn của Thầy/Cô chính là ánh nắng ấm áp nhất."
             </p>
             <div className="mt-3 text-right text-xs sm:text-sm font-extrabold theme-quote-author">
-              — Sổ Tay GVCN 🌸
+              — Sổ Tay Giáo Viên 4.0 🌸
             </div>
+
           </div>
 
 

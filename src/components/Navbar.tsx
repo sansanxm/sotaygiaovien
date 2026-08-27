@@ -113,8 +113,9 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-pink-600 to-rose-500 bg-clip-text text-transparent">
-                  Sổ Tay GVCN 4.0
+                  Sổ Tay Giáo Viên 4.0
                 </span>
+
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
                   <WifiOff className="w-3 h-3" /> Offline 100%
                 </span>

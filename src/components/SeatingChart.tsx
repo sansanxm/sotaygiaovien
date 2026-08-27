@@ -648,8 +648,9 @@ export const SeatingChart: React.FC = () => {
           </div>
 
           <div className="absolute -bottom-3 right-8 px-3.5 py-1 rounded-xl bg-amber-100 text-amber-900 text-[10px] font-black border border-amber-300 shadow-xs flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-600" /> BỤC GIẢNG GVCN
+            <Sparkles className="w-3 h-3 text-amber-600" /> BỤC GIẢNG GIÁO VIÊN
           </div>
+
         </div>
 
         {/* Desks Grid with Aisles */}

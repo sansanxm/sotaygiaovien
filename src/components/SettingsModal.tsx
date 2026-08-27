@@ -596,8 +596,9 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               {/* Teacher Title & Name */}
               <div className="p-5 rounded-2xl bg-pink-50/60 border border-pink-200 space-y-4">
                 <div className="font-extrabold text-xs uppercase tracking-wider text-pink-900 flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-pink-500" /> Danh xưng & tên giáo viên chủ nhiệm:
+                  <UserCheck className="w-4 h-4 text-pink-500" /> Danh xưng & tên giáo viên:
                 </div>
+
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
@@ -758,9 +759,10 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                     type="text"
                     value={newClassTeacher}
                     onChange={(e) => setNewClassTeacher(e.target.value)}
-                    placeholder="Tên GVCN"
+                    placeholder="Tên Giáo viên"
                     className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-semibold"
                   />
+
                   <input
                     type="text"
                     value={newClassRoom}
