@@ -83,7 +83,8 @@ class SupabaseCloudSyncService {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: typeof window !== 'undefined' && window.location.protocol.startsWith('http'),
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         },
         realtime: {
           params: {
@@ -94,6 +95,7 @@ class SupabaseCloudSyncService {
     }
     return this.client;
   }
+
 
   public isConfigured(): boolean {
     return Boolean(this.url && this.anonKey);
@@ -291,8 +293,10 @@ class SupabaseCloudSyncService {
           data: {
             full_name: fullName.trim() || 'Giáo viên',
           },
+          emailRedirectTo: 'https://sansanxm.github.io/sotaygiaovien/',
         },
       });
+
 
       if (error) {
         return { user: null, error: new Error(this.formatAuthError(error.message)) };
