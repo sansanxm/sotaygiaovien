@@ -168,7 +168,7 @@ class SupabaseCloudSyncService {
   }
 
   public setLocalVip(email: string, expiresAt: string = 'lifetime'): void {
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = (email || 'local_user').trim().toLowerCase();
     const token = {
       email: cleanEmail,
       isVip: true,
@@ -181,6 +181,30 @@ class SupabaseCloudSyncService {
       this.activeUser.vipExpiresAt = expiresAt;
       localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(this.activeUser));
     }
+
+    // Sync VIP status to Supabase Cloud immediately
+    if (navigator.onLine && cleanEmail && cleanEmail !== 'local_user') {
+      (async () => {
+        try {
+          const client = this.getClient();
+          await client.from('teacher_clouds').upsert(
+            {
+              id: cleanEmail,
+              user_id: cleanEmail,
+              email: cleanEmail,
+              user_email: cleanEmail,
+              is_vip: true,
+              vip_expires_at: expiresAt,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' }
+          );
+        } catch (err) {
+          console.warn('VIP sync to cloud exception:', err);
+        }
+      })();
+    }
+
   }
 
   public activateWithLicenseKey(key: string, userEmail?: string): { success: boolean; message: string } {
@@ -201,16 +225,52 @@ class SupabaseCloudSyncService {
   }
 
   public async checkVipStatusLive(user: TeacherUser): Promise<{ isVip: boolean; vipExpiresAt?: string | null }> {
-    const cleanEmail = (user.email || this.activeUser?.email || '').toLowerCase();
+    const cleanEmail = (user.email || this.activeUser?.email || '').trim().toLowerCase();
+    if (!cleanEmail) return { isVip: false };
+
+    // 1. Check local token first
     const isLocal = localStorage.getItem(getUserScopedKey('vip_token', cleanEmail));
     if (isLocal) {
       try {
         const parsed = JSON.parse(isLocal);
-        return { isVip: true, vipExpiresAt: parsed.vipExpiresAt };
+        if (parsed?.isVip) {
+          return { isVip: true, vipExpiresAt: parsed.vipExpiresAt || 'lifetime' };
+        }
       } catch {}
     }
+
+    // 2. Check Supabase Cloud database
+    try {
+      const client = this.getClient();
+      const { data } = await client
+        .from('teacher_clouds')
+        .select('is_vip, vip_expires_at, data, backup_data')
+        .eq('user_id', cleanEmail)
+        .maybeSingle();
+
+      if (data) {
+        const isCloudVip = Boolean(
+          data.is_vip ||
+          (data.data as any)?.vipToken?.isVip ||
+          (data.backup_data as any)?.vipToken?.isVip
+        );
+        if (isCloudVip) {
+          const expires =
+            data.vip_expires_at ||
+            (data.data as any)?.vipToken?.vipExpiresAt ||
+            (data.backup_data as any)?.vipToken?.vipExpiresAt ||
+            'lifetime';
+          this.setLocalVip(cleanEmail, expires);
+          return { isVip: true, vipExpiresAt: expires };
+        }
+      }
+    } catch (e) {
+      console.warn('VIP live check error:', e);
+    }
+
     return { isVip: false };
   }
+
 
   // 2. Resilient Authentication (Zero-Block Smart Auth)
 
@@ -405,21 +465,45 @@ class SupabaseCloudSyncService {
       const fullName = (user as any).user_metadata?.full_name || 'Giáo viên';
       const avatarUrl = (user as any).user_metadata?.avatar_url || '';
 
-      const { error } = await client.from('teacher_clouds').upsert(
-        {
-          user_id: userId,
-          email: email,
-          full_name: fullName,
-          avatar_url: avatarUrl,
-          data: parsedData,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
+      const isVipUser = Boolean(
+        (user as any).isVip ||
+        parsedData?.vipToken?.isVip ||
+        localStorage.getItem(getUserScopedKey('vip_token', email))
       );
+      const vipExpiresAt =
+        (user as any).vipExpiresAt ||
+        parsedData?.vipToken?.vipExpiresAt ||
+        'lifetime';
+
+      const payload = {
+        id: userId,
+        user_id: userId,
+        email: email,
+        user_email: email,
+        full_name: fullName,
+        avatar_url: avatarUrl,
+        is_vip: isVipUser,
+        vip_expires_at: isVipUser ? vipExpiresAt : null,
+        data: parsedData,
+        backup_data: parsedData,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await client.from('teacher_clouds').upsert(payload, {
+        onConflict: 'user_id',
+      });
 
       if (error) {
-        console.warn('Supabase upload warning:', error.message);
-        return { success: false, error: error.message };
+        console.warn('Supabase upload warning (trying fallback upsert by id):', error.message);
+        const fb = await client.from('teacher_clouds').upsert({
+          id: userId,
+          user_id: userId,
+          data: parsedData,
+          backup_data: parsedData,
+          is_vip: isVipUser,
+          updated_at: new Date().toISOString(),
+        });
+        if (fb.error) return { success: false, error: fb.error.message };
       }
 
       return { success: true };
@@ -431,7 +515,14 @@ class SupabaseCloudSyncService {
 
   public async downloadBackupFromCloud(
     user: TeacherUser | User
-  ): Promise<{ success: boolean; dataJson?: string; empty?: boolean; error?: string }> {
+  ): Promise<{
+    success: boolean;
+    dataJson?: string;
+    empty?: boolean;
+    isVip?: boolean;
+    vipExpiresAt?: string | null;
+    error?: string;
+  }> {
     try {
       const client = this.getClient();
       const email = (user.email || '').trim().toLowerCase();
@@ -439,7 +530,7 @@ class SupabaseCloudSyncService {
 
       const { data, error } = await client
         .from('teacher_clouds')
-        .select('data, updated_at')
+        .select('data, backup_data, is_vip, vip_expires_at, updated_at')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -447,20 +538,30 @@ class SupabaseCloudSyncService {
         return { success: false, error: error.message };
       }
 
-      if (!data || !data.data) {
+      const cloudPayload = data?.data || data?.backup_data;
+      if (!data || !cloudPayload) {
         return { success: true, empty: true };
+      }
+
+      // Automatically sync VIP state to local if cloud has VIP
+      const isCloudVip = Boolean(data.is_vip || (cloudPayload as any)?.vipToken?.isVip);
+      const vipExpires =
+        data.vip_expires_at || (cloudPayload as any)?.vipToken?.vipExpiresAt || 'lifetime';
+      if (isCloudVip && email) {
+        this.setLocalVip(email, vipExpires);
       }
 
       return {
         success: true,
-        dataJson: JSON.stringify(data.data),
+        dataJson: JSON.stringify(cloudPayload),
+        isVip: isCloudVip,
+        vipExpiresAt: vipExpires,
       };
     } catch (err) {
       console.error('Supabase download exception:', err);
       return { success: false, error: (err as Error).message };
     }
   }
-
 
   // 4. Realtime WebSocket Subscription
   public subscribeToRealtime(
@@ -469,19 +570,31 @@ class SupabaseCloudSyncService {
   ): () => void {
     try {
       const client = this.getClient();
+      const cleanUserId = (userId || '').trim().toLowerCase();
       const channel = client
-        .channel(`realtime:teacher_clouds:${userId}`)
+        .channel(`realtime:teacher_clouds:${cleanUserId}`)
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
             table: 'teacher_clouds',
-            filter: `user_id=eq.${userId}`,
+            filter: `user_id=eq.${cleanUserId}`,
           },
           (payload) => {
-            if (payload.new && (payload.new as any).data) {
-              onRemoteChange((payload.new as any).data);
+            if (payload.new) {
+              const row = payload.new as any;
+              const cloudData = row.data || row.backup_data;
+              if (cloudData) {
+                // If remote is VIP, apply locally
+                if (row.is_vip || cloudData.vipToken?.isVip) {
+                  this.setLocalVip(
+                    cleanUserId,
+                    row.vip_expires_at || cloudData.vipToken?.vipExpiresAt || 'lifetime'
+                  );
+                }
+                onRemoteChange(cloudData);
+              }
             }
           }
         )
@@ -496,6 +609,7 @@ class SupabaseCloudSyncService {
     }
   }
 }
+
 
 export const supabaseService = new SupabaseCloudSyncService();
 export const adminGoogleSync = supabaseService;

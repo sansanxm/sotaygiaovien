@@ -209,12 +209,23 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
       localStorage.removeItem(getUserScopedKey('vip_token', activeEmail));
     }
 
-    // 3. Restore Dexie Database Tables
+    // 3. Restore Dexie Database Tables (With Anti-Wipe Safeguard)
+    const incomingStudentsCount = Array.isArray(data.students) ? data.students.length : 0;
+    const incomingClassesCount = Array.isArray(data.classes) ? data.classes.length : 0;
+    const localStudentsCount = await db.students.count();
+    const localClassesCount = await db.classes.count();
+
+    if (incomingStudentsCount === 0 && incomingClassesCount === 0 && (localStudentsCount > 0 || localClassesCount > 0)) {
+      console.warn('Safeguard triggered: Incoming backup is empty while local has active data. Preserving local data.');
+      return false;
+    }
+
     const hasAnyTable = Array.isArray(data.years) || Array.isArray(data.classes) || Array.isArray(data.students);
     if (hasAnyTable) {
       setInternalSyncing(true);
       try {
         await db.transaction('rw', [
+
           db.years,
           db.classes,
           db.students,

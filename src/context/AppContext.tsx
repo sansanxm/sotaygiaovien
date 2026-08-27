@@ -382,53 +382,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signIn = async (email: string, password: string) => {
     const res = await supabaseService.signIn(email, password);
     if (res.user) {
-      // 1. Wipe previous local data completely
-      await wipeLocalTables();
-      
-      // 2. Set new active session
+      // 1. Set active session
       localStorage.setItem('gvcn_active_user_email', res.user.email);
       setUser(res.user);
       setSyncState('synced');
       
-      // 3. Check VIP
+      // 2. Check VIP from Cloud & Local
       const liveVip = await supabaseService.checkVipStatusLive(res.user);
       if (liveVip.isVip) {
         activateVip(liveVip.vipExpiresAt || 'lifetime');
       }
 
-      // 4. Download this user's data from Cloud
+      // 3. Download cloud data safely (protects local data from empty cloud overwrite)
       await syncWithCloud('download');
       await refreshAppData(res.user.email);
     }
     return res;
   };
 
-  // Email & Password Sign Up (Creates a completely clean, isolated new account)
+  // Email & Password Sign Up
   const signUp = async (email: string, password: string, fullName: string) => {
     const res = await supabaseService.signUp(email, password, fullName);
     if (res.user) {
-      // 1. Wipe previous local data completely
-      await wipeLocalTables();
-
-      // 2. Set new active session
       localStorage.setItem('gvcn_active_user_email', res.user.email);
       setUser(res.user);
       setSyncState('synced');
 
-      // 3. Reset profile state specifically for this new user
       setTeacherName(fullName.trim() || 'Giáo viên');
-      setTeacherAvatar(null);
-      setTeacherCover(null);
 
-      // 4. Initialize fresh template database
-      await seedInitialDatabase();
+      // Check if local already has data; if empty, seed initial
+      const localClassesCount = await db.classes.count();
+      if (localClassesCount === 0) {
+        await seedInitialDatabase();
+      }
       await refreshAppData(res.user.email);
 
-      // 5. Upload the initial clean state to Cloud for this new account
+      // Upload state to Cloud for this account
       await syncWithCloud('upload');
     }
     return res;
   };
+
 
   // Sign Out (Completely wipes active memory to ensure total account isolation)
   const signOut = async () => {
@@ -477,11 +471,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         if (direction === 'download') {
           const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
+          const localStudentsCount = await db.students.count();
+          const localClassesCount = await db.classes.count();
+          const hasLocalData = localStudentsCount > 0 || localClassesCount > 0;
+
           if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
-            await importDatabaseBackup(sbRes.dataJson, user.email);
-            await refreshAppData(user.email);
-          } else if (sbRes.empty || !sbRes.dataJson) {
-            // Cloud is empty for this user! Auto-upload local database to Supabase right now!
+            const parsed = JSON.parse(sbRes.dataJson);
+            const cloudStudentsCount = Array.isArray(parsed.students) ? parsed.students.length : 0;
+            const cloudClassesCount = Array.isArray(parsed.classes) ? parsed.classes.length : 0;
+
+            if (cloudStudentsCount === 0 && cloudClassesCount === 0 && hasLocalData) {
+              console.warn('Local has active data while Cloud is empty. Uploading local data to Cloud!');
+              const backupJson = await exportDatabaseBackup(user.email);
+              await supabaseService.uploadBackupToCloud(user as any, backupJson);
+            } else {
+              await importDatabaseBackup(sbRes.dataJson, user.email);
+              if (sbRes.isVip) {
+                activateVip(sbRes.vipExpiresAt || 'lifetime');
+              }
+              await refreshAppData(user.email);
+            }
+          } else {
+            // Cloud is empty for this user: Upload current local database to Supabase!
             const backupJson = await exportDatabaseBackup(user.email);
             await supabaseService.uploadBackupToCloud(user as any, backupJson);
           }
@@ -494,6 +505,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSyncState('synced');
         setLastSyncedAt(new Date());
         return true;
+
 
       } catch (err) {
         console.error('Sync failed:', err);
