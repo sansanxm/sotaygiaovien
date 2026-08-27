@@ -476,6 +476,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
             await importDatabaseBackup(sbRes.dataJson, user.email);
             await refreshAppData(user.email);
+          } else if (sbRes.empty || !sbRes.dataJson) {
+            // Cloud is empty for this user! Auto-upload local database to Supabase right now!
+            const backupJson = await exportDatabaseBackup(user.email);
+            await supabaseService.uploadBackupToCloud(user as any, backupJson);
           }
         } else {
           // 'upload' - Export current user's local data and send to Supabase Cloud
@@ -486,6 +490,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSyncState('synced');
         setLastSyncedAt(new Date());
         return true;
+
       } catch (err) {
         console.error('Sync failed:', err);
         setSyncState('error');
