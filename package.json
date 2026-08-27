@@ -1,7 +1,9 @@
 {
-  "name": "gvcn-app",
+  "name": "sotaygiaovien",
+  "productName": "Sổ Tay Giáo Viên 4.0",
   "private": true,
   "version": "4.0.0",
+
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
