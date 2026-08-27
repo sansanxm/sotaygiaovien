@@ -164,7 +164,8 @@ export interface AppContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ user: CloudUser | null; error: Error | null }>;
   signOut: () => Promise<void>;
   updateClassPhoto: (classId: string, type: 'avatar' | 'cover' | 'bio', value: string | null) => Promise<void>;
-  syncWithCloud: (direction?: 'upload' | 'download' | 'both') => Promise<boolean>;
+  syncWithCloud: (direction?: 'upload' | 'download' | 'both' | 'smart') => Promise<boolean>;
+
   clearAllData: () => Promise<void>;
 }
 

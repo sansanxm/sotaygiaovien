@@ -16,6 +16,7 @@ import {
 
 import { useApp, type AppTheme } from '../context/AppContext';
 import { exportDatabaseBackup, importDatabaseBackup, db } from '../db/db';
+import { GoogleAuthModal } from './GoogleAuthModal';
 
 export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSettings }) => {
   const {
@@ -32,15 +33,18 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
     user,
     syncWithCloud,
     syncState,
+    lastSyncedAt,
   } = useApp();
 
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showAddClass, setShowAddClass] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [newClassName, setNewClassName] = useState('');
   const [newClassGrade, setNewClassGrade] = useState('6');
   const [newClassType, setNewClassType] = useState<'gvcn' | 'bomon'>('gvcn');
   const [newClassSubject, setNewClassSubject] = useState('');
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+
 
 
 
@@ -233,11 +237,11 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
                 disabled={isCloudSyncing}
                 onClick={async () => {
                   setIsCloudSyncing(true);
-                  const ok = await syncWithCloud('upload');
+                  const ok = await syncWithCloud('smart');
                   setIsCloudSyncing(false);
                   if (ok) {
                     triggerConfetti();
-                    alert(`🎉 Đã đồng bộ an toàn toàn bộ Năm học, Lớp học & Dữ liệu lên Cloud với tài khoản (${user.email})!`);
+                    alert(`🎉 Đã đồng bộ 2 chiều thành công với Cloud (${user.email})! Tất cả Năm học, Lớp học và Học sinh đã được cập nhật mới nhất.`);
                   } else {
                     alert('Không thể kết nối máy chủ Cloud. Vui lòng kiểm tra lại mạng internet!');
                   }
@@ -247,18 +251,21 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
                     ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
                     : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
                 }`}
-                title={`Bấm để đồng bộ Cloud ngay lập tức với tài khoản ${user.email}`}
+                title={`Bấm để đồng bộ Cloud 2 chiều với tài khoản: ${user.email} (Lần cuối: ${lastSyncedAt ? lastSyncedAt.toLocaleTimeString('vi-VN') : 'vừa xong'})`}
               >
                 <Cloud className={`w-4 h-4 ${isCloudSyncing ? 'animate-bounce text-amber-600' : 'text-emerald-600'}`} />
                 <span className="hidden sm:inline">
                   {isCloudSyncing ? 'Đang đồng bộ...' : 'Đồng bộ Cloud'}
                 </span>
+                <span className="hidden lg:inline text-[10px] text-slate-500 font-normal">
+                  ({user.email.split('@')[0]})
+                </span>
               </button>
             ) : (
               <button
-                onClick={onOpenSettings}
-                className="p-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                title="Bấm để đăng nhập và đồng bộ Cloud"
+                onClick={() => setShowAuthModal(true)}
+                className="p-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer animate-pulse"
+                title="Bấm để đăng nhập và kích hoạt đồng bộ Cloud"
               >
                 <Cloud className="w-4 h-4 text-pink-500" />
                 <span className="hidden sm:inline">Đăng nhập Cloud</span>
@@ -299,11 +306,18 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
 
       </div>
 
+      {/* Google Auth Modal */}
+      <GoogleAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
+
       {/* Modal Quick Add Class */}
       {showAddClass && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
             <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
+
               <GraduationCap className="w-5 h-5 text-pink-500" /> Thêm Lớp Học Mới
             </h3>
             <form onSubmit={handleQuickAddClass} className="space-y-4">
