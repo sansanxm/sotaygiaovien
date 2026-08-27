@@ -40,7 +40,10 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
     setTeacherTitle,
     teacherName,
     setTeacherName,
+    teacherAvatar,
+    teacherCover,
     years,
+
     classes,
     currentYear,
     refreshAppData,
@@ -494,8 +497,9 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                       <div className="text-center">
                         <span className="text-slate-400 font-semibold block">Ảnh bìa & Avatar</span>
                         <strong className="text-pink-600 font-bold">
-                          {localStorage.getItem('gvcn_teacher_cover') || localStorage.getItem('gvcn_teacher_avatar') ? '📸 Đã thiết lập' : 'Chưa có'}
+                          {teacherCover || teacherAvatar ? '📸 Đã thiết lập' : 'Chưa có'}
                         </strong>
+
                       </div>
                     </div>
 

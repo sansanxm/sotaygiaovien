@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { db, exportDatabaseBackup, importDatabaseBackup } from '../db/db';
+import { db, exportDatabaseBackup, importDatabaseBackup, getUserScopedKey } from '../db/db';
+
 import { seedInitialDatabase } from '../db/initialData';
 import { adminGoogleSync, type TeacherUser as CloudUser, type SyncState, type LicenseStatus } from '../services/adminGoogleScriptSync';
 import type { SchoolYear, ClassRoom, ActiveTab, TeacherTitle, AppTheme } from '../types';
@@ -172,31 +173,36 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   
+  // Cloud Sync & Auth States
+  const [user, setUser] = useState<CloudUser | null>(null);
+  const [syncState, setSyncState] = useState<SyncState>('local-only');
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+
+  const currentEmail = user?.email || localStorage.getItem('gvcn_active_user_email') || null;
+
   const [theme, setThemeState] = useState<AppTheme>(() => {
-    return (localStorage.getItem('gvcn_theme') as AppTheme) || 'pink';
+    return (localStorage.getItem(getUserScopedKey('theme', currentEmail)) as AppTheme) || 'pink';
   });
 
   const [teacherTitle, setTeacherTitleState] = useState<TeacherTitle>(() => {
-    return (localStorage.getItem('gvcn_teacher_title') as TeacherTitle) || 'Thầy/Cô';
+    return (localStorage.getItem(getUserScopedKey('teacher_title', currentEmail)) as TeacherTitle) || 'Thầy/Cô';
   });
 
   const [teacherName, setTeacherNameState] = useState<string>(() => {
-    return localStorage.getItem('gvcn_teacher_name') || '';
+    return localStorage.getItem(getUserScopedKey('teacher_name', currentEmail)) || '';
   });
 
   const [teacherAvatar, setTeacherAvatarState] = useState<string | null>(() => {
-    return localStorage.getItem('gvcn_teacher_avatar') || null;
+    return localStorage.getItem(getUserScopedKey('teacher_avatar', currentEmail)) || null;
   });
 
   const [teacherCover, setTeacherCoverState] = useState<string | null>(() => {
-    return localStorage.getItem('gvcn_teacher_cover') || null;
+    return localStorage.getItem(getUserScopedKey('teacher_cover', currentEmail)) || null;
   });
 
   const [teacherBio, setTeacherBioState] = useState<string>(() => {
-    return localStorage.getItem('gvcn_teacher_bio') || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui';
+    return localStorage.getItem(getUserScopedKey('teacher_bio', currentEmail)) || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui';
   });
-
-
 
   const [years, setYears] = useState<SchoolYear[]>([]);
   const [currentYear, setCurrentYear] = useState<SchoolYear | null>(null);
@@ -204,22 +210,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentClass, setCurrentClass] = useState<ClassRoom | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cloud Sync & Auth States
-  const [user, setUser] = useState<CloudUser | null>(null);
-  const [syncState, setSyncState] = useState<SyncState>('local-only');
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
-
   // VIP & 30-Day Trial License State
-  const [licenseStatus, setLicenseStatus] = useState<LicenseStatus>(() => adminGoogleSync.getLicenseStatus());
+  const [licenseStatus, setLicenseStatus] = useState<LicenseStatus>(() => adminGoogleSync.getLicenseStatus(currentEmail || undefined));
+
   const [isVip, setIsVip] = useState<boolean>(() => licenseStatus.isVip);
   const [vipExpiresAt, setVipExpiresAt] = useState<string | null>(() => licenseStatus.vipExpiresAt);
   const [showVipModal, setShowVipModal] = useState(false);
 
   const activateVip = (expiresAt: string = 'lifetime') => {
+    const targetEmail = user?.email || currentEmail || 'local_user';
     setIsVip(true);
     setVipExpiresAt(expiresAt);
-    adminGoogleSync.setLocalVip(user?.email || 'local_user', expiresAt);
-    setLicenseStatus(adminGoogleSync.getLicenseStatus());
+    adminGoogleSync.setLocalVip(targetEmail, expiresAt);
+    setLicenseStatus(adminGoogleSync.getLicenseStatus(targetEmail));
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 300);
     }
@@ -233,7 +236,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setTheme = (newTheme: AppTheme) => {
     setThemeState(newTheme);
-    localStorage.setItem('gvcn_theme', newTheme);
+    localStorage.setItem(getUserScopedKey('theme', user?.email), newTheme);
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 500);
     }
@@ -241,7 +244,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setTeacherTitle = (newTitle: TeacherTitle) => {
     setTeacherTitleState(newTitle);
-    localStorage.setItem('gvcn_teacher_title', newTitle);
+    localStorage.setItem(getUserScopedKey('teacher_title', user?.email), newTitle);
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 500);
     }
@@ -249,7 +252,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setTeacherName = (newName: string) => {
     setTeacherNameState(newName);
-    localStorage.setItem('gvcn_teacher_name', newName);
+    localStorage.setItem(getUserScopedKey('teacher_name', user?.email), newName);
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 500);
     }
@@ -257,10 +260,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setTeacherAvatar = (newAvatar: string | null) => {
     setTeacherAvatarState(newAvatar);
+    const key = getUserScopedKey('teacher_avatar', user?.email);
     if (newAvatar) {
-      localStorage.setItem('gvcn_teacher_avatar', newAvatar);
+      localStorage.setItem(key, newAvatar);
     } else {
-      localStorage.removeItem('gvcn_teacher_avatar');
+      localStorage.removeItem(key);
     }
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 500);
@@ -269,10 +273,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setTeacherCover = (newCover: string | null) => {
     setTeacherCoverState(newCover);
+    const key = getUserScopedKey('teacher_cover', user?.email);
     if (newCover) {
-      localStorage.setItem('gvcn_teacher_cover', newCover);
+      localStorage.setItem(key, newCover);
     } else {
-      localStorage.removeItem('gvcn_teacher_cover');
+      localStorage.removeItem(key);
     }
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 500);
@@ -281,7 +286,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setTeacherBio = (newBio: string) => {
     setTeacherBioState(newBio);
-    localStorage.setItem('gvcn_teacher_bio', newBio);
+    localStorage.setItem(getUserScopedKey('teacher_bio', user?.email), newBio);
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 500);
     }
@@ -297,19 +302,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const refreshAppData = async () => {
+  const refreshAppData = async (emailOverride?: string) => {
     try {
+      const activeEmail = emailOverride || user?.email || localStorage.getItem('gvcn_active_user_email') || null;
       await seedInitialDatabase();
 
-      // Refresh Local Settings & Profile States
-      setTeacherTitleState((localStorage.getItem('gvcn_teacher_title') as TeacherTitle) || 'Thầy/Cô');
-      setTeacherNameState(localStorage.getItem('gvcn_teacher_name') || '');
-      setTeacherAvatarState(localStorage.getItem('gvcn_teacher_avatar') || null);
-      setTeacherCoverState(localStorage.getItem('gvcn_teacher_cover') || null);
-      setTeacherBioState(localStorage.getItem('gvcn_teacher_bio') || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui');
-      setThemeState((localStorage.getItem('gvcn_theme') as AppTheme) || 'pink');
+      // Refresh Local Settings & Profile States specifically for active user
+      setTeacherTitleState((localStorage.getItem(getUserScopedKey('teacher_title', activeEmail)) as TeacherTitle) || 'Thầy/Cô');
+      setTeacherNameState(localStorage.getItem(getUserScopedKey('teacher_name', activeEmail)) || '');
+      setTeacherAvatarState(localStorage.getItem(getUserScopedKey('teacher_avatar', activeEmail)) || null);
+      setTeacherCoverState(localStorage.getItem(getUserScopedKey('teacher_cover', activeEmail)) || null);
+      setTeacherBioState(localStorage.getItem(getUserScopedKey('teacher_bio', activeEmail)) || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui');
+      setThemeState((localStorage.getItem(getUserScopedKey('theme', activeEmail)) as AppTheme) || 'pink');
 
-      const lic = adminGoogleSync.getLicenseStatus();
+      const lic = adminGoogleSync.getLicenseStatus(activeEmail || undefined);
       setLicenseStatus(lic);
       setIsVip(lic.isVip);
       setVipExpiresAt(lic.vipExpiresAt);
@@ -349,6 +355,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signIn = async (email: string, password: string) => {
     const res = await adminGoogleSync.signIn(email, password);
     if (res.user) {
+      localStorage.setItem('gvcn_active_user_email', res.user.email);
       setUser(res.user);
       setSyncState('synced');
       const liveVip = await adminGoogleSync.checkVipStatusLive(res.user);
@@ -356,7 +363,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activateVip(liveVip.vipExpiresAt || 'lifetime');
       }
       await syncWithCloud('download');
-      await refreshAppData();
+      await refreshAppData(res.user.email);
     }
     return res;
   };
@@ -365,24 +372,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signUp = async (email: string, password: string, fullName: string) => {
     const res = await adminGoogleSync.signUp(email, password, fullName);
     if (res.user) {
+      localStorage.setItem('gvcn_active_user_email', res.user.email);
       setUser(res.user);
       setSyncState('synced');
-      await syncWithCloud('upload');
-      await refreshAppData();
+      await syncWithCloud('download');
+      await refreshAppData(res.user.email);
     }
     return res;
   };
 
-  // Sign Out
+  // Sign Out (Completely wipes active memory to ensure total account isolation)
   const signOut = async () => {
     await adminGoogleSync.signOut();
+    localStorage.removeItem('gvcn_active_user_email');
     setUser(null);
     setSyncState('local-only');
+    
+    // Wipe local database tables to prevent account data leakage
+    await Promise.all([
+      db.years.clear(),
+      db.classes.clear(),
+      db.students.clear(),
+      db.attendance.clear(),
+      db.behaviorLogs.clear(),
+      db.fundTransactions.clear(),
+      db.seats.clear(),
+      db.commentTemplates.clear(),
+      db.evaluations.clear(),
+      db.todos.clear(),
+      db.timetable.clear(),
+    ]);
+
+    setTeacherTitleState('Thầy/Cô');
+    setTeacherNameState('');
+    setTeacherAvatarState(null);
+    setTeacherCoverState(null);
+    setTeacherBioState('Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui');
+    setThemeState('pink');
+    setIsVip(false);
+    setVipExpiresAt(null);
+    setYears([]);
+    setClasses([]);
+    setCurrentYear(null);
+    setCurrentClass(null);
   };
 
 
   // Bidirectional Cloud Sync
-  // Cloud Sync: Default to 'upload' (Overwrite Cloud with newest local changes)
   const syncWithCloud = useCallback(
     async (direction: 'upload' | 'download' | 'both' = 'upload'): Promise<boolean> => {
       if (!user) {
@@ -404,12 +440,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (direction === 'download') {
           const res = await adminGoogleSync.downloadBackupFromCloud(user);
           if (res.success && res.dataJson && !res.empty) {
-            await importDatabaseBackup(res.dataJson);
-            await refreshAppData();
+            await importDatabaseBackup(res.dataJson, user.email);
+            await refreshAppData(user.email);
           }
         } else {
-          // 'upload' - Always export current local data and overwrite Cloud
-          const backupJson = await exportDatabaseBackup();
+          // 'upload' - Always export current user's local data and overwrite Cloud
+          const backupJson = await exportDatabaseBackup(user.email);
           const uploadRes = await adminGoogleSync.uploadBackupToCloud(user, backupJson);
           if (!uploadRes.success) {
             console.warn('Sync upload warning:', uploadRes.error);
@@ -438,6 +474,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const currentUser = await adminGoogleSync.getCurrentUser();
         if (currentUser && isMounted) {
+          localStorage.setItem('gvcn_active_user_email', currentUser.email);
           setUser(currentUser);
           setSyncState('synced');
 
@@ -464,6 +501,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isMounted = false;
     };
   }, []);
+
 
 
   // Online / Offline network listeners

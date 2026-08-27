@@ -47,24 +47,36 @@ export class GVCNDatabase extends Dexie {
 
 export const db = new GVCNDatabase();
 
-// Export / Backup all data as JSON (including profile & VIP status)
-export async function exportDatabaseBackup(): Promise<string> {
+export const getUserScopedKey = (key: string, email?: string | null): string => {
+  if (!email) {
+    const active = localStorage.getItem('gvcn_active_user_email');
+    if (active) email = active;
+  }
+  if (!email) return `gvcn_guest_${key}`;
+  const cleanEmail = email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+  return `gvcn_${cleanEmail}_${key}`;
+};
+
+// Export / Backup all data as JSON (scoped to user)
+export async function exportDatabaseBackup(email?: string | null): Promise<string> {
+  const activeEmail = email || localStorage.getItem('gvcn_active_user_email') || 'guest';
   let vipToken = null;
   try {
-    const rawVip = localStorage.getItem('gvcn_vip_license_token');
+    const rawVip = localStorage.getItem(getUserScopedKey('vip_token', activeEmail));
     if (rawVip) vipToken = JSON.parse(rawVip);
   } catch {}
 
   const data = {
     version: '4.0.0',
     exportedAt: new Date().toISOString(),
+    ownerEmail: activeEmail,
     userSettings: {
-      teacherTitle: localStorage.getItem('gvcn_teacher_title') || 'Thầy/Cô',
-      teacherName: localStorage.getItem('gvcn_teacher_name') || '',
-      teacherAvatar: localStorage.getItem('gvcn_teacher_avatar') || null,
-      teacherCover: localStorage.getItem('gvcn_teacher_cover') || null,
-      teacherBio: localStorage.getItem('gvcn_teacher_bio') || '',
-      theme: localStorage.getItem('gvcn_theme') || 'pink',
+      teacherTitle: localStorage.getItem(getUserScopedKey('teacher_title', activeEmail)) || 'Thầy/Cô',
+      teacherName: localStorage.getItem(getUserScopedKey('teacher_name', activeEmail)) || '',
+      teacherAvatar: localStorage.getItem(getUserScopedKey('teacher_avatar', activeEmail)) || null,
+      teacherCover: localStorage.getItem(getUserScopedKey('teacher_cover', activeEmail)) || null,
+      teacherBio: localStorage.getItem(getUserScopedKey('teacher_bio', activeEmail)) || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui',
+      theme: localStorage.getItem(getUserScopedKey('theme', activeEmail)) || 'pink',
     },
     vipToken,
     years: await db.years.toArray(),
@@ -83,49 +95,56 @@ export async function exportDatabaseBackup(): Promise<string> {
 }
 
 
-// Import & restore database from JSON (including profile & VIP status)
-export async function importDatabaseBackup(jsonString: string): Promise<boolean> {
+// Import & restore database from JSON (scoped to user)
+export async function importDatabaseBackup(jsonString: string, email?: string | null): Promise<boolean> {
   try {
     if (!jsonString || typeof jsonString !== 'string') return false;
     const data = JSON.parse(jsonString);
     if (!data || typeof data !== 'object') return false;
+    const activeEmail = email || data.ownerEmail || localStorage.getItem('gvcn_active_user_email') || 'guest';
 
     // 1. Restore User Profile & Settings
     if (data.userSettings && typeof data.userSettings === 'object') {
       try {
         if (data.userSettings.teacherTitle) {
-          localStorage.setItem('gvcn_teacher_title', data.userSettings.teacherTitle);
+          localStorage.setItem(getUserScopedKey('teacher_title', activeEmail), data.userSettings.teacherTitle);
         }
         if (data.userSettings.teacherName) {
-          localStorage.setItem('gvcn_teacher_name', data.userSettings.teacherName);
+          localStorage.setItem(getUserScopedKey('teacher_name', activeEmail), data.userSettings.teacherName);
         }
         if (data.userSettings.teacherAvatar) {
-          localStorage.setItem('gvcn_teacher_avatar', data.userSettings.teacherAvatar);
+          localStorage.setItem(getUserScopedKey('teacher_avatar', activeEmail), data.userSettings.teacherAvatar);
+        } else {
+          localStorage.removeItem(getUserScopedKey('teacher_avatar', activeEmail));
         }
         if (data.userSettings.teacherCover) {
-          localStorage.setItem('gvcn_teacher_cover', data.userSettings.teacherCover);
+          localStorage.setItem(getUserScopedKey('teacher_cover', activeEmail), data.userSettings.teacherCover);
+        } else {
+          localStorage.removeItem(getUserScopedKey('teacher_cover', activeEmail));
         }
         if (data.userSettings.teacherBio) {
-          localStorage.setItem('gvcn_teacher_bio', data.userSettings.teacherBio);
+          localStorage.setItem(getUserScopedKey('teacher_bio', activeEmail), data.userSettings.teacherBio);
         }
         if (data.userSettings.theme) {
-          localStorage.setItem('gvcn_theme', data.userSettings.theme);
+          localStorage.setItem(getUserScopedKey('theme', activeEmail), data.userSettings.theme);
         }
       } catch (e) {
         console.warn('Storage set item warning:', e);
       }
     }
 
-    // 2. Restore VIP Token if present in cloud backup
+    // 2. Restore VIP Token specifically for this user
     if (data.vipToken && data.vipToken.isVip) {
       try {
-        localStorage.setItem('gvcn_vip_license_token', JSON.stringify(data.vipToken));
+        localStorage.setItem(getUserScopedKey('vip_token', activeEmail), JSON.stringify(data.vipToken));
       } catch (e) {
         console.warn('VIP token restore warning:', e);
       }
+    } else {
+      localStorage.removeItem(getUserScopedKey('vip_token', activeEmail));
     }
 
-    // 3. Restore Dexie Database Tables (only if array data is provided)
+    // 3. Restore Dexie Database Tables
     const hasAnyTable = Array.isArray(data.years) || Array.isArray(data.classes) || Array.isArray(data.students);
     if (hasAnyTable) {
       await db.transaction('rw', [
@@ -194,5 +213,6 @@ export async function importDatabaseBackup(jsonString: string): Promise<boolean>
     return false;
   }
 }
+
 
 

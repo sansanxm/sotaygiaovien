@@ -1,8 +1,4 @@
-/**
- * ADMIN GOOGLE APPS SCRIPT CLOUD SERVICE & VIP LICENSE ENGINE
- * Serverless cloud backend running on Admin's Google Drive.
- * 100% Free, permanent, unlimited for all teachers with zero-config!
- */
+import { getUserScopedKey } from '../db/db';
 
 export interface TeacherUser {
   id: string;
@@ -29,7 +25,6 @@ export interface LicenseStatus {
 
 const STORAGE_SESSION_KEY = 'gvcn_admin_cloud_session';
 const STORAGE_GAS_URL_KEY = 'gvcn_admin_gas_url';
-const STORAGE_VIP_KEY = 'gvcn_vip_license_token';
 const STORAGE_INSTALL_TIMESTAMP_KEY = 'gvcn_install_timestamp';
 const TRIAL_DAYS = 30;
 
@@ -102,27 +97,31 @@ class AdminGoogleScriptSyncService {
     return FIXED_ADMIN_BANK_CONFIG;
   }
 
-  // 0. Compute 30-Day Free Trial & VIP License Status
-  public getLicenseStatus(): LicenseStatus {
-    // 1. Check VIP
-    const isVipToken = localStorage.getItem(STORAGE_VIP_KEY);
-    if (isVipToken) {
-      try {
-        const parsed = JSON.parse(isVipToken);
-        if (parsed.isVip) {
-          return {
-            isVip: true,
-            vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
-            isTrial: false,
-            trialDaysLeft: 9999,
-            trialExpiresAt: new Date(Date.now() + 9999 * 86400000),
-            isExpired: false,
-          };
-        }
-      } catch {}
+  // 0. Compute 30-Day Free Trial & VIP License Status (Strictly scoped to user email)
+  public getLicenseStatus(email?: string): LicenseStatus {
+    const cleanEmail = (email || this.activeUser?.email || localStorage.getItem('gvcn_active_user_email') || '').toLowerCase();
+    
+    if (cleanEmail) {
+      const userVipKey = getUserScopedKey('vip_token', cleanEmail);
+      const isVipToken = localStorage.getItem(userVipKey);
+      if (isVipToken) {
+        try {
+          const parsed = JSON.parse(isVipToken);
+          if (parsed && parsed.isVip && (parsed.email === cleanEmail || !parsed.email)) {
+            return {
+              isVip: true,
+              vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
+              isTrial: false,
+              trialDaysLeft: 9999,
+              trialExpiresAt: new Date(Date.now() + 9999 * 86400000),
+              isExpired: false,
+            };
+          }
+        } catch {}
+      }
     }
 
-    if (this.activeUser && this.activeUser.isVip) {
+    if (this.activeUser && this.activeUser.isVip && this.activeUser.email.toLowerCase() === cleanEmail) {
       return {
         isVip: true,
         vipExpiresAt: this.activeUser.vipExpiresAt || 'lifetime',
@@ -133,7 +132,7 @@ class AdminGoogleScriptSyncService {
       };
     }
 
-    // 2. Check 30-Day Trial from local installation timestamp
+    // Check 30-Day Trial
     let installTimestamp = Number(localStorage.getItem(STORAGE_INSTALL_TIMESTAMP_KEY));
     if (!installTimestamp || isNaN(installTimestamp)) {
       installTimestamp = Date.now();
@@ -178,17 +177,19 @@ class AdminGoogleScriptSyncService {
   }
 
   private enrichVipStatus(user: TeacherUser): void {
-    const localToken = localStorage.getItem(STORAGE_VIP_KEY);
+    const cleanEmail = user.email.toLowerCase();
+    const localToken = localStorage.getItem(getUserScopedKey('vip_token', cleanEmail));
     if (localToken) {
       try {
         const parsed = JSON.parse(localToken);
-        if (parsed && (parsed.email === user.email || parsed.isVip)) {
+        if (parsed && parsed.isVip && parsed.email === cleanEmail) {
           user.isVip = true;
           user.vipExpiresAt = parsed.vipExpiresAt || 'lifetime';
         }
       } catch {}
     }
   }
+
 
   // 2. Sign Up
   public async signUp(
@@ -357,7 +358,9 @@ class AdminGoogleScriptSyncService {
       }
     } catch {}
 
-    const isLocal = localStorage.getItem(STORAGE_VIP_KEY);
+    const cleanEmail = (user.email || this.activeUser?.email || localStorage.getItem('gvcn_active_user_email') || '').toLowerCase();
+
+    const isLocal = localStorage.getItem(getUserScopedKey('vip_token', cleanEmail));
     if (isLocal) {
       try {
         const parsed = JSON.parse(isLocal);
@@ -380,28 +383,31 @@ class AdminGoogleScriptSyncService {
       cleanKey.length >= 10;
 
     if (isValidKey) {
-      this.setLocalVip(userEmail || 'offline_user', 'lifetime');
+      const email = userEmail || this.activeUser?.email || 'local_user';
+      this.setLocalVip(email, 'lifetime');
       return { success: true, message: '🎉 Kích hoạt Bản Quyền VIP Trọn Đời thành công!' };
     }
 
     return { success: false, message: '❌ Mã kích hoạt không hợp lệ. Vui lòng kiểm tra lại!' };
   }
 
-  // 9. Grant Local VIP
+  // 9. Grant Local VIP (Scoped strictly per email)
   public setLocalVip(email: string, expiresAt: string = 'lifetime'): void {
+    const cleanEmail = email.trim().toLowerCase();
     const token = {
-      email,
+      email: cleanEmail,
       isVip: true,
       vipExpiresAt: expiresAt,
       activatedAt: new Date().toISOString(),
     };
-    localStorage.setItem(STORAGE_VIP_KEY, JSON.stringify(token));
-    if (this.activeUser) {
+    localStorage.setItem(getUserScopedKey('vip_token', cleanEmail), JSON.stringify(token));
+    if (this.activeUser && this.activeUser.email.toLowerCase() === cleanEmail) {
       this.activeUser.isVip = true;
       this.activeUser.vipExpiresAt = expiresAt;
       localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(this.activeUser));
     }
   }
+
 
   // HTTP Request Helper
   private async sendRequest(payload: any): Promise<any> {
