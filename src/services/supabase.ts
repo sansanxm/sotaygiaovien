@@ -210,6 +210,24 @@ class SupabaseCloudSyncService {
     return { isVip: false };
   }
 
+  // Helper to translate Supabase Auth error messages
+  private formatAuthError(msg: string): string {
+    const lower = msg.toLowerCase();
+    if (lower.includes('email not confirmed')) {
+      return 'Email chưa được kích hoạt. Hãy tắt tùy chọn "Confirm email" trong Supabase (Authentication > Providers > Email) để đăng nhập được ngay!';
+    }
+    if (lower.includes('invalid login credentials') || lower.includes('invalid credentials')) {
+      return 'Email hoặc mật khẩu không chính xác. Vui lòng thử lại!';
+    }
+    if (lower.includes('user already registered')) {
+      return 'Email này đã có tài khoản. Vui lòng chọn tab Đăng nhập!';
+    }
+    if (lower.includes('password should be at least')) {
+      return 'Mật khẩu phải có ít nhất 6 ký tự!';
+    }
+    return msg;
+  }
+
   // 2. Authentication (Pure Supabase Auth)
   public async signIn(
     email: string,
@@ -226,11 +244,10 @@ class SupabaseCloudSyncService {
       });
 
       if (error) {
-        // Fallback local session if offline or existing account
         if (!navigator.onLine) {
           return { user: null, error: new Error('Không có kết nối mạng Internet!') };
         }
-        return { user: null, error };
+        return { user: null, error: new Error(this.formatAuthError(error.message)) };
       }
 
       const teacherUser: TeacherUser = {
@@ -274,7 +291,7 @@ class SupabaseCloudSyncService {
       });
 
       if (error) {
-        return { user: null, error };
+        return { user: null, error: new Error(this.formatAuthError(error.message)) };
       }
 
       const teacherUser: TeacherUser = {
@@ -295,6 +312,7 @@ class SupabaseCloudSyncService {
       return { user: null, error: err as Error };
     }
   }
+
 
   public async signOut(): Promise<void> {
     try {
