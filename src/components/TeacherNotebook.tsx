@@ -24,8 +24,9 @@ import {
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
 import type { NoteFolder, TeacherNote } from '../types';
+
 
 const PRESET_TEMPLATES = [
   {
@@ -189,7 +190,14 @@ export const TeacherNotebook: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const unsub = onDatabaseChanged(() => {
+      loadData();
+    });
+    return () => {
+      unsub();
+    };
   }, []);
+
 
   // Filtered Notes
   const filteredNotes = useMemo(() => {

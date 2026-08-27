@@ -575,9 +575,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // 1. Supabase Realtime WebSocket Listener (Auto-sync from other devices in ~0.05s)
   useEffect(() => {
-    if (!user || !user.id) return;
+    if (!user) return;
+    const targetEmail = (user.email || user.id || '').trim().toLowerCase();
+    if (!targetEmail) return;
 
-    const unsubscribe = supabaseService.subscribeToRealtime(user.id, async (remoteData) => {
+    const unsubscribe = supabaseService.subscribeToRealtime(targetEmail, async (remoteData) => {
       try {
         if (remoteData && typeof remoteData === 'object') {
           console.log('⚡ Supabase Realtime Sync Event received from another device!');
@@ -595,6 +597,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       unsubscribe();
     };
   }, [user]);
+
 
   // 2. Hands-Free Automatic Cloud Sync whenever local data changes (0-touch)
   useEffect(() => {

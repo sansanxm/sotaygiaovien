@@ -17,8 +17,9 @@ import {
 
 import html2canvas from 'html2canvas';
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
 import type { TimetableEntry, DayOfWeek } from '../types';
+
 import { exportTimetableToExcel } from '../utils/excelExporter';
 
 interface SubjectPreset {
@@ -104,7 +105,14 @@ export const TimetableManager: React.FC = () => {
 
   useEffect(() => {
     loadTimetable();
+    const unsub = onDatabaseChanged(() => {
+      loadTimetable();
+    });
+    return () => {
+      unsub();
+    };
   }, [currentClass]);
+
 
   // Current day index in Vietnam: Sunday = 0, Monday = 1, ... Saturday = 6
   const currentDayIndex = new Date().getDay();

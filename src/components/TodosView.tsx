@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
 import type { TeacherTodo } from '../types';
 
 export const TodosView: React.FC = () => {
@@ -32,7 +32,14 @@ export const TodosView: React.FC = () => {
 
   useEffect(() => {
     loadTodos();
+    const unsub = onDatabaseChanged(() => {
+      loadTodos();
+    });
+    return () => {
+      unsub();
+    };
   }, [currentClass]);
+
 
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
