@@ -351,44 +351,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Email & Password Sign In
-  const signIn = async (email: string, password: string) => {
-    const res = await adminGoogleSync.signIn(email, password);
-    if (res.user) {
-      localStorage.setItem('gvcn_active_user_email', res.user.email);
-      setUser(res.user);
-      setSyncState('synced');
-      const liveVip = await adminGoogleSync.checkVipStatusLive(res.user);
-      if (liveVip.isVip) {
-        activateVip(liveVip.vipExpiresAt || 'lifetime');
-      }
-      await syncWithCloud('download');
-      await refreshAppData(res.user.email);
-    }
-    return res;
-  };
-
-  // Email & Password Sign Up
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const res = await adminGoogleSync.signUp(email, password, fullName);
-    if (res.user) {
-      localStorage.setItem('gvcn_active_user_email', res.user.email);
-      setUser(res.user);
-      setSyncState('synced');
-      await syncWithCloud('download');
-      await refreshAppData(res.user.email);
-    }
-    return res;
-  };
-
-  // Sign Out (Completely wipes active memory to ensure total account isolation)
-  const signOut = async () => {
-    await adminGoogleSync.signOut();
-    localStorage.removeItem('gvcn_active_user_email');
-    setUser(null);
-    setSyncState('local-only');
-    
-    // Wipe local database tables to prevent account data leakage
+  // Helper to clear local in-memory database tables
+  const wipeLocalTables = async () => {
     await Promise.all([
       db.years.clear(),
       db.classes.clear(),
@@ -402,6 +366,69 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       db.todos.clear(),
       db.timetable.clear(),
     ]);
+  };
+
+  // Email & Password Sign In
+  const signIn = async (email: string, password: string) => {
+    const res = await adminGoogleSync.signIn(email, password);
+    if (res.user) {
+      // 1. Wipe previous local data completely
+      await wipeLocalTables();
+      
+      // 2. Set new active session
+      localStorage.setItem('gvcn_active_user_email', res.user.email);
+      setUser(res.user);
+      setSyncState('synced');
+      
+      // 3. Check VIP
+      const liveVip = await adminGoogleSync.checkVipStatusLive(res.user);
+      if (liveVip.isVip) {
+        activateVip(liveVip.vipExpiresAt || 'lifetime');
+      }
+
+      // 4. Download this user's data from Cloud
+      await syncWithCloud('download');
+      await refreshAppData(res.user.email);
+    }
+    return res;
+  };
+
+  // Email & Password Sign Up (Creates a completely clean, isolated new account)
+  const signUp = async (email: string, password: string, fullName: string) => {
+    const res = await adminGoogleSync.signUp(email, password, fullName);
+    if (res.user) {
+      // 1. Wipe previous local data completely
+      await wipeLocalTables();
+
+      // 2. Set new active session
+      localStorage.setItem('gvcn_active_user_email', res.user.email);
+      setUser(res.user);
+      setSyncState('synced');
+
+      // 3. Reset profile state specifically for this new user
+      setTeacherName(fullName.trim() || 'Giáo viên');
+      setTeacherAvatar(null);
+      setTeacherCover(null);
+
+      // 4. Initialize fresh template database
+      await seedInitialDatabase();
+      await refreshAppData(res.user.email);
+
+      // 5. Upload the initial clean state to Cloud for this new account
+      await syncWithCloud('upload');
+    }
+    return res;
+  };
+
+  // Sign Out (Completely wipes active memory to ensure total account isolation)
+  const signOut = async () => {
+    await adminGoogleSync.signOut();
+    localStorage.removeItem('gvcn_active_user_email');
+    setUser(null);
+    setSyncState('local-only');
+    
+    // Wipe local database tables to prevent account data leakage
+    await wipeLocalTables();
 
     setTeacherTitleState('Thầy/Cô');
     setTeacherNameState('');
@@ -416,6 +443,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentYear(null);
     setCurrentClass(null);
   };
+
 
 
   // Bidirectional Cloud Sync
