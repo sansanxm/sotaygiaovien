@@ -222,10 +222,14 @@ class SupabaseCloudSyncService {
     if (lower.includes('user already registered')) {
       return 'Email này đã có tài khoản. Vui lòng chọn tab Đăng nhập!';
     }
+    if (lower.includes('database error')) {
+      return 'Tài khoản đang bị kẹt trạng thái xác nhận cũ trên Supabase. Thầy/Cô vui lòng vào Supabase > Authentication > Users, bấm xóa tài khoản này và chọn tab "Đăng ký mới" lại là vào được ngay!';
+    }
     if (lower.includes('password should be at least')) {
       return 'Mật khẩu phải có ít nhất 6 ký tự!';
     }
     return msg;
+
   }
 
   // 2. Authentication (Pure Supabase Auth)
