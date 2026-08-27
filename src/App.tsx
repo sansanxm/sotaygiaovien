@@ -70,9 +70,42 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 const AppContent: React.FC = () => {
-  const { activeTab, theme, isLoading, user, licenseStatus, isVip, setShowVipModal } = useApp();
+  const {
+
+    activeTab,
+    theme,
+    isLoading,
+    user,
+    licenseStatus,
+    isVip,
+    setShowVipModal,
+    syncState,
+    syncWithCloud,
+    triggerConfetti,
+    currentClass,
+    currentYear,
+  } = useApp();
+
 
   const [showSettings, setShowSettings] = useState(false);
+  const [isSyncingUpload, setIsSyncingUpload] = useState(false);
+  const [isSyncingDownload, setIsSyncingDownload] = useState(false);
+
+  const getTabLabel = () => {
+    switch (activeTab) {
+      case 'dashboard': return { label: 'Tổng quan lớp học', icon: '📊' };
+      case 'timetable': return { label: 'Thời khóa biểu', icon: '📅' };
+      case 'students': return { label: 'Danh sách học sinh', icon: '👥' };
+      case 'seating': return { label: 'Sơ đồ chỗ ngồi', icon: '🪑' };
+      case 'attendance': return { label: 'Sổ điểm danh', icon: '📋' };
+      case 'behavior': return { label: 'Nề nếp & thi đua', icon: '⭐' };
+      case 'fund': return { label: 'Thu - chi quỹ lớp', icon: '💰' };
+      case 'comments': return { label: 'Ngân hàng nhận xét', icon: '💬' };
+      case 'random-picker': return { label: 'Vòng quay may mắn', icon: '🎲' };
+      case 'todos': return { label: 'Sổ tay công việc', icon: '📝' };
+      default: return { label: 'Sổ tay Giáo viên 4.0', icon: '🌸' };
+    }
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -98,6 +131,7 @@ const AppContent: React.FC = () => {
     return <TrialExpiredPaywall />;
   }
 
+  const tabInfo = getTabLabel();
 
   return (
     <div
@@ -133,6 +167,129 @@ const AppContent: React.FC = () => {
           </div>
         )}
 
+        {/* Desktop Top Header Bar (Houses User Account & Cloud Sync Controls) */}
+        <header className="hidden md:flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-md border-b theme-card-border shrink-0 z-20 shadow-2xs">
+          {/* Left: Page Title Breadcrumb */}
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">{tabInfo.icon}</span>
+            <div>
+              <h2 className="text-base font-black text-slate-800 tracking-tight leading-none">
+                {tabInfo.label}
+              </h2>
+              <span className="text-xs text-slate-500 font-bold">
+                {currentClass ? `Lớp ${currentClass.name} • ${currentYear?.name || ''}` : 'Sổ tay Giáo viên 4.0'}
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Cloud Sync Pill & User Account Card */}
+          <div className="flex items-center gap-3">
+            {/* Cloud Sync & Backup Actions */}
+            <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-2xl border theme-card-border">
+              {/* Sync Status Badge */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-600">
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    syncState === 'synced'
+                      ? 'bg-emerald-500'
+                      : syncState === 'syncing'
+                      ? 'bg-amber-500 animate-spin'
+                      : 'bg-slate-400'
+                  }`}
+                />
+                <span className="hidden lg:inline">
+                  {syncState === 'synced'
+                    ? 'Đã đồng bộ Cloud'
+                    : syncState === 'syncing'
+                    ? 'Đang đồng bộ...'
+                    : 'Cục bộ'}
+                </span>
+              </div>
+
+              {/* Sao lưu Button */}
+              <button
+                disabled={isSyncingUpload || isSyncingDownload}
+                onClick={async () => {
+                  setIsSyncingUpload(true);
+                  const ok = await syncWithCloud('upload');
+                  setIsSyncingUpload(false);
+                  if (ok) {
+                    triggerConfetti();
+                    alert('✅ Đã sao lưu dữ liệu lên Cloud thành công!');
+                  } else {
+                    alert('❌ Không thể sao lưu. Vui lòng kiểm tra kết nối mạng.');
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 font-extrabold text-xs border border-emerald-200 flex items-center gap-1 cursor-pointer transition-all shadow-2xs active:scale-95"
+                title="Sao lưu dữ liệu từ máy này lên Cloud"
+              >
+                <span>{isSyncingUpload ? 'Đang lưu...' : '⬆️ Sao lưu'}</span>
+              </button>
+
+              {/* Khôi phục Button */}
+              <button
+                disabled={isSyncingUpload || isSyncingDownload}
+                onClick={async () => {
+                  if (window.confirm('Khôi phục toàn bộ dữ liệu từ Cloud về máy tính này?')) {
+                    setIsSyncingDownload(true);
+                    const ok = await syncWithCloud('download');
+                    setIsSyncingDownload(false);
+                    if (ok) {
+                      triggerConfetti();
+                      alert('✅ Đã khôi phục dữ liệu từ Cloud về máy thành công!');
+                    } else {
+                      alert('❌ Không thể khôi phục. Vui lòng kiểm tra kết nối mạng.');
+                    }
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-50 text-sky-700 font-extrabold text-xs border border-sky-200 flex items-center gap-1 cursor-pointer transition-all shadow-2xs active:scale-95"
+                title="Khôi phục dữ liệu từ Cloud về máy"
+              >
+                <span>{isSyncingDownload ? 'Đang tải...' : '⬇️ Khôi phục'}</span>
+              </button>
+            </div>
+
+            {/* User Account Chip */}
+            <div
+              onClick={() => setShowSettings(true)}
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-white border theme-card-border hover:border-pink-300 shadow-2xs cursor-pointer transition-all hover:scale-102"
+              title="Bấm để mở Cài đặt & Quản lý tài khoản"
+            >
+              <div className="w-8 h-8 rounded-full theme-avatar flex items-center justify-center font-bold text-sm shrink-0">
+                {(user.user_metadata?.full_name || user.email || 'GV').slice(0, 1).toUpperCase()}
+              </div>
+
+              <div className="text-left hidden sm:block">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-800">
+                    {user.user_metadata?.full_name || 'Giáo viên'}
+                  </span>
+                  {isVip ? (
+                    <span className="text-[10px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-0.5">
+                      <Crown className="w-3 h-3 fill-amber-500 text-amber-500" /> VIP
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600">
+                      Dùng thử
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-500 font-semibold truncate max-w-[140px]">
+                  {user.email}
+                </div>
+              </div>
+            </div>
+
+            {/* Refresh App Button */}
+            <button
+              onClick={() => window.location.reload()}
+              className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border theme-card-border shadow-2xs transition-colors cursor-pointer"
+              title="Làm mới / Tải lại ứng dụng"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
 
         {/* Main Scrollable Viewport with Mobile Top/Bottom Safe Area Insets */}
         <main className="flex-1 overflow-y-auto overflow-x-auto p-3 sm:p-6 lg:p-8 pt-16 pb-24 md:pt-6 md:pb-8 custom-scrollbar">
@@ -158,6 +315,7 @@ const AppContent: React.FC = () => {
 
       {/* Settings Modal */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
 
     </div>
   );
