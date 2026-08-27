@@ -395,7 +395,65 @@ class FirebaseService {
     }
   }
 
+  // Dedicated Manual Cloud Backup & Restore for Teacher Notebook (Independent from main sync)
+  public async uploadNotebookToCloud(
+    user: TeacherUser | FirebaseUser,
+    notebookJson: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const email = ((user as any).email || '').trim().toLowerCase();
+      if (!email) return { success: false, error: 'Không tìm thấy thông tin email tài khoản!' };
+
+      const parsed = JSON.parse(notebookJson);
+      const payload = {
+        email: email,
+        data: parsed,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const db = this.getDb();
+      if (db) {
+        const docRef = doc(db, 'teacher_notebooks', email);
+        await setDoc(docRef, payload, { merge: true });
+      }
+      return { success: true };
+    } catch (err: any) {
+      console.error('Upload notebook error:', err);
+      return { success: false, error: err.message || 'Lỗi sao lưu sổ ghi chép lên Đám mây!' };
+    }
+  }
+
+  public async downloadNotebookFromCloud(
+    user: TeacherUser | FirebaseUser
+  ): Promise<{ success: boolean; dataJson?: string; empty?: boolean; error?: string }> {
+    try {
+      const email = ((user as any).email || '').trim().toLowerCase();
+      if (!email) return { success: false, error: 'Email không hợp lệ!' };
+
+      const db = this.getDb();
+      if (db) {
+        const docRef = doc(db, 'teacher_notebooks', email);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const row = snap.data();
+          if (row?.data) {
+            return {
+              success: true,
+              dataJson: JSON.stringify(row.data),
+              empty: false,
+            };
+          }
+        }
+      }
+      return { success: true, empty: true };
+    } catch (err: any) {
+      console.error('Download notebook error:', err);
+      return { success: false, error: err.message || 'Lỗi khôi phục sổ ghi chép từ Đám mây!' };
+    }
+  }
+
   public async downloadBackupFromCloud(
+
     user: TeacherUser | FirebaseUser
   ): Promise<{
     success: boolean;

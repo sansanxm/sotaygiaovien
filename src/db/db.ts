@@ -94,9 +94,8 @@ const hookTableNames: (keyof GVCNDatabase)[] = [
   'evaluations',
   'todos',
   'timetable',
-  'noteFolders',
-  'teacherNotes',
 ];
+
 
 hookTableNames.forEach((tableName) => {
   const table = db[tableName] as Table<any, any>;
@@ -173,10 +172,50 @@ export async function exportDatabaseBackup(email?: string | null): Promise<strin
     evaluations: await db.evaluations.toArray(),
     todos: await db.todos.toArray(),
     timetable: await db.timetable.toArray(),
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+// Export Notebook separately for manual cloud backup
+export async function exportNotebookBackup(email?: string | null): Promise<string> {
+  const activeEmail = email || localStorage.getItem('gvcn_active_user_email') || 'guest';
+  const data = {
+    version: '4.0.0',
+    exportedAt: new Date().toISOString(),
+    ownerEmail: activeEmail,
     noteFolders: await db.noteFolders.toArray(),
     teacherNotes: await db.teacherNotes.toArray(),
   };
   return JSON.stringify(data, null, 2);
+}
+
+// Import Notebook separately for manual cloud restore
+export async function importNotebookBackup(jsonString: string): Promise<boolean> {
+  try {
+    if (!jsonString || typeof jsonString !== 'string') return false;
+    const data = JSON.parse(jsonString);
+    if (!data || typeof data !== 'object') return false;
+
+    setInternalSyncing(true);
+    try {
+      await db.transaction('rw', [db.noteFolders, db.teacherNotes], async () => {
+        if (Array.isArray(data.noteFolders)) {
+          await db.noteFolders.clear();
+          if (data.noteFolders.length) await db.noteFolders.bulkAdd(data.noteFolders);
+        }
+        if (Array.isArray(data.teacherNotes)) {
+          await db.teacherNotes.clear();
+          if (data.teacherNotes.length) await db.teacherNotes.bulkAdd(data.teacherNotes);
+        }
+      });
+    } finally {
+      setInternalSyncing(false);
+    }
+    return true;
+  } catch (err) {
+    console.error('Import notebook error:', err);
+    return false;
+  }
 }
 
 
@@ -261,8 +300,6 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
           db.evaluations,
           db.todos,
           db.timetable,
-          db.noteFolders,
-          db.teacherNotes,
         ], async () => {
           const importedYears = Array.isArray(data.years) && data.years.length > 0 ? data.years : [
             {
@@ -338,20 +375,13 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
             await db.timetable.clear();
             if (data.timetable.length) await db.timetable.bulkAdd(data.timetable);
           }
-          if (Array.isArray(data.noteFolders)) {
-            await db.noteFolders.clear();
-            if (data.noteFolders.length) await db.noteFolders.bulkAdd(data.noteFolders);
-          }
-          if (Array.isArray(data.teacherNotes)) {
-            await db.teacherNotes.clear();
-            if (data.teacherNotes.length) await db.teacherNotes.bulkAdd(data.teacherNotes);
-          }
         });
       } finally {
         setInternalSyncing(false);
         notifyDatabaseChange();
       }
     }
+
 
 
 

@@ -20,12 +20,16 @@ import {
   Quote,
   Bold,
   Italic,
+  CloudUpload,
+  CloudDownload,
   FolderOpen,
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
-import { db, onDatabaseChanged } from '../db/db';
+import { db, onDatabaseChanged, exportNotebookBackup, importNotebookBackup } from '../db/db';
+import { firebaseService } from '../services/firebase';
 import type { NoteFolder, TeacherNote } from '../types';
+
 
 
 const PRESET_TEMPLATES = [
@@ -200,6 +204,57 @@ export const TeacherNotebook: React.FC = () => {
     }
   };
 
+  const [isNotebookSyncing, setIsNotebookSyncing] = useState<boolean>(false);
+
+  const handleBackupNotebookCloud = async () => {
+    if (!user) {
+      alert('Vui lòng Đăng nhập tài khoản để sao lưu Sổ ghi chép lên Đám mây!');
+      return;
+    }
+    setIsNotebookSyncing(true);
+    try {
+      const json = await exportNotebookBackup(user.email);
+      const res = await firebaseService.uploadNotebookToCloud(user, json);
+      if (res.success) {
+        triggerConfetti();
+        alert('🎉 Đã sao lưu Sổ ghi chép lên Đám mây thành công! Dữ liệu của bạn được bảo vệ an toàn.');
+      } else {
+        alert('❌ Lỗi sao lưu: ' + res.error);
+      }
+    } catch (err: any) {
+      alert('❌ Có lỗi xảy ra khi sao lưu Sổ ghi chép: ' + err.message);
+    } finally {
+      setIsNotebookSyncing(false);
+    }
+  };
+
+  const handleRestoreNotebookCloud = async () => {
+    if (!user) {
+      alert('Vui lòng Đăng nhập tài khoản để khôi phục Sổ ghi chép từ Đám mây!');
+      return;
+    }
+    if (!window.confirm('Bạn có chắc chắn muốn khôi phục Sổ ghi chép từ Đám mây về máy không?')) return;
+
+    setIsNotebookSyncing(true);
+    try {
+      const res = await firebaseService.downloadNotebookFromCloud(user);
+      if (res.success && res.dataJson && !res.empty) {
+        await importNotebookBackup(res.dataJson);
+        await loadData();
+        triggerConfetti();
+        alert('🎉 Đã khôi phục Sổ ghi chép từ Đám mây thành công!');
+      } else if (res.empty) {
+        alert('ℹ️ Chưa có bản sao lưu Sổ ghi chép nào trên Đám mây của tài khoản này!');
+      } else {
+        alert('❌ Lỗi khôi phục: ' + res.error);
+      }
+    } catch (err: any) {
+      alert('❌ Có lỗi xảy ra khi khôi phục Sổ ghi chép: ' + err.message);
+    } finally {
+      setIsNotebookSyncing(false);
+    }
+  };
+
   useEffect(() => {
     loadData();
     const unsub = onDatabaseChanged(() => {
@@ -209,6 +264,7 @@ export const TeacherNotebook: React.FC = () => {
       unsub();
     };
   }, []);
+
 
 
 
@@ -507,7 +563,27 @@ export const TeacherNotebook: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleBackupNotebookCloud}
+              disabled={isNotebookSyncing}
+              className="px-3.5 py-2.5 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
+              title="Đẩy bản sao lưu Sổ ghi chép lên Đám mây thủ công"
+            >
+              <CloudUpload className="w-4 h-4 text-sky-600" />
+              <span>{isNotebookSyncing ? 'Đang xử lý...' : 'Sao Lưu Cloud'}</span>
+            </button>
+
+            <button
+              onClick={handleRestoreNotebookCloud}
+              disabled={isNotebookSyncing}
+              className="px-3.5 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
+              title="Tải bản sao lưu Sổ ghi chép từ Đám mây về máy"
+            >
+              <CloudDownload className="w-4 h-4 text-purple-600" />
+              <span>{isNotebookSyncing ? 'Đang xử lý...' : 'Khôi Phục Cloud'}</span>
+            </button>
+
             <button
               onClick={() => handleCreateNote()}
               className="px-4 py-2.5 rounded-2xl theme-btn-primary font-black text-xs flex items-center gap-2 shadow-sm active:scale-95 transition-all cursor-pointer"
@@ -516,6 +592,7 @@ export const TeacherNotebook: React.FC = () => {
             </button>
           </div>
         </div>
+
 
         {/* Quick Template Selector Chips */}
         <div className="mt-4 pt-3 border-t theme-card-border flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
@@ -814,8 +891,9 @@ export const TeacherNotebook: React.FC = () => {
                     <span className="text-amber-500 animate-pulse">● Đang lưu...</span>
                   ) : (
                     <span className="text-emerald-600 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Đã lưu Cloud
+                      <CheckCircle2 className="w-3 h-3" /> Đã lưu trong máy
                     </span>
+
                   )}
                 </span>
 
