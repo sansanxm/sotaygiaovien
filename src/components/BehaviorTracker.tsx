@@ -139,21 +139,21 @@ export const BehaviorTracker: React.FC = () => {
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* Top Bar */}
-      <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="glass-panel p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-500" /> Sổ nề nếp & bảng vàng thi đua
+          <h2 className="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2.5">
+            <Award className="w-6 h-6 text-amber-500" /> Sổ nề nếp & bảng vàng thi đua
           </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-sm sm:text-base text-slate-600 font-semibold mt-1">
             Tích sao khen thưởng hành động tốt & nhắc nhở nề nếp kỷ luật
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {/* Excel Export Button */}
           <button
             onClick={handleExportExcel}
-            className="px-3.5 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer"
             title="Xuất file Excel bảng vàng thi đua chuẩn Times New Roman 14"
           >
             <Download className="w-4 h-4" /> Xuất Excel
@@ -164,7 +164,7 @@ export const BehaviorTracker: React.FC = () => {
               setSelectedStudentId(students[0]?.id || '');
               setShowModal(true);
             }}
-            className="px-4 py-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-pink-300/50 transition-all cursor-pointer"
+            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white text-sm font-bold flex items-center gap-2 shadow-md shadow-pink-300/50 transition-all cursor-pointer active:scale-98"
           >
             <Plus className="w-4 h-4" /> Chấm điểm nề nếp
           </button>
@@ -176,13 +176,13 @@ export const BehaviorTracker: React.FC = () => {
         
         {/* Left Column: Star Leaderboard (1 Col) */}
         <div className="glass-card p-6 rounded-3xl">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-xl bg-amber-100 text-amber-600">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
               <Flame className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-800">Bảng vàng vinh danh 🏆</h3>
-              <p className="text-xs text-slate-500 font-medium">Bảng điểm thi đua tổng hợp của lớp</p>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800">Bảng vàng vinh danh 🏆</h3>
+              <p className="text-sm text-slate-600 font-semibold">Bảng điểm thi đua tổng hợp của lớp</p>
             </div>
           </div>
 
@@ -195,7 +195,7 @@ export const BehaviorTracker: React.FC = () => {
               return (
                 <div
                   key={item.student.id}
-                  className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                  className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
                     isTop1
                       ? 'bg-gradient-to-r from-amber-50 to-amber-100/60 border-amber-300 shadow-xs'
                       : isTop2
@@ -205,9 +205,9 @@ export const BehaviorTracker: React.FC = () => {
                       : 'bg-white border-pink-100 hover:border-pink-200'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-xs ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-sm ${
                         isTop1
                           ? 'bg-amber-400 text-amber-950'
                           : isTop2
@@ -220,18 +220,18 @@ export const BehaviorTracker: React.FC = () => {
                       {idx + 1}
                     </span>
                     <div>
-                      <div className="text-xs font-bold text-slate-800">{item.student.fullName}</div>
-                      <div className="text-[10px] text-slate-400">STT: {item.student.rollNumber}</div>
+                      <div className="text-sm font-bold text-slate-800">{item.student.fullName}</div>
+                      <div className="text-xs font-semibold text-slate-500">STT: {item.student.rollNumber}</div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 font-extrabold text-xs">
+                  <div className="flex items-center gap-1.5 font-extrabold text-sm">
                     {item.points >= 0 ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> +{item.points}
+                      <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 font-black">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> +{item.points}
                       </span>
                     ) : (
-                      <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">
+                      <span className="text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100 font-black">
                         {item.points}
                       </span>
                     )}
@@ -247,7 +247,7 @@ export const BehaviorTracker: React.FC = () => {
           
           {/* Quick 1-Click Praise / Violation Tray */}
           <div className="glass-card p-6 rounded-3xl">
-            <h3 className="text-sm font-extrabold text-pink-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <h3 className="text-sm sm:text-base font-black text-pink-800 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-pink-500" /> Tích sao nhanh cho học sinh
             </h3>
 
@@ -255,10 +255,10 @@ export const BehaviorTracker: React.FC = () => {
               
               {/* Praise column */}
               <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80">
-                <div className="text-xs font-extrabold text-emerald-800 mb-2 flex items-center gap-1">
-                  <ThumbsUp className="w-3.5 h-3.5" /> Khen thưởng (+ điểm tốt)
+                <div className="text-sm font-black text-emerald-800 mb-2.5 flex items-center gap-1.5">
+                  <ThumbsUp className="w-4 h-4" /> Khen thưởng (+ điểm tốt)
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {praisePresets.map((p, pIdx) => (
                     <button
                       key={pIdx}
@@ -270,12 +270,12 @@ export const BehaviorTracker: React.FC = () => {
                         setPointTitle(p.title);
                         setShowModal(true);
                       }}
-                      className="w-full text-left p-2 rounded-xl bg-white hover:bg-emerald-100/60 border border-emerald-100 text-xs font-semibold text-slate-700 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
+                      className="w-full text-left p-3 rounded-xl bg-white hover:bg-emerald-100/60 border border-emerald-100 text-sm font-bold text-slate-800 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
                     >
-                      <span className="flex items-center gap-1.5 truncate">
-                        <span>{p.icon}</span> {p.title}
+                      <span className="flex items-center gap-2 truncate">
+                        <span className="text-base">{p.icon}</span> {p.title}
                       </span>
-                      <span className="text-emerald-600 font-extrabold shrink-0">+{p.points}</span>
+                      <span className="text-emerald-700 font-black shrink-0 text-sm">+{p.points}</span>
                     </button>
                   ))}
                 </div>
@@ -283,10 +283,10 @@ export const BehaviorTracker: React.FC = () => {
 
               {/* Violation column */}
               <div className="p-4 rounded-2xl bg-rose-50/50 border border-rose-200/80">
-                <div className="text-xs font-extrabold text-rose-800 mb-2 flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5" /> Nhắc nhở (- trừ điểm)
+                <div className="text-sm font-black text-rose-800 mb-2.5 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4" /> Nhắc nhở (- trừ điểm)
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {violationPresets.map((v, vIdx) => (
                     <button
                       key={vIdx}
@@ -298,12 +298,12 @@ export const BehaviorTracker: React.FC = () => {
                         setPointTitle(v.title);
                         setShowModal(true);
                       }}
-                      className="w-full text-left p-2 rounded-xl bg-white hover:bg-rose-100/60 border border-rose-100 text-xs font-semibold text-slate-700 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
+                      className="w-full text-left p-3 rounded-xl bg-white hover:bg-rose-100/60 border border-rose-100 text-sm font-bold text-slate-800 flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
                     >
-                      <span className="flex items-center gap-1.5 truncate">
-                        <span>{v.icon}</span> {v.title}
+                      <span className="flex items-center gap-2 truncate">
+                        <span className="text-base">{v.icon}</span> {v.title}
                       </span>
-                      <span className="text-rose-600 font-extrabold shrink-0">{v.points}</span>
+                      <span className="text-rose-700 font-black shrink-0 text-sm">{v.points}</span>
                     </button>
                   ))}
                 </div>
@@ -315,31 +315,33 @@ export const BehaviorTracker: React.FC = () => {
           {/* Recent History Logs */}
           <div className="glass-card p-6 rounded-3xl">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-pink-100 text-pink-600">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-pink-100 text-pink-600">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Nhật ký thi đua gần đây</h3>
-                  <p className="text-xs text-slate-500 font-medium">Lịch sử cộng / trừ điểm học sinh trong tuần</p>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-800">Nhật ký thi đua gần đây</h3>
+                  <p className="text-sm text-slate-600 font-semibold">Lịch sử cộng / trừ điểm học sinh trong tuần</p>
                 </div>
               </div>
             </div>
 
             {logs.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-6">Chưa có nhật ký chấm điểm nào.</p>
+              <p className="text-sm sm:text-base font-semibold text-slate-600 text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                Chưa có nhật ký chấm điểm nào.
+              </p>
             ) : (
-              <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+              <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
                 {logs.slice(0, 15).map((l) => {
                   const student = students.find((s) => s.id === l.studentId);
                   return (
                     <div
                       key={l.id}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-white border border-pink-100/80 hover:bg-pink-50/40 transition-colors"
+                      className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-pink-100/80 hover:bg-pink-50/40 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm ${
                             l.type === 'praise'
                               ? 'bg-emerald-100 text-emerald-700'
                               : 'bg-rose-100 text-rose-700'
@@ -348,10 +350,10 @@ export const BehaviorTracker: React.FC = () => {
                           {l.type === 'praise' ? '+' : '-'}
                         </span>
                         <div>
-                          <div className="text-xs font-bold text-slate-800">
-                            {student?.fullName || 'Học sinh'} • <span className="font-normal text-slate-600">{l.title}</span>
+                          <div className="text-sm font-bold text-slate-800">
+                            {student?.fullName || 'Học sinh'} • <span className="font-semibold text-slate-600">{l.title}</span>
                           </div>
-                          <div className="text-[10px] text-slate-400">
+                          <div className="text-xs font-semibold text-slate-500">
                             Ngày {l.date} {l.note ? `• ${l.note}` : ''}
                           </div>
                         </div>
@@ -359,7 +361,7 @@ export const BehaviorTracker: React.FC = () => {
 
                       <div className="flex items-center gap-3">
                         <span
-                          className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+                          className={`text-sm font-black px-2.5 py-1 rounded-lg ${
                             l.type === 'praise'
                               ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
                               : 'text-rose-700 bg-rose-50 border border-rose-200'
@@ -369,10 +371,10 @@ export const BehaviorTracker: React.FC = () => {
                         </span>
                         <button
                           onClick={() => handleDeleteLog(l.id)}
-                          className="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Xóa mục này"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -381,6 +383,7 @@ export const BehaviorTracker: React.FC = () => {
               </div>
             )}
           </div>
+
 
         </div>
 
