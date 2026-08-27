@@ -19,16 +19,14 @@ import {
   LogOut,
   Crown,
   Zap,
+  BookOpen,
 } from 'lucide-react';
-
 
 import { useApp, THEME_CONFIGS } from '../context/AppContext';
 import { db, exportDatabaseBackup, importDatabaseBackup } from '../db/db';
 import { GoogleAuthModal } from './GoogleAuthModal';
 import { adminGoogleSync } from '../services/supabase';
 import type { TeacherTitle, AppTheme } from '../types';
-
-
 
 export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
@@ -44,11 +42,12 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
     teacherAvatar,
     teacherCover,
     years,
-
     classes,
     currentYear,
+    setCurrentYearId,
     refreshAppData,
     triggerConfetti,
+
     user,
     syncState,
     lastSyncedAt,
@@ -93,6 +92,8 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
   const [newClassTeacher, setNewClassTeacher] = useState(teacherName || 'Giáo viên');
   const [newClassGrade, setNewClassGrade] = useState('6');
   const [newClassRoom, setNewClassRoom] = useState('Phòng 204');
+  const [newClassType, setNewClassType] = useState<'gvcn' | 'bomon'>('gvcn');
+  const [newClassSubject, setNewClassSubject] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -133,19 +134,19 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
   };
 
   const handleSetCurrentYear = async (yearId: string) => {
-    const all = await db.years.toArray();
-    for (const y of all) {
+    const allYears = await db.years.toArray();
+    for (const y of allYears) {
       await db.years.update(y.id, { isCurrent: y.id === yearId });
     }
+    setCurrentYearId(yearId);
     await refreshAppData();
-    triggerConfetti();
   };
 
   const handleDeleteYear = async (yearId: string, name: string) => {
-    if (window.confirm(`Cô/Thầy có chắc chắn muốn xóa "${name}" và toàn bộ dữ liệu lớp học liên quan?`)) {
+    if (window.confirm(`Thầy/Cô có chắc chắn muốn xóa năm học "${name}" và toàn bộ lớp học của năm này?`)) {
       await db.years.delete(yearId);
-      const cls = await db.classes.where('yearId').equals(yearId).toArray();
-      for (const c of cls) {
+      const linkedClasses = await db.classes.where('yearId').equals(yearId).toArray();
+      for (const c of linkedClasses) {
         await db.students.where('classId').equals(c.id).delete();
         await db.attendance.where('classId').equals(c.id).delete();
         await db.behaviorLogs.where('classId').equals(c.id).delete();
@@ -167,14 +168,17 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
       yearId: currentYear.id,
       name: newClassName.trim(),
       grade: Number(newClassGrade) || 6,
-      roomNumber: newClassRoom.trim(),
-      homeroomTeacher: newClassTeacher.trim() || `${teacherTitle} ${teacherName}`,
+      classType: newClassType,
+      subject: newClassType === 'bomon' ? (newClassSubject.trim() || 'Bộ môn') : '',
+      roomNumber: newClassRoom.trim() || 'Phòng học',
+      homeroomTeacher: newClassTeacher.trim() || (newClassType === 'bomon' ? 'GV Giảng dạy' : `${teacherTitle} ${teacherName}`),
       totalDesks: 16,
       rows: 4,
       cols: 4,
     });
 
     setNewClassName('');
+    setNewClassSubject('');
     await refreshAppData();
     triggerConfetti();
   };
@@ -734,8 +738,48 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
             <div className="space-y-5">
               <form onSubmit={handleAddClass} className="p-4 rounded-2xl bg-pink-50/60 border border-pink-200 space-y-3">
                 <div className="font-bold text-pink-800 text-xs uppercase tracking-wider">
-                  Thêm lớp chủ nhiệm mới trong {currentYear?.name}:
+                  Thêm lớp học mới trong {currentYear?.name}:
                 </div>
+
+                {/* Role */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewClassType('gvcn')}
+                    className={`py-1.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                      newClassType === 'gvcn'
+                        ? 'bg-pink-500 text-white border-pink-500 shadow-md shadow-pink-200'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" /> Lớp Chủ Nhiệm
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewClassType('bomon')}
+                    className={`py-1.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                      newClassType === 'bomon'
+                        ? 'bg-pink-500 text-white border-pink-500 shadow-md shadow-pink-200'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" /> Lớp Bộ Môn / Chuyên Ngành
+                  </button>
+                </div>
+
+                {newClassType === 'bomon' && (
+                  <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 space-y-1 animate-in fade-in">
+                    <label className="block text-[11px] font-bold text-amber-900">Môn giảng dạy:</label>
+                    <input
+                      type="text"
+                      placeholder="Ví dụ: Toán, Ngữ văn, Tiếng Anh, Tin học..."
+                      value={newClassSubject}
+                      onChange={(e) => setNewClassSubject(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-amber-300 bg-white text-xs font-bold"
+                    />
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <input
@@ -744,12 +788,12 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                     value={newClassName}
                     onChange={(e) => setNewClassName(e.target.value)}
                     placeholder="Tên lớp (6A1, 10B...)"
-                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-bold"
+                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-bold text-xs"
                   />
                   <select
                     value={newClassGrade}
                     onChange={(e) => setNewClassGrade(e.target.value)}
-                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-bold"
+                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-bold text-xs"
                   >
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((g) => (
                       <option key={g} value={g}>Khối {g}</option>
@@ -760,7 +804,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                     value={newClassTeacher}
                     onChange={(e) => setNewClassTeacher(e.target.value)}
                     placeholder="Tên Giáo viên"
-                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-semibold"
+                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-semibold text-xs"
                   />
 
                   <input
@@ -768,7 +812,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                     value={newClassRoom}
                     onChange={(e) => setNewClassRoom(e.target.value)}
                     placeholder="Phòng học"
-                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-semibold"
+                    className="px-3 py-2 rounded-xl border border-pink-200 bg-white font-semibold text-xs"
                   />
                 </div>
 
@@ -776,7 +820,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                   type="submit"
                   className="w-full py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs shadow-xs cursor-pointer"
                 >
-                  Tạo lớp mới
+                  Tạo lớp ngay
                 </button>
               </form>
 
@@ -786,10 +830,28 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                     key={c.id}
                     className="p-3.5 rounded-2xl border border-pink-100 bg-white shadow-2xs flex items-center justify-between"
                   >
-                    <div>
-                      <div className="font-bold text-slate-800 text-sm">{c.name}</div>
-                      <div className="text-xs text-slate-500">
-                        {c.homeroomTeacher} • {c.roomNumber || 'Phòng học'}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full border border-pink-300 overflow-hidden bg-pink-50 flex items-center justify-center font-bold text-xs text-pink-700 shrink-0">
+                        {c.avatarUrl ? (
+                          <img src={c.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{c.name.slice(0, 3)}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-800 text-sm">{c.name}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            c.classType === 'bomon'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                              : 'bg-pink-100 text-pink-700 border border-pink-200'
+                          }`}>
+                            {c.classType === 'bomon' ? `📚 ${c.subject || 'Bộ môn'}` : '🎓 GVCN'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {c.homeroomTeacher} • {c.roomNumber || 'Phòng học'}
+                        </div>
                       </div>
                     </div>
 
@@ -805,6 +867,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               </div>
             </div>
           )}
+
 
           {/* Tab 3: Backup & Restore Engine */}
           {activeTab === 'backup' && (

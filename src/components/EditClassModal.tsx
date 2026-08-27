@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { GraduationCap, Check, X, Building, UserCheck, Camera, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { GraduationCap, Check, X, Building, UserCheck, Camera, Image as ImageIcon, Sparkles, BookOpen } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+
 
 
 
@@ -24,6 +25,8 @@ export const EditClassModal: React.FC<Props> = ({
 
   const [name, setName] = useState('');
   const [grade, setGrade] = useState('6');
+  const [classType, setClassType] = useState<'gvcn' | 'bomon'>('gvcn');
+  const [subject, setSubject] = useState('');
   const [roomNumber, setRoomNumber] = useState('');
   const [homeroomTeacher, setHomeroomTeacher] = useState('');
   const [rows, setRows] = useState(4);
@@ -36,6 +39,8 @@ export const EditClassModal: React.FC<Props> = ({
     if (targetClass) {
       setName(targetClass.name);
       setGrade(String(targetClass.grade || 6));
+      setClassType(targetClass.classType || 'gvcn');
+      setSubject(targetClass.subject || '');
       setRoomNumber(targetClass.roomNumber || '');
       setHomeroomTeacher(targetClass.homeroomTeacher || '');
       setRows(targetClass.rows || 4);
@@ -45,6 +50,7 @@ export const EditClassModal: React.FC<Props> = ({
       setBio(targetClass.bio || '');
     }
   }, [targetClass, isOpen]);
+
 
   if (!isOpen || !targetClass) return null;
 
@@ -103,18 +109,20 @@ export const EditClassModal: React.FC<Props> = ({
       name: name.trim(),
       grade: parseInt(grade, 10) || 6,
       roomNumber: roomNumber.trim() || 'Phòng học',
-      homeroomTeacher: homeroomTeacher.trim() || 'Giáo viên chủ nhiệm',
+      homeroomTeacher: homeroomTeacher.trim() || 'Giáo viên',
       rows: Number(rows) || 4,
       cols: Number(cols) || 4,
       totalDesks: (Number(rows) || 4) * (Number(cols) || 4),
       avatarUrl,
       coverUrl,
       bio: bio.trim() || null,
+      classType,
+      subject: classType === 'bomon' ? (subject.trim() || 'Bộ môn') : '',
     });
 
     await onUpdated();
     triggerConfetti();
-    alert(`Đã cập nhật thành công thông tin & ảnh riêng của lớp ${name}! 🎉`);
+    alert(`Đã cập nhật thành công thông tin lớp ${name}! 🎉`);
     onClose();
   };
 
@@ -134,7 +142,7 @@ export const EditClassModal: React.FC<Props> = ({
                 Chỉnh Sửa Thông Tin Lớp {targetClass.name}
               </h3>
               <p className="text-xs text-white/90 font-medium">
-                Cập nhật tên lớp, phòng học, giáo viên và cấu hình sơ đồ
+                Cập nhật tên lớp, phân loại lớp, giáo viên và cấu hình sơ đồ
               </p>
             </div>
           </div>
@@ -148,8 +156,66 @@ export const EditClassModal: React.FC<Props> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs sm:text-sm">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs sm:text-sm max-h-[85vh] overflow-y-auto">
           
+          {/* Class Role / Type */}
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1.5">Phân loại & Vai trò với lớp</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setClassType('gvcn')}
+                className={`py-2 px-3 rounded-xl border text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                  classType === 'gvcn'
+                    ? 'bg-pink-500 text-white border-pink-500 shadow-md shadow-pink-200'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4" /> Lớp Chủ Nhiệm (GVCN)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setClassType('bomon')}
+                className={`py-2 px-3 rounded-xl border text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                  classType === 'bomon'
+                    ? 'bg-pink-500 text-white border-pink-500 shadow-md shadow-pink-200'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" /> Lớp Bộ Môn / Chuyên Ngành
+              </button>
+            </div>
+          </div>
+
+          {/* Subject (if Bộ Môn) */}
+          {classType === 'bomon' && (
+            <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-2 animate-in fade-in">
+              <label className="block text-xs font-bold text-amber-900 flex items-center gap-1">
+                <BookOpen className="w-3.5 h-3.5 text-amber-600" /> Môn giảng dạy tại lớp này:
+              </label>
+              <input
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Ví dụ: Toán, Ngữ văn, Tiếng Anh, Tin học, Vật lí..."
+                className="w-full px-3.5 py-2 rounded-xl border border-amber-300 bg-white font-bold text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {['Toán', 'Ngữ văn', 'Tiếng Anh', 'KHTN (Lí/Hóa/Sinh)', 'Lịch sử & Địa lí', 'Tin học', 'Công nghệ', 'Âm nhạc', 'Mỹ thuật', 'GDTC'].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSubject(s)}
+                    className="px-2 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-[10px] font-bold cursor-pointer transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-1">Tên lớp học *</label>
@@ -179,31 +245,34 @@ export const EditClassModal: React.FC<Props> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
-              <Building className="w-3.5 h-3.5 text-slate-400" /> Phòng học / Vị trí
-            </label>
-            <input
-              type="text"
-              value={roomNumber}
-              onChange={(e) => setRoomNumber(e.target.value)}
-              placeholder="Ví dụ: Phòng 204 - Nhà A..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold text-slate-800"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
+                <Building className="w-3.5 h-3.5 text-slate-400" /> Phòng học / Vị trí
+              </label>
+              <input
+                type="text"
+                value={roomNumber}
+                onChange={(e) => setRoomNumber(e.target.value)}
+                placeholder="Ví dụ: Phòng 204..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold text-slate-800"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
+                <UserCheck className="w-3.5 h-3.5 text-slate-400" /> {classType === 'bomon' ? 'GV Giảng dạy' : 'GV Chủ nhiệm'}
+              </label>
+              <input
+                type="text"
+                value={homeroomTeacher}
+                onChange={(e) => setHomeroomTeacher(e.target.value)}
+                placeholder="Ví dụ: Thầy/Cô..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold text-slate-800"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1 flex items-center gap-1">
-              <UserCheck className="w-3.5 h-3.5 text-slate-400" /> Giáo viên chủ nhiệm
-            </label>
-            <input
-              type="text"
-              value={homeroomTeacher}
-              onChange={(e) => setHomeroomTeacher(e.target.value)}
-              placeholder="Ví dụ: Cô giáo Nguyễn Thị Nga..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold text-slate-800"
-            />
-          </div>
 
           {/* Class Photo & Cover Customization */}
           <div className="p-3.5 rounded-2xl bg-pink-50/50 border border-pink-200 space-y-3">

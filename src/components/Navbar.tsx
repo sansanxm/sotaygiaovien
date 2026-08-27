@@ -10,6 +10,7 @@ import {
   Settings,
   Heart,
   Plus,
+  BookOpen,
 } from 'lucide-react';
 import { useApp, type AppTheme } from '../context/AppContext';
 import { exportDatabaseBackup, importDatabaseBackup, db } from '../db/db';
@@ -32,6 +33,9 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
   const [showAddClass, setShowAddClass] = useState(false);
   const [newClassName, setNewClassName] = useState('');
   const [newClassGrade, setNewClassGrade] = useState('6');
+  const [newClassType, setNewClassType] = useState<'gvcn' | 'bomon'>('gvcn');
+  const [newClassSubject, setNewClassSubject] = useState('');
+
 
   const themes: { id: AppTheme; label: string; bg: string; dot: string }[] = [
     { id: 'pink', label: 'Hồng Ngọt Ngào', bg: 'from-pink-400 to-rose-400', dot: 'bg-pink-400' },
@@ -87,18 +91,22 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
       yearId: currentYear.id,
       name: newClassName.trim(),
       grade: parseInt(newClassGrade, 10) || 6,
-      roomNumber: 'Phòng học mới',
-      homeroomTeacher: 'Cô giáo',
+      classType: newClassType,
+      subject: newClassType === 'bomon' ? (newClassSubject.trim() || 'Bộ môn') : '',
+      roomNumber: 'Phòng học',
+      homeroomTeacher: newClassType === 'bomon' ? 'GV Giảng dạy' : 'GV Chủ nhiệm',
       totalDesks: 16,
       rows: 4,
       cols: 4,
     });
     setNewClassName('');
+    setNewClassSubject('');
     setShowAddClass(false);
     await refreshAppData();
     setCurrentClassId(newId);
     triggerConfetti();
   };
+
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-pink-200/80 shadow-xs">
@@ -159,7 +167,7 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
 
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} ({c.roomNumber || 'Phòng học'})
+                    {c.classType === 'bomon' ? `📚 ${c.name} (${c.subject || 'Bộ môn'})` : `🎓 ${c.name} (GVCN)`}
                   </option>
                 ))}
               </select>
@@ -250,11 +258,67 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
             <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-pink-500" /> Thêm Lớp Chủ Nhiệm Mới
+              <GraduationCap className="w-5 h-5 text-pink-500" /> Thêm Lớp Học Mới
             </h3>
             <form onSubmit={handleQuickAddClass} className="space-y-4">
+              
+              {/* Role */}
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Tên lớp học</label>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">Phân loại lớp</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewClassType('gvcn')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                      newClassType === 'gvcn'
+                        ? 'bg-pink-500 text-white border-pink-500 shadow-md shadow-pink-200'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <GraduationCap className="w-4 h-4" /> Lớp Chủ Nhiệm
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewClassType('bomon')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                      newClassType === 'bomon'
+                        ? 'bg-pink-500 text-white border-pink-500 shadow-md shadow-pink-200'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <BookOpen className="w-4 h-4" /> Lớp Bộ Môn
+                  </button>
+                </div>
+              </div>
+
+              {newClassType === 'bomon' && (
+                <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-1.5 animate-in fade-in">
+                  <label className="block text-xs font-bold text-amber-900">Môn giảng dạy tại lớp này:</label>
+                  <input
+                    type="text"
+                    placeholder="Ví dụ: Toán, Ngữ văn, Tiếng Anh, Tin học..."
+                    value={newClassSubject}
+                    onChange={(e) => setNewClassSubject(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-xs font-bold"
+                  />
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {['Toán', 'Ngữ văn', 'Tiếng Anh', 'Tin học', 'KHTN', 'Lịch sử & Địa lí', 'Mỹ thuật', 'GDTC'].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setNewClassSubject(s)}
+                        className="px-2 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-[10px] font-bold cursor-pointer"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Tên lớp học *</label>
                 <input
                   type="text"
                   placeholder="Ví dụ: 6A2, 10C1, 1A..."
@@ -303,3 +367,4 @@ export const Navbar: React.FC<{ onOpenSettings: () => void }> = ({ onOpenSetting
     </header>
   );
 };
+

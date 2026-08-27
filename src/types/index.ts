@@ -22,6 +22,8 @@ export interface SchoolYear {
 
 export type SeatingLayoutType = '3-dãy' | '2-dãy' | '4-dãy' | 'nhóm-u' | 'tùy-chỉnh';
 
+export type ClassRoleType = 'gvcn' | 'bomon';
+
 export interface ClassRoom {
   id: string;
   yearId: string;
@@ -37,7 +39,10 @@ export interface ClassRoom {
   avatarUrl?: string | null;
   coverUrl?: string | null;
   bio?: string | null;
+  classType?: ClassRoleType; // 'gvcn': Lớp chủ nhiệm | 'bomon': Lớp bộ môn / Chuyên ngành
+  subject?: string;          // Môn giảng dạy
 }
+
 
 
 export interface Student {
