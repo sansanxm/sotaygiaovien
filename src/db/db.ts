@@ -47,11 +47,26 @@ export class GVCNDatabase extends Dexie {
 
 export const db = new GVCNDatabase();
 
-// Export / Backup all data as JSON
+// Export / Backup all data as JSON (including profile & VIP status)
 export async function exportDatabaseBackup(): Promise<string> {
+  let vipToken = null;
+  try {
+    const rawVip = localStorage.getItem('gvcn_vip_license_token');
+    if (rawVip) vipToken = JSON.parse(rawVip);
+  } catch {}
+
   const data = {
-    version: 1,
+    version: '4.0.0',
     exportedAt: new Date().toISOString(),
+    userSettings: {
+      teacherTitle: localStorage.getItem('gvcn_teacher_title') || 'Thầy/Cô',
+      teacherName: localStorage.getItem('gvcn_teacher_name') || '',
+      teacherAvatar: localStorage.getItem('gvcn_teacher_avatar') || null,
+      teacherCover: localStorage.getItem('gvcn_teacher_cover') || null,
+      teacherBio: localStorage.getItem('gvcn_teacher_bio') || '',
+      theme: localStorage.getItem('gvcn_theme') || 'pink',
+    },
+    vipToken,
     years: await db.years.toArray(),
     classes: await db.classes.toArray(),
     students: await db.students.toArray(),
@@ -68,14 +83,50 @@ export async function exportDatabaseBackup(): Promise<string> {
 }
 
 
-// Import & restore database from JSON
+// Import & restore database from JSON (including profile & VIP status)
 export async function importDatabaseBackup(jsonString: string): Promise<boolean> {
   try {
     const data = JSON.parse(jsonString);
-    if (!data.years || !data.classes) {
+    if (!data.years && !data.classes && !data.students) {
       throw new Error('Dữ liệu không đúng định dạng sao lưu GVCN!');
     }
 
+    // 1. Restore User Profile & Settings
+    if (data.userSettings) {
+      try {
+        if (data.userSettings.teacherTitle) {
+          localStorage.setItem('gvcn_teacher_title', data.userSettings.teacherTitle);
+        }
+        if (data.userSettings.teacherName) {
+          localStorage.setItem('gvcn_teacher_name', data.userSettings.teacherName);
+        }
+        if (data.userSettings.teacherAvatar) {
+          localStorage.setItem('gvcn_teacher_avatar', data.userSettings.teacherAvatar);
+        }
+        if (data.userSettings.teacherCover) {
+          localStorage.setItem('gvcn_teacher_cover', data.userSettings.teacherCover);
+        }
+        if (data.userSettings.teacherBio) {
+          localStorage.setItem('gvcn_teacher_bio', data.userSettings.teacherBio);
+        }
+        if (data.userSettings.theme) {
+          localStorage.setItem('gvcn_theme', data.userSettings.theme);
+        }
+      } catch (e) {
+        console.warn('Storage set item warning:', e);
+      }
+    }
+
+    // 2. Restore VIP Token if present in cloud backup
+    if (data.vipToken && data.vipToken.isVip) {
+      try {
+        localStorage.setItem('gvcn_vip_license_token', JSON.stringify(data.vipToken));
+      } catch (e) {
+        console.warn('VIP token restore warning:', e);
+      }
+    }
+
+    // 3. Restore Dexie Database Tables
     await db.transaction('rw', [
       db.years,
       db.classes,
@@ -114,10 +165,10 @@ export async function importDatabaseBackup(jsonString: string): Promise<boolean>
       if (data.timetable?.length) await db.timetable.bulkAdd(data.timetable);
     });
 
-
     return true;
   } catch (err) {
     console.error('Import error:', err);
     throw err;
   }
 }
+

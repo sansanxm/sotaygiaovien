@@ -220,7 +220,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setVipExpiresAt(expiresAt);
     adminGoogleSync.setLocalVip(user?.email || 'local_user', expiresAt);
     setLicenseStatus(adminGoogleSync.getLicenseStatus());
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 300);
+    }
   };
+
 
 
 
@@ -230,16 +234,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setTheme = (newTheme: AppTheme) => {
     setThemeState(newTheme);
     localStorage.setItem('gvcn_theme', newTheme);
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 500);
+    }
   };
 
   const setTeacherTitle = (newTitle: TeacherTitle) => {
     setTeacherTitleState(newTitle);
     localStorage.setItem('gvcn_teacher_title', newTitle);
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 500);
+    }
   };
 
   const setTeacherName = (newName: string) => {
     setTeacherNameState(newName);
     localStorage.setItem('gvcn_teacher_name', newName);
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 500);
+    }
   };
 
   const setTeacherAvatar = (newAvatar: string | null) => {
@@ -248,6 +261,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('gvcn_teacher_avatar', newAvatar);
     } else {
       localStorage.removeItem('gvcn_teacher_avatar');
+    }
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 500);
     }
   };
 
@@ -258,11 +274,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       localStorage.removeItem('gvcn_teacher_cover');
     }
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 500);
+    }
   };
 
   const setTeacherBio = (newBio: string) => {
     setTeacherBioState(newBio);
     localStorage.setItem('gvcn_teacher_bio', newBio);
+    if (user && navigator.onLine) {
+      setTimeout(() => syncWithCloud('upload'), 500);
+    }
   };
 
   const triggerConfetti = () => {
@@ -278,6 +300,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const refreshAppData = async () => {
     try {
       await seedInitialDatabase();
+
+      // Refresh Local Settings & Profile States
+      setTeacherTitleState((localStorage.getItem('gvcn_teacher_title') as TeacherTitle) || 'Thầy/Cô');
+      setTeacherNameState(localStorage.getItem('gvcn_teacher_name') || '');
+      setTeacherAvatarState(localStorage.getItem('gvcn_teacher_avatar') || null);
+      setTeacherCoverState(localStorage.getItem('gvcn_teacher_cover') || null);
+      setTeacherBioState(localStorage.getItem('gvcn_teacher_bio') || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui');
+      setThemeState((localStorage.getItem('gvcn_theme') as AppTheme) || 'pink');
+
+      const lic = adminGoogleSync.getLicenseStatus();
+      setLicenseStatus(lic);
+      setIsVip(lic.isVip);
+      setVipExpiresAt(lic.vipExpiresAt);
+
       const allYears = await db.years.toArray();
       setYears(allYears);
 
@@ -315,6 +351,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (res.user) {
       setUser(res.user);
       setSyncState('synced');
+      const liveVip = await adminGoogleSync.checkVipStatusLive(res.user);
+      if (liveVip.isVip) {
+        activateVip(liveVip.vipExpiresAt || 'lifetime');
+      }
+      await syncWithCloud('download');
+      await refreshAppData();
     }
     return res;
   };
@@ -325,6 +367,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (res.user) {
       setUser(res.user);
       setSyncState('synced');
+      await syncWithCloud('upload');
+      await refreshAppData();
     }
     return res;
   };
@@ -396,10 +440,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (currentUser && isMounted) {
           setUser(currentUser);
           setSyncState('synced');
-          // If local database is completely empty on new device, download cloud data
-          const localYearsCount = await db.years.count();
-          const localClassesCount = await db.classes.count();
-          if (localYearsCount === 0 && localClassesCount === 0 && navigator.onLine) {
+
+          // Check VIP live from Cloud
+          const liveVip = await adminGoogleSync.checkVipStatusLive(currentUser);
+          if (liveVip.isVip) {
+            setIsVip(true);
+            setVipExpiresAt(liveVip.vipExpiresAt || 'lifetime');
+          }
+
+          // Auto-download cloud data if online
+          if (navigator.onLine) {
             await syncWithCloud('download');
           }
         }
@@ -414,6 +464,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isMounted = false;
     };
   }, []);
+
 
   // Online / Offline network listeners
   useEffect(() => {
