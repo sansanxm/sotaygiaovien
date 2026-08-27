@@ -125,10 +125,10 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
             <div className="space-y-2">
               <span className="text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
-                Tài Khoản Bản Quyền
+                Tài khoản bản quyền
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-800">
-                Bạn Đang Là Thành Viên VIP Hoàng Gia!
+                Bạn đang là thành viên VIP hoàng gia!
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
                 Toàn bộ tính năng cao cấp, đồng bộ đám mây đa thiết bị và cắt ảnh khuôn mặt AI đã được mở khóa vĩnh viễn cho Thầy/Cô.
@@ -142,7 +142,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </div>
               <div className="space-y-1">
                 <div className="text-[10px] font-bold text-slate-400 uppercase">Thời hạn</div>
-                <div className="text-xs font-black text-amber-700">Vĩnh Viễn (Trọn Đời) ♾️</div>
+                <div className="text-xs font-black text-amber-700">Vĩnh viễn (trọn đời) ♾️</div>
               </div>
             </div>
 
@@ -150,7 +150,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="px-8 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-black text-xs shadow-lg shadow-amber-300/50 cursor-pointer active:scale-98"
             >
-              Tiếp Tục Sử Dụng App
+              Tiếp tục sử dụng ứng dụng
             </button>
           </div>
         ) : (
@@ -161,10 +161,10 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <div className="absolute top-2 right-4 text-white/15 text-7xl select-none">👑</div>
               <div className="relative z-10 space-y-1.5 max-w-lg">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 backdrop-blur-md text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-200" /> Tự Động Kích Hoạt Trong 3 Giây
+                  <Sparkles className="w-3.5 h-3.5 text-yellow-200" /> Tự động kích hoạt trong 3 giây
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                  Nâng Cấp Sổ Tay Giáo Viên VIP 👑
+                  Nâng cấp Sổ tay Giáo viên VIP 👑
                 </h2>
                 <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
                   Mở khóa 100% sức mạnh quản lý lớp học, sao lưu đám mây không giới hạn và xuất báo cáo Zalo chuyên nghiệp.
@@ -185,7 +185,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-slate-800">Gói 1 Năm Học</span>
+                    <span className="text-xs font-black text-slate-800">Gói 1 năm học</span>
                     {plan === '1year' && <Check className="w-4 h-4 text-amber-600" />}
                   </div>
                   <div className="text-xl font-black text-amber-700 mt-2">
@@ -207,7 +207,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     Tiết kiệm 70%
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-slate-800">Gói Trọn Đời 👑</span>
+                    <span className="text-xs font-black text-slate-800">Gói trọn đời 👑</span>
                     {plan === 'lifetime' && <Check className="w-4 h-4 text-amber-600" />}
                   </div>
                   <div className="text-xl font-black text-amber-700 mt-2">
@@ -229,7 +229,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                       : 'border-transparent text-slate-400 hover:text-slate-700'
                   }`}
                 >
-                  <QrCode className="w-4 h-4" /> Quét Mã VietQR (Tự Động 3s)
+                  <QrCode className="w-4 h-4" /> Quét mã VietQR (tự động 3s)
                 </button>
                 <button
                   onClick={() => setActiveTab('key')}
@@ -239,7 +239,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                       : 'border-transparent text-slate-400 hover:text-slate-700'
                   }`}
                 >
-                  <Key className="w-4 h-4" /> Nhập Mã Bản Quyền
+                  <Key className="w-4 h-4" /> Nhập mã bản quyền
                 </button>
               </div>
             </div>
@@ -257,7 +257,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                       className="w-48 h-48 sm:w-52 sm:h-52 object-contain mx-auto rounded-xl"
                     />
                     <span className="text-[10px] font-extrabold text-amber-600 flex items-center justify-center gap-1 mt-1.5">
-                      <Zap className="w-3 h-3 fill-amber-400" /> Quét bằng bất kỳ App Ngân Hàng
+                      <Zap className="w-3 h-3 fill-amber-400" /> Quét bằng bất kỳ ứng dụng ngân hàng
                     </span>
                   </div>
 
@@ -288,7 +288,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     </div>
 
                     <div className="space-y-1">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase">Nội dung chuyển khoản (Bắt buộc)</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Nội dung chuyển khoản (bắt buộc)</span>
                       <div className="flex items-center justify-between bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 font-mono font-black text-amber-900">
                         <span>{transferMemo}</span>
                         <button
@@ -322,7 +322,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     onClick={handleManualCheck}
                     className="py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs cursor-pointer shrink-0 active:scale-98"
                   >
-                    {isCheckingPayment ? 'Đang kiểm tra...' : 'Tôi Đã Chuyển Khoản'}
+                    {isCheckingPayment ? 'Đang kiểm tra...' : 'Tôi đã chuyển khoản'}
                   </button>
                 </div>
               </div>
@@ -358,7 +358,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     type="submit"
                     className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-black text-xs shadow-md shadow-amber-300/40 cursor-pointer active:scale-98 flex items-center justify-center gap-2"
                   >
-                    <ShieldCheck className="w-4 h-4" /> Kích Hoạt Bản Quyền Ngay
+                    <ShieldCheck className="w-4 h-4" /> Kích hoạt bản quyền ngay
                   </button>
                 </form>
 
@@ -372,6 +372,7 @@ export const VipUpgradeModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 </div>
               </div>
             )}
+
 
           </div>
         )}

@@ -208,10 +208,11 @@ export const AttendanceView: React.FC = () => {
           <button
             onClick={() => setShowExportModal(true)}
             className="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Xuất sổ điểm danh ra Excel theo Tuần, Tháng, Học Kỳ"
+            title="Xuất sổ điểm danh ra Excel theo tuần, tháng, học kỳ"
           >
-            <Download className="w-4 h-4" /> Xuất Excel (Tuần / Tháng / Kỳ)
+            <Download className="w-4 h-4" /> Xuất Excel (tuần / tháng / kỳ)
           </button>
+
         </div>
 
 

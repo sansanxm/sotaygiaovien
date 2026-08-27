@@ -576,7 +576,7 @@ export const SeatingChart: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <Layout className="w-5 h-5 theme-text" /> Sơ Đồ Lớp Học & Chỗ Ngồi Kéo - Thả
+            <Layout className="w-5 h-5 theme-text" /> Sơ đồ lớp học & chỗ ngồi kéo - thả
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
             Lựa chọn sơ đồ 2 dãy, 3 dãy, 4 dãy có lối đi và luân chuyển hàng tuần chống cận thị
@@ -586,10 +586,10 @@ export const SeatingChart: React.FC = () => {
         {/* Layout Presets Tabs */}
         <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
           {[
-            { id: '3-dãy', label: '🏛️ 3 Dãy (2 Lối Đi)' },
-            { id: '2-dãy', label: '🏢 2 Dãy (1 Lối Đi)' },
-            { id: '4-dãy', label: '🏫 4 Dãy (3 Lối Đi)' },
-            { id: 'nhóm-u', label: '👥 4 Cụm Tổ Nhóm' },
+            { id: '3-dãy', label: '🏛️ 3 dãy (2 lối đi)' },
+            { id: '2-dãy', label: '🏢 2 dãy (1 lối đi)' },
+            { id: '4-dãy', label: '🏫 4 dãy (3 lối đi)' },
+            { id: 'nhóm-u', label: '👥 4 cụm tổ nhóm' },
           ].map((t) => (
             <button
               key={t.id}
@@ -613,7 +613,7 @@ export const SeatingChart: React.FC = () => {
             title="Đổi chỗ các dãy bàn tuần mới để chống cận thị và lệch mắt"
           >
             <RotateCw className="w-4 h-4 text-amber-600" />
-            <span>Đổi Dãy Tuần</span>
+            <span>Đổi dãy tuần</span>
           </button>
 
           <button
@@ -621,7 +621,7 @@ export const SeatingChart: React.FC = () => {
             className="px-3.5 py-2 rounded-2xl theme-btn-secondary text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Shuffle className="w-4 h-4" />
-            <span>Xếp Ngẫu Nhiên</span>
+            <span>Xếp ngẫu nhiên</span>
           </button>
 
           <button
@@ -671,9 +671,10 @@ export const SeatingChart: React.FC = () => {
               <Users className="w-4 h-4" />
             </div>
             <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-800">
-              Khay Học Sinh Chưa Xếp Chỗ ({unassignedStudents.length} em)
+              Khay học sinh chưa xếp chỗ ({unassignedStudents.length} em)
             </h4>
           </div>
+
 
           <span className="text-xs text-slate-400 font-medium">
             Kéo thả học sinh từ khay vào bàn hoặc gắp từ bàn thả ra đây

@@ -75,27 +75,28 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
   const [newClassGrade, setNewClassGrade] = useState('6');
 
   const menuItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'dashboard', label: 'Tổng Quan', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { id: 'timetable', label: 'Thời Khóa Biểu', icon: <Calendar className="w-5 h-5" />, badge: 'MỚI' },
-    { id: 'students', label: 'Danh Sách Học Sinh', icon: <Users className="w-5 h-5" /> },
-    { id: 'seating', label: 'Sơ Đồ Lớp Học', icon: <Grid className="w-5 h-5" /> },
-    { id: 'attendance', label: 'Sổ Điểm Danh', icon: <CalendarCheck className="w-5 h-5" /> },
-    { id: 'behavior', label: 'Nề Nếp & Thi Đua', icon: <Award className="w-5 h-5" />, badge: 'HOT' },
-    { id: 'fund', label: 'Thu - Chi Quỹ Lớp', icon: <Wallet className="w-5 h-5" /> },
-    { id: 'comments', label: 'Ngân Hàng Nhận Xét', icon: <BookOpen className="w-5 h-5" /> },
-    { id: 'random-picker', label: 'Vòng Quay May Mắn', icon: <Dices className="w-5 h-5" /> },
-    { id: 'todos', label: 'Sổ Việc Cần Làm', icon: <CheckSquare className="w-5 h-5" /> },
+    { id: 'dashboard', label: 'Tổng quan', icon: <LayoutDashboard className="w-5 h-5" /> },
+    { id: 'timetable', label: 'Thời khóa biểu', icon: <Calendar className="w-5 h-5" />, badge: 'MỚI' },
+    { id: 'students', label: 'Danh sách học sinh', icon: <Users className="w-5 h-5" /> },
+    { id: 'seating', label: 'Sơ đồ lớp học', icon: <Grid className="w-5 h-5" /> },
+    { id: 'attendance', label: 'Sổ điểm danh', icon: <CalendarCheck className="w-5 h-5" /> },
+    { id: 'behavior', label: 'Nề nếp & thi đua', icon: <Award className="w-5 h-5" />, badge: 'HOT' },
+    { id: 'fund', label: 'Thu - chi quỹ lớp', icon: <Wallet className="w-5 h-5" /> },
+    { id: 'comments', label: 'Ngân hàng nhận xét', icon: <BookOpen className="w-5 h-5" /> },
+    { id: 'random-picker', label: 'Vòng quay may mắn', icon: <Dices className="w-5 h-5" /> },
+    { id: 'todos', label: 'Sổ việc cần làm', icon: <CheckSquare className="w-5 h-5" /> },
   ];
 
 
   const themes: { id: AppTheme; label: string; dot: string }[] = [
-    { id: 'pink', label: '🌸 Hồng Dịu Dàng', dot: 'bg-pink-400' },
-    { id: 'ocean', label: '🌊 Xanh Biển Lịch Lãm', dot: 'bg-blue-500' },
-    { id: 'mint', label: '🍃 Xanh Bạc Hà Tươi Mát', dot: 'bg-emerald-500' },
-    { id: 'lavender', label: '🔮 Tím Mộng Mơ', dot: 'bg-purple-500' },
-    { id: 'peach', label: '🍑 Cam Đào Ấm Áp', dot: 'bg-orange-400' },
-    { id: 'slate', label: '🌙 Xám Khói Hiện Đại', dot: 'bg-slate-700' },
+    { id: 'pink', label: '🌸 Hồng dịu dàng', dot: 'bg-pink-400' },
+    { id: 'ocean', label: '🌊 Xanh biển lịch lãm', dot: 'bg-blue-500' },
+    { id: 'mint', label: '🍃 Xanh bạc hà tươi mát', dot: 'bg-emerald-500' },
+    { id: 'lavender', label: '🔮 Tím mộng mơ', dot: 'bg-purple-500' },
+    { id: 'peach', label: '🍑 Cam đào ấm áp', dot: 'bg-orange-400' },
+    { id: 'slate', label: '🌙 Xám khói hiện đại', dot: 'bg-slate-700' },
   ];
+
 
 
   const handleExport = async () => {
@@ -347,7 +348,7 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
                   title="Nâng cấp VIP tự động qua VietQR"
                 >
                   <Crown className="w-3.5 h-3.5 fill-white" />
-                  <span>Nâng Cấp VIP (Quét QR 3s)</span>
+                  <span>Nâng cấp VIP (quét QR 3s)</span>
                 </button>
               )}
 
@@ -478,7 +479,7 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
                 title="Đăng nhập hoặc tạo tài khoản để đồng bộ Cloud"
               >
                 <Cloud className="w-4 h-4 shrink-0" />
-                {!isCollapsed && <span>Đăng Nhập / Đăng Ký</span>}
+                {!isCollapsed && <span>Đăng nhập / Đăng ký</span>}
               </button>
             </div>
           )}
@@ -569,7 +570,7 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
             <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-pink-500" /> Thêm Lớp Chủ Nhiệm Mới
+              <GraduationCap className="w-5 h-5 text-pink-500" /> Thêm lớp chủ nhiệm mới
             </h3>
             <form onSubmit={handleQuickAddClass} className="space-y-4">
               <div>
@@ -619,6 +620,7 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
           </div>
         </div>
       )}
+
 
       {/* Modal Edit Class */}
       <EditClassModal

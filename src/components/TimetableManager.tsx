@@ -234,7 +234,7 @@ export const TimetableManager: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col lg:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <Calendar className="w-5 h-5 theme-text" /> Thời Khóa Biểu Lớp {currentClass?.name}
+            <Calendar className="w-5 h-5 theme-text" /> Thời khóa biểu lớp {currentClass?.name}
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
             Quản lý lịch học các thứ trong tuần, tự động đánh dấu Hôm nay và xuất file Excel / Ảnh gửi Zalo
@@ -254,7 +254,7 @@ export const TimetableManager: React.FC = () => {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Layers className="w-3.5 h-3.5 inline mr-1" /> Cả Ngày
+              <Layers className="w-3.5 h-3.5 inline mr-1" /> Cả ngày
             </button>
 
             <button
@@ -295,8 +295,9 @@ export const TimetableManager: React.FC = () => {
             className="px-3.5 py-2 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
             title="Tạo ảnh thời khóa biểu gửi vào nhóm Zalo"
           >
-            <Share2 className="w-4 h-4" /> Tạo Ảnh Zalo
+            <Share2 className="w-4 h-4" /> Tạo ảnh Zalo
           </button>
+
 
           {/* Clear Button */}
           <button
@@ -726,8 +727,9 @@ export const TimetableManager: React.FC = () => {
                     type="submit"
                     className="px-6 py-2.5 rounded-xl theme-btn-primary text-white font-extrabold text-xs sm:text-sm flex items-center gap-1.5 shadow-md cursor-pointer"
                   >
-                    <Check className="w-4 h-4" /> Lưu Tiết Học
+                    <Check className="w-4 h-4" /> Lưu tiết học
                   </button>
+
                 </div>
               </div>
 

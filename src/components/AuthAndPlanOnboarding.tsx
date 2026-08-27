@@ -111,10 +111,10 @@ export const AuthAndPlanOnboarding: React.FC = () => {
 
             <div className="relative z-10 max-w-2xl mx-auto space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black uppercase tracking-wider mb-1 border border-white/30">
-                <Sparkles className="w-3.5 h-3.5 text-yellow-200" /> Chúc Mừng Đăng Nhập Thành Công
+                <Sparkles className="w-3.5 h-3.5 text-yellow-200" /> Chúc mừng đăng nhập thành công
               </div>
               <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-                Chào Mừng {fullName ? `${selectedTitle} ${fullName}` : 'Thầy/Cô'}! 💖
+                Chào mừng {fullName ? `${selectedTitle} ${fullName}` : 'Thầy/Cô'}! 💖
               </h1>
               <p className="text-xs sm:text-base text-white/90 font-medium max-w-xl mx-auto leading-relaxed">
                 Hãy lựa chọn gói bắt đầu phù hợp để đồng hành cùng lớp học của bạn:
@@ -130,9 +130,9 @@ export const AuthAndPlanOnboarding: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    Trải Nghiệm Miễn Phí
+                    Trải nghiệm miễn phí
                   </span>
-                  <span className="text-xs font-black text-emerald-600">30 Ngày Đầu</span>
+                  <span className="text-xs font-black text-emerald-600">30 ngày đầu</span>
                 </div>
 
                 <div>
@@ -171,7 +171,7 @@ export const AuthAndPlanOnboarding: React.FC = () => {
                 }}
                 className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-200/50 flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all"
               >
-                <span>Bắt Đầu Trải Nghiệm 30 Ngày 🚀</span>
+                <span>Bắt đầu trải nghiệm 30 ngày 🚀</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -179,15 +179,15 @@ export const AuthAndPlanOnboarding: React.FC = () => {
             {/* OPTION 2: VIP Royal Lifetime Plan */}
             <div className="p-6 sm:p-7 rounded-3xl border-2 border-amber-400 bg-gradient-to-b from-amber-50/80 via-yellow-50/40 to-white flex flex-col justify-between space-y-6 relative shadow-lg ring-2 ring-amber-300/40">
               <div className="absolute -top-3 right-6 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                👑 Khuyên Dùng - Tiết Kiệm 70%
+                👑 Khuyên dùng - tiết kiệm 70%
               </div>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                    <Crown className="w-3 h-3 fill-amber-600 text-amber-600" /> Bản Quyền Trọn Đời
+                    <Crown className="w-3 h-3 fill-amber-600 text-amber-600" /> Bản quyền trọn đời
                   </span>
-                  <span className="text-xs font-black text-amber-700">Dùng Vĩnh Viễn</span>
+                  <span className="text-xs font-black text-amber-700">Dùng vĩnh viễn</span>
                 </div>
 
                 <div>
@@ -206,7 +206,7 @@ export const AuthAndPlanOnboarding: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-amber-500 fill-amber-400 shrink-0" />
-                    <span><strong>Đồng bộ đám mây đa thiết bị:</strong> Máy tính & Điện thoại</span>
+                    <span><strong>Đồng bộ đám mây đa thiết bị:</strong> Máy tính & điện thoại</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-amber-500 fill-amber-400 shrink-0" />
@@ -227,14 +227,14 @@ export const AuthAndPlanOnboarding: React.FC = () => {
                 className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:brightness-105 text-white font-black text-xs shadow-lg shadow-amber-300/50 flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all"
               >
                 <Crown className="w-4 h-4 fill-white" />
-                <span>Nâng Cấp VIP Ngay (Quét VietQR 3s)</span>
+                <span>Nâng cấp VIP ngay (quét VietQR 3s)</span>
               </button>
             </div>
 
           </div>
 
           <div className="p-4 bg-slate-50 border-t border-slate-100 text-center text-xs text-slate-400 font-semibold">
-            Sổ Tay Giáo Viên 4.0 • Dành riêng cho Giáo viên Việt Nam © 2026
+            Sổ tay Giáo viên 4.0 • Dành riêng cho Giáo viên Việt Nam © 2026
           </div>
 
         </div>
@@ -259,10 +259,10 @@ export const AuthAndPlanOnboarding: React.FC = () => {
           </div>
           <div className="space-y-0.5">
             <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
-              Sổ Tay Giáo Viên 4.0
+              Sổ tay Giáo viên 4.0
             </h1>
             <p className="text-xs text-slate-500 font-semibold">
-              Quản Lý Lớp Học Thông Minh & Đồng Bộ Đa Thiết Bị
+              Quản lý lớp học thông minh & đồng bộ đa thiết bị
             </p>
           </div>
         </div>
@@ -280,7 +280,7 @@ export const AuthAndPlanOnboarding: React.FC = () => {
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <LogIn className="w-3.5 h-3.5" /> Đăng Nhập
+            <LogIn className="w-3.5 h-3.5" /> Đăng nhập
           </button>
 
           <button
@@ -294,7 +294,7 @@ export const AuthAndPlanOnboarding: React.FC = () => {
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <UserPlus className="w-3.5 h-3.5" /> Đăng Ký Mới
+            <UserPlus className="w-3.5 h-3.5" /> Đăng ký mới
           </button>
         </div>
 
@@ -314,7 +314,7 @@ export const AuthAndPlanOnboarding: React.FC = () => {
             {authMode === 'register' && (
               <>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-600 uppercase">Danh Xưng & Họ Tên</label>
+                  <label className="text-[11px] font-bold text-slate-600 uppercase">Danh xưng & họ tên</label>
                   <div className="flex gap-2">
                     <select
                       value={selectedTitle}
@@ -343,7 +343,7 @@ export const AuthAndPlanOnboarding: React.FC = () => {
 
             {/* Email Field */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-600 uppercase">Địa Chỉ Email</label>
+              <label className="text-[11px] font-bold text-slate-600 uppercase">Địa chỉ email</label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -359,7 +359,7 @@ export const AuthAndPlanOnboarding: React.FC = () => {
 
             {/* Password Field */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-600 uppercase">Mật Khẩu</label>
+              <label className="text-[11px] font-bold text-slate-600 uppercase">Mật khẩu</label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -394,11 +394,12 @@ export const AuthAndPlanOnboarding: React.FC = () => {
               ) : (
                 <>
                   {authMode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                  <span>{authMode === 'login' ? 'Đăng Nhập Vào Ứng Dụng' : 'Tạo Tài Khoản & Tiếp Tục'}</span>
+                  <span>{authMode === 'login' ? 'Đăng nhập vào ứng dụng' : 'Tạo tài khoản & tiếp tục'}</span>
                 </>
               )}
             </button>
           </form>
+
 
           {/* Quick Guarantee */}
           <div className="pt-2 text-center text-[11px] text-slate-400 font-semibold flex items-center justify-center gap-1.5">

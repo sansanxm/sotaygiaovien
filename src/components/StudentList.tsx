@@ -274,7 +274,7 @@ export const StudentList: React.FC = () => {
             onClick={handleOpenAdd}
             className="px-4 py-2 rounded-2xl theme-btn-primary text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer transform hover:scale-105"
           >
-            <Plus className="w-4 h-4" /> Thêm Học Sinh
+            <Plus className="w-4 h-4" /> Thêm học sinh
           </button>
 
         </div>
@@ -286,8 +286,9 @@ export const StudentList: React.FC = () => {
         <div className="text-center py-16 bg-white/70 rounded-3xl border border-pink-200/60 p-8">
           <Users className="w-12 h-12 text-pink-300 mx-auto mb-3" />
           <h3 className="text-base font-bold text-slate-700">Không tìm thấy học sinh nào</h3>
-          <p className="text-xs text-slate-500 mt-1">Cô có thể bấm nút "Thêm Học Sinh" hoặc "Dán / Nạp Excel" để thêm dữ liệu.</p>
+          <p className="text-xs text-slate-500 mt-1">Cô có thể bấm nút "Thêm học sinh" hoặc "Dán / nạp Excel" để thêm dữ liệu.</p>
         </div>
+
       ) : viewMode === 'cards' ? (
         
         /* Card Grid View */
@@ -491,7 +492,7 @@ export const StudentList: React.FC = () => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-pink-200 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
               <Users className="w-5 h-5 text-pink-500" />
-              {editingStudent ? 'Chỉnh Sửa Thông Tin Học Sinh' : 'Thêm Học Sinh Mới'}
+              {editingStudent ? 'Chỉnh sửa thông tin học sinh' : 'Thêm học sinh mới'}
             </h3>
 
             <form onSubmit={handleSaveStudent} className="space-y-4 text-xs sm:text-sm">
@@ -545,7 +546,7 @@ export const StudentList: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Họ tên Phụ huynh</label>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Họ tên phụ huynh</label>
                   <input
                     type="text"
                     value={parentName}
@@ -705,8 +706,9 @@ export const StudentList: React.FC = () => {
                 }}
                 className="flex-1 py-2.5 rounded-2xl theme-btn-primary text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Edit2 className="w-4 h-4" /> Sửa Thông Tin
+                <Edit2 className="w-4 h-4" /> Sửa thông tin
               </button>
+
 
               <button
                 onClick={() => setViewingStudent(null)}

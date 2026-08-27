@@ -184,9 +184,9 @@ export const Dashboard: React.FC = () => {
         <div className="w-20 h-20 mx-auto rounded-3xl theme-btn-primary flex items-center justify-center text-4xl shadow-xl">
           🌸
         </div>
-        <h2 className="text-2xl font-black text-slate-800">Chào Mừng Thầy/Cô!</h2>
+        <h2 className="text-2xl font-black text-slate-800">Chào mừng Thầy/Cô!</h2>
         <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-          Ứng dụng Sổ Tay Giáo Viên 4.0 đã sẵn sàng. Hãy bấm nút <strong>"+ Lớp mới"</strong> ở thanh menu bên trái (hoặc trên thanh đầu trang điện thoại) để bắt đầu tạo lớp học đầu tiên!
+          Ứng dụng Sổ tay Giáo viên 4.0 đã sẵn sàng. Hãy bấm nút <strong>"+ Lớp mới"</strong> ở thanh menu bên trái (hoặc trên thanh đầu trang điện thoại) để bắt đầu tạo lớp học đầu tiên!
         </p>
       </div>
     );
@@ -299,7 +299,7 @@ export const Dashboard: React.FC = () => {
           className="glass-card p-5 rounded-3xl cursor-pointer group hover:border-purple-300"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Số dư Quỹ Lớp</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Số dư quỹ lớp</span>
             <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Wallet className="w-5 h-5" />
             </div>
@@ -321,7 +321,7 @@ export const Dashboard: React.FC = () => {
           className="glass-card p-5 rounded-3xl cursor-pointer group hover:border-amber-300 bg-gradient-to-br from-amber-50/50 to-white"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Ngôi Sao Tuần Này</span>
+            <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Ngôi sao tuần này</span>
             <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Award className="w-5 h-5" />
             </div>
@@ -354,7 +354,8 @@ export const Dashboard: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base font-black text-slate-800 flex items-center gap-2 flex-wrap">
-                Lịch Học Hôm Nay
+                Lịch học hôm nay
+
                 <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full theme-badge">
                   {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </span>
@@ -432,7 +433,7 @@ export const Dashboard: React.FC = () => {
                   <Flame className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Bảng Vàng Thi Đua & Khen Thưởng</h3>
+                  <h3 className="text-base font-bold text-slate-800">Bảng vàng thi đua & khen thưởng</h3>
                   <p className="text-xs text-slate-500 font-medium">Học sinh có nhiều điểm tốt và tiến bộ vượt bậc</p>
                 </div>
               </div>
@@ -446,7 +447,7 @@ export const Dashboard: React.FC = () => {
 
             {topStars.length === 0 ? (
               <div className="text-center py-6 text-slate-400 text-xs font-semibold">
-                Chưa có điểm tích lũy tuần này. Hãy bấm vào mục "Nề nếp & Thi đua" để cộng sao cho các em!
+                Chưa có điểm tích lũy tuần này. Hãy bấm vào mục "Nề nếp & thi đua" để cộng sao cho các em!
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -481,7 +482,7 @@ export const Dashboard: React.FC = () => {
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Sổ Tay Công Việc</h3>
+                  <h3 className="text-base font-bold text-slate-800">Sổ tay công việc</h3>
                   <p className="text-xs text-slate-500 font-medium">Nhắc nhở công tác chủ nhiệm và kế hoạch tuần</p>
                 </div>
               </div>
@@ -545,7 +546,7 @@ export const Dashboard: React.FC = () => {
                 <Cake className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-800">Sinh Nhật Sắp Tới 🎂</h3>
+                <h3 className="text-base font-bold text-slate-800">Sinh nhật sắp tới 🎂</h3>
                 <p className="text-xs text-slate-500 font-medium">Nhắc nhở chúc mừng sinh nhật học sinh</p>
               </div>
             </div>
@@ -589,7 +590,7 @@ export const Dashboard: React.FC = () => {
           {/* Teacher's Motivation Box */}
           <div className="rounded-3xl p-6 theme-quote-box shadow-xs">
             <h4 className="text-xs font-extrabold uppercase tracking-wider mb-2 flex items-center gap-1.5 opacity-90">
-              💡 Lời Nhắn Yêu Thương
+              💡 Lời nhắn yêu thương
             </h4>
             <p className="text-xs font-medium italic leading-relaxed opacity-95">
               "Mỗi học sinh là một bông hoa với vẻ đẹp và thời điểm nở rộ riêng. Sự dịu dàng và kiên nhẫn của Thầy/Cô chính là ánh nắng ấm áp nhất."
@@ -598,6 +599,7 @@ export const Dashboard: React.FC = () => {
               — Sổ Tay GVCN 🌸
             </div>
           </div>
+
 
         </div>
 

@@ -180,7 +180,7 @@ export const AttendanceExportModal: React.FC<Props> = ({
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black">Xuất Sổ Điểm Danh Excel</h3>
+              <h3 className="text-base font-black">Xuất sổ điểm danh Excel</h3>
               <p className="text-xs text-pink-100 font-medium">Lớp {currentClass.name} • Chuẩn Bộ GD&ĐT</p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export const AttendanceExportModal: React.FC<Props> = ({
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <Calendar className="w-3.5 h-3.5" /> Theo Tuần
+              <Calendar className="w-3.5 h-3.5" /> Theo tuần
             </button>
 
             <button
@@ -214,7 +214,7 @@ export const AttendanceExportModal: React.FC<Props> = ({
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <CalendarDays className="w-3.5 h-3.5" /> Theo Tháng
+              <CalendarDays className="w-3.5 h-3.5" /> Theo tháng
             </button>
 
             <button
@@ -225,7 +225,7 @@ export const AttendanceExportModal: React.FC<Props> = ({
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <CalendarRange className="w-3.5 h-3.5" /> Theo Học Kỳ
+              <CalendarRange className="w-3.5 h-3.5" /> Theo học kỳ
             </button>
           </div>
 
@@ -252,7 +252,7 @@ export const AttendanceExportModal: React.FC<Props> = ({
             <div className="space-y-3 p-4 rounded-2xl bg-pink-50/50 border border-pink-100 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Chọn Tháng:</label>
+                  <label className="font-bold text-slate-700">Chọn tháng:</label>
                   <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(Number(e.target.value))}
@@ -284,7 +284,7 @@ export const AttendanceExportModal: React.FC<Props> = ({
           {/* MODE 3: TERM OPTIONS */}
           {exportMode === 'term' && (
             <div className="space-y-3 p-4 rounded-2xl bg-pink-50/50 border border-pink-100 text-xs">
-              <label className="font-bold text-slate-700 block">Chọn Học Kỳ / Năm Học:</label>
+              <label className="font-bold text-slate-700 block">Chọn học kỳ / năm học:</label>
               <div className="grid grid-cols-3 gap-2">
                 {(['Học Kỳ 1', 'Học Kỳ 2', 'Cả Năm'] as const).map((t) => (
                   <button
@@ -313,8 +313,9 @@ export const AttendanceExportModal: React.FC<Props> = ({
             className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black text-xs shadow-md shadow-pink-300/50 flex items-center justify-center gap-2 cursor-pointer active:scale-98 transition-all disabled:opacity-70"
           >
             <Download className="w-4 h-4" />
-            <span>{isExporting ? 'Đang Tạo File Excel...' : 'Tải File Excel Báo Cáo (.xlsx)'}</span>
+            <span>{isExporting ? 'Đang tạo file Excel...' : 'Tải file Excel báo cáo (.xlsx)'}</span>
           </button>
+
         </div>
 
       </div>

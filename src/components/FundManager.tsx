@@ -166,7 +166,7 @@ export const FundManager: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-purple-500" /> Quản Lý Thu - Chi Quỹ Lớp
+            <Wallet className="w-5 h-5 text-purple-500" /> Quản lý thu - chi quỹ lớp
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
             Minh bạch từng đồng, dễ dàng xuất ảnh báo cáo gửi Zalo phụ huynh hoặc xuất file Excel
@@ -187,7 +187,7 @@ export const FundManager: React.FC = () => {
             onClick={() => setShowReportModal(true)}
             className="px-3.5 py-2 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Share2 className="w-4 h-4" /> Tạo Báo Cáo Zalo
+            <Share2 className="w-4 h-4" /> Tạo báo cáo Zalo
           </button>
 
 
@@ -198,7 +198,7 @@ export const FundManager: React.FC = () => {
             }}
             className="px-4 py-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-pink-300/50 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Thêm Thu / Chi
+            <Plus className="w-4 h-4" /> Thêm thu / chi
           </button>
         </div>
       </div>
@@ -209,7 +209,7 @@ export const FundManager: React.FC = () => {
         {/* Total Income */}
         <div className="glass-card p-5 rounded-3xl border-emerald-200 bg-emerald-50/30">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Tổng Đã Thu</span>
+            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Tổng đã thu</span>
             <div className="p-2 rounded-xl bg-emerald-100 text-emerald-600">
               <ArrowDownCircle className="w-5 h-5" />
             </div>
@@ -228,7 +228,7 @@ export const FundManager: React.FC = () => {
         {/* Total Expense */}
         <div className="glass-card p-5 rounded-3xl border-rose-200 bg-rose-50/30">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-rose-800 uppercase tracking-wider">Tổng Đã Chi</span>
+            <span className="text-xs font-bold text-rose-800 uppercase tracking-wider">Tổng đã chi</span>
             <div className="p-2 rounded-xl bg-rose-100 text-rose-600">
               <ArrowUpCircle className="w-5 h-5" />
             </div>
@@ -247,7 +247,7 @@ export const FundManager: React.FC = () => {
         {/* Remaining Balance */}
         <div className="glass-card p-5 rounded-3xl border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-purple-800 uppercase tracking-wider">Số Dư Quỹ Hiện Tại</span>
+            <span className="text-xs font-bold text-purple-800 uppercase tracking-wider">Số dư quỹ hiện tại</span>
             <div className="p-2 rounded-xl bg-purple-100 text-purple-600">
               <Wallet className="w-5 h-5" />
             </div>
@@ -275,7 +275,7 @@ export const FundManager: React.FC = () => {
               : 'bg-white text-slate-600 hover:bg-pink-50'
           }`}
         >
-          Sổ Giao Dịch Thu - Chi ({transactions.length})
+          Sổ giao dịch thu - chi ({transactions.length})
         </button>
 
         <button
@@ -286,9 +286,10 @@ export const FundManager: React.FC = () => {
               : 'bg-white text-slate-600 hover:bg-pink-50'
           }`}
         >
-          Theo Dõi Đóng Tiền Từng Học Sinh ({collectionCampaigns.length} đợt)
+          Theo dõi đóng tiền từng học sinh ({collectionCampaigns.length} đợt)
         </button>
       </div>
+
 
       {/* View 1: History Transactions */}
       {activeSubTab === 'history' ? (
@@ -432,7 +433,7 @@ export const FundManager: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
             <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-pink-500" /> Thêm Khoản Thu / Chi Mới
+              <DollarSign className="w-5 h-5 text-pink-500" /> Thêm khoản thu / chi mới
             </h3>
 
             <form onSubmit={handleSaveTransaction} className="space-y-4 text-xs sm:text-sm">
@@ -446,7 +447,7 @@ export const FundManager: React.FC = () => {
                       : 'bg-slate-100 text-slate-600'
                   }`}
                 >
-                  Khoản Thu (+)
+                  Khoản thu (+)
                 </button>
                 <button
                   type="button"
@@ -457,7 +458,7 @@ export const FundManager: React.FC = () => {
                       : 'bg-slate-100 text-slate-600'
                   }`}
                 >
-                  Khoản Chi (-)
+                  Khoản chi (-)
                 </button>
               </div>
 
@@ -583,7 +584,7 @@ export const FundManager: React.FC = () => {
             
             <div className="flex items-center justify-between mb-4 border-b border-pink-100 pb-3">
               <h3 className="text-base font-bold text-pink-800 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-pink-500" /> Báo Cáo Thu Chi Quỹ Lớp (Gửi Zalo)
+                <Share2 className="w-5 h-5 text-pink-500" /> Báo cáo thu chi quỹ lớp (gửi Zalo)
               </h3>
               <button
                 onClick={() => setShowReportModal(false)}
@@ -653,9 +654,10 @@ export const FundManager: React.FC = () => {
                 onClick={handleExportImageForZalo}
                 className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-300/50"
               >
-                <Download className="w-4 h-4" /> Tải Ảnh Báo Cáo Gửi Zalo Phụ Huynh
+                <Download className="w-4 h-4" /> Tải ảnh báo cáo gửi Zalo phụ huynh
               </button>
             </div>
+
 
           </div>
         </div>

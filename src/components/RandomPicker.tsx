@@ -298,7 +298,7 @@ export const RandomPicker: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-lg sm:text-2xl font-black text-slate-800 flex items-center gap-2.5">
-            <Dices className="w-6 h-6 theme-text animate-bounce" /> Vòng Quay May Mắn Gọi Tên Học Sinh
+            <Dices className="w-6 h-6 theme-text animate-bounce" /> Vòng quay may mắn gọi tên học sinh
           </h2>
           <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-0.5">
             Bốc thăm ngẫu nhiên bài cũ, phát biểu và trò chơi lớp học
@@ -317,7 +317,7 @@ export const RandomPicker: React.FC = () => {
             title={isFullscreen ? 'Thoát toàn màn hình' : 'Mở toàn màn hình cho cả lớp quan sát'}
           >
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-            <span>{isFullscreen ? 'Thu Nhỏ Màn Hình' : 'Toàn Màn Hình 📺'}</span>
+            <span>{isFullscreen ? 'Thu nhỏ màn hình' : 'Toàn màn hình 📺'}</span>
           </button>
         </div>
       </div>
@@ -386,7 +386,7 @@ export const RandomPicker: React.FC = () => {
               <span>
                 {isSpinning
                   ? `Đang quay chọn ${pickCount} học sinh...`
-                  : `QUAY GỌI ${pickCount} HỌC SINH 🎯`}
+                  : `Quay gọi ${pickCount} học sinh 🎯`}
               </span>
             </button>
           </div>
@@ -399,7 +399,7 @@ export const RandomPicker: React.FC = () => {
           {/* Winner Snapshot Card */}
           <div className="glass-card p-6 rounded-3xl text-center space-y-4">
             <h3 className="text-sm font-black uppercase tracking-wider theme-text flex items-center justify-center gap-1.5">
-              <Sparkles className="w-4 h-4" /> Vừa Bốc Thăm Gần Nhất
+              <Sparkles className="w-4 h-4" /> Vừa bốc thăm gần nhất
             </h3>
 
             {winners.length > 0 ? (
@@ -481,9 +481,10 @@ export const RandomPicker: React.FC = () => {
                   <Users className="w-4 h-4" />
                 </div>
                 <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700">
-                  Đã Gọi Gần Đây
+                  Đã gọi gần đây
                 </h4>
               </div>
+
 
               {calledHistory.length > 0 && (
                 <button

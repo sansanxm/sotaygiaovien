@@ -144,10 +144,10 @@ export const CommentBank: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-pink-500" /> Ngân Hàng Nhận Xét Học Sinh
+            <BookOpen className="w-5 h-5 text-pink-500" /> Ngân hàng nhận xét học sinh
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Kho câu nhận xét chuẩn Thông tư 27/22 & Trợ lý gợi ý nhận xét thông minh
+            Kho câu nhận xét chuẩn Thông tư 27/22 & trợ lý gợi ý nhận xét thông minh
           </p>
         </div>
 
@@ -155,7 +155,7 @@ export const CommentBank: React.FC = () => {
           onClick={() => setShowAddModal(true)}
           className="px-4 py-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-pink-300/50 transition-all cursor-pointer"
         >
-          <Plus className="w-4 h-4" /> Thêm Mẫu Nhận Xét
+          <Plus className="w-4 h-4" /> Thêm mẫu nhận xét
         </button>
       </div>
 
@@ -166,7 +166,7 @@ export const CommentBank: React.FC = () => {
             <Wand2 className="w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-pink-900">Trợ Lý Gợi Ý Nhận Xét Thông Minh</h3>
+            <h3 className="text-base font-bold text-pink-900">Trợ lý gợi ý nhận xét thông minh</h3>
             <p className="text-xs text-slate-500">Tự động phân tích điểm thi đua & nề nếp để tạo câu nhận xét phù hợp</p>
           </div>
         </div>
@@ -188,9 +188,10 @@ export const CommentBank: React.FC = () => {
             onClick={handleAutoGenerate}
             className="px-5 py-2.5 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-pink-300/50 transition-all cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" /> Tạo Gợi Ý Nhận Xét
+            <Sparkles className="w-4 h-4" /> Tạo gợi ý nhận xét
           </button>
         </div>
+
 
         {generatedComment && (
           <div className="mt-4 p-4 rounded-2xl bg-white border border-pink-200 shadow-2xs">
@@ -308,8 +309,9 @@ export const CommentBank: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
             <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-pink-500" /> Thêm Mẫu Nhận Xét Mới
+              <BookOpen className="w-5 h-5 text-pink-500" /> Thêm mẫu nhận xét mới
             </h3>
+
 
             <form onSubmit={handleSaveTemplate} className="space-y-4 text-xs sm:text-sm">
               <div>

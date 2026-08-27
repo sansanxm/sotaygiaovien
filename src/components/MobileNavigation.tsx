@@ -54,20 +54,21 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
   const [showPwaGuide, setShowPwaGuide] = useState(false);
 
   const mainTabs: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'dashboard', label: 'Tổng Quan', icon: <LayoutDashboard className="w-5 h-5" /> },
-    { id: 'timetable', label: 'Lịch Học', icon: <Calendar className="w-5 h-5" /> },
-    { id: 'students', label: 'Học Sinh', icon: <Users className="w-5 h-5" /> },
-    { id: 'attendance', label: 'Điểm Danh', icon: <CalendarCheck className="w-5 h-5" /> },
+    { id: 'dashboard', label: 'Tổng quan', icon: <LayoutDashboard className="w-5 h-5" /> },
+    { id: 'timetable', label: 'Lịch học', icon: <Calendar className="w-5 h-5" /> },
+    { id: 'students', label: 'Học sinh', icon: <Users className="w-5 h-5" /> },
+    { id: 'attendance', label: 'Điểm danh', icon: <CalendarCheck className="w-5 h-5" /> },
   ];
 
   const drawerMenuItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: string }[] = [
-    { id: 'behavior', label: 'Nề Nếp & Thi Đua', icon: <Award className="w-5 h-5 text-amber-500" />, badge: 'HOT' },
-    { id: 'fund', label: 'Thu - Chi Quỹ Lớp', icon: <Wallet className="w-5 h-5 text-emerald-500" /> },
-    { id: 'seating', label: 'Sơ Đồ Lớp Học', icon: <Grid className="w-5 h-5 text-sky-500" /> },
-    { id: 'comments', label: 'Ngân Hàng Nhận Xét', icon: <BookOpen className="w-5 h-5 text-purple-500" /> },
-    { id: 'random-picker', label: 'Vòng Quay May Mắn', icon: <Dices className="w-5 h-5 text-indigo-500" /> },
-    { id: 'todos', label: 'Việc Cần Làm', icon: <CheckSquare className="w-5 h-5 text-teal-500" /> },
+    { id: 'behavior', label: 'Nề nếp & thi đua', icon: <Award className="w-5 h-5 text-amber-500" />, badge: 'HOT' },
+    { id: 'fund', label: 'Thu - chi quỹ lớp', icon: <Wallet className="w-5 h-5 text-emerald-500" /> },
+    { id: 'seating', label: 'Sơ đồ lớp học', icon: <Grid className="w-5 h-5 text-sky-500" /> },
+    { id: 'comments', label: 'Ngân hàng nhận xét', icon: <BookOpen className="w-5 h-5 text-purple-500" /> },
+    { id: 'random-picker', label: 'Vòng quay may mắn', icon: <Dices className="w-5 h-5 text-indigo-500" /> },
+    { id: 'todos', label: 'Việc cần làm', icon: <CheckSquare className="w-5 h-5 text-teal-500" /> },
   ];
+
 
   return (
     <div className="md:hidden">
@@ -183,7 +184,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-800">Tính Năng & Tiện Ích</h3>
+                  <h3 className="text-sm font-black text-slate-800">Tính năng & tiện ích</h3>
                   <p className="text-[11px] text-slate-400 font-bold">Toàn bộ công cụ quản lý lớp học 4.0</p>
                 </div>
               </div>
@@ -239,7 +240,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                     className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer active:scale-98"
                   >
                     <Crown className="w-4 h-4 fill-white" />
-                    <span>Nâng Cấp VIP (Quét VietQR 3s)</span>
+                    <span>Nâng cấp VIP (quét VietQR 3s)</span>
                   </button>
                 )}
 
@@ -293,7 +294,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                   }}
                   className="w-full py-2.5 rounded-xl theme-btn-primary text-xs font-black flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
-                  <Cloud className="w-4 h-4" /> Đăng Nhập / Tạo Tài Khoản
+                  <Cloud className="w-4 h-4" /> Đăng nhập / Tạo tài khoản
                 </button>
               </div>
             )}
@@ -335,7 +336,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                 className="flex-1 py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Smartphone className="w-4 h-4 text-indigo-600" />
-                <span>Hướng dẫn cài vào Điện Thoại</span>
+                <span>Hướng dẫn cài vào điện thoại</span>
               </button>
 
               <button
@@ -346,7 +347,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                 className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Settings className="w-4 h-4 text-slate-600" />
-                <span>Cài Đặt</span>
+                <span>Cài đặt</span>
               </button>
             </div>
 
@@ -354,7 +355,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
             {showPwaGuide && (
               <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200 space-y-2 text-xs text-indigo-950 animate-in fade-in">
                 <h4 className="font-black flex items-center gap-1.5 text-indigo-900">
-                  📱 Cách cài App chạy như thật trên Điện Thoại:
+                  📱 Cách cài app chạy như thật trên điện thoại:
                 </h4>
                 <ul className="list-disc list-inside space-y-1 text-[11px] text-indigo-900/90 leading-relaxed font-semibold">
                   <li><strong>iPhone (Safari):</strong> Bấm nút <strong>Chia sẻ 📤</strong> ở chân Safari ➡️ Chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong>.</li>
@@ -362,6 +363,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
                 </ul>
               </div>
             )}
+
 
           </div>
         </div>

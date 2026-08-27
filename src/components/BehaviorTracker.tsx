@@ -142,10 +142,10 @@ export const BehaviorTracker: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-500" /> Sổ Nề Nếp & Bảng Vàng Thi Đua
+            <Award className="w-5 h-5 text-amber-500" /> Sổ nề nếp & bảng vàng thi đua
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Tích sao khen thưởng hành động tốt & Nhắc nhở nề nếp kỷ luật
+            Tích sao khen thưởng hành động tốt & nhắc nhở nề nếp kỷ luật
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export const BehaviorTracker: React.FC = () => {
             }}
             className="px-4 py-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-pink-300/50 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Chấm Điểm Nề Nếp
+            <Plus className="w-4 h-4" /> Chấm điểm nề nếp
           </button>
         </div>
       </div>
@@ -181,7 +181,7 @@ export const BehaviorTracker: React.FC = () => {
               <Flame className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-800">Bảng Vàng Vinh Danh 🏆</h3>
+              <h3 className="text-base font-bold text-slate-800">Bảng vàng vinh danh 🏆</h3>
               <p className="text-xs text-slate-500 font-medium">Bảng điểm thi đua tổng hợp của lớp</p>
             </div>
           </div>
@@ -248,7 +248,7 @@ export const BehaviorTracker: React.FC = () => {
           {/* Quick 1-Click Praise / Violation Tray */}
           <div className="glass-card p-6 rounded-3xl">
             <h3 className="text-sm font-extrabold text-pink-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-pink-500" /> Tích Sao Nhanh Cho Học Sinh
+              <Sparkles className="w-4 h-4 text-pink-500" /> Tích sao nhanh cho học sinh
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -256,7 +256,7 @@ export const BehaviorTracker: React.FC = () => {
               {/* Praise column */}
               <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80">
                 <div className="text-xs font-extrabold text-emerald-800 mb-2 flex items-center gap-1">
-                  <ThumbsUp className="w-3.5 h-3.5" /> Khen thưởng (+ Điểm Tốt)
+                  <ThumbsUp className="w-3.5 h-3.5" /> Khen thưởng (+ điểm tốt)
                 </div>
                 <div className="space-y-1.5">
                   {praisePresets.map((p, pIdx) => (
@@ -284,7 +284,7 @@ export const BehaviorTracker: React.FC = () => {
               {/* Violation column */}
               <div className="p-4 rounded-2xl bg-rose-50/50 border border-rose-200/80">
                 <div className="text-xs font-extrabold text-rose-800 mb-2 flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5" /> Nhắc nhở (- Trừ Điểm)
+                  <AlertTriangle className="w-3.5 h-3.5" /> Nhắc nhở (- trừ điểm)
                 </div>
                 <div className="space-y-1.5">
                   {violationPresets.map((v, vIdx) => (
@@ -320,7 +320,7 @@ export const BehaviorTracker: React.FC = () => {
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Nhật Ký Thi Đua Gần Đây</h3>
+                  <h3 className="text-base font-bold text-slate-800">Nhật ký thi đua gần đây</h3>
                   <p className="text-xs text-slate-500 font-medium">Lịch sử cộng / trừ điểm học sinh trong tuần</p>
                 </div>
               </div>
@@ -391,8 +391,9 @@ export const BehaviorTracker: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
             <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
-              <Award className="w-5 h-5 text-pink-500" /> Chấm Điểm Học Sinh
+              <Award className="w-5 h-5 text-pink-500" /> Chấm điểm học sinh
             </h3>
+
 
             <form onSubmit={handleSaveCustom} className="space-y-4 text-xs sm:text-sm">
               <div>

@@ -100,10 +100,10 @@ export const TrialExpiredPaywall: React.FC = () => {
           <div className="absolute top-2 right-4 text-white/15 text-8xl select-none">👑</div>
           <div className="relative z-10 space-y-2 max-w-lg">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 backdrop-blur-md text-[10px] font-black uppercase tracking-wider border border-white/20">
-              <Lock className="w-3.5 h-3.5 text-yellow-300" /> Hết Hạn Dùng Thử 30 Ngày
+              <Lock className="w-3.5 h-3.5 text-yellow-300" /> Hết hạn dùng thử 30 ngày
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Nâng Cấp VIP Để Tiếp Tục Sử Dụng 👑
+              Nâng cấp VIP để tiếp tục sử dụng 👑
             </h1>
             <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
               Thời gian trải nghiệm 1 tháng miễn phí đã kết thúc. Dữ liệu của bạn vẫn được lưu trữ an toàn 100%. Hãy nâng cấp VIP để tiếp tục quản lý lớp học.
@@ -124,7 +124,7 @@ export const TrialExpiredPaywall: React.FC = () => {
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-slate-800">Gói 1 Năm Học</span>
+                <span className="text-xs font-black text-slate-800">Gói 1 năm học</span>
                 {plan === '1year' && <Check className="w-4 h-4 text-amber-600" />}
               </div>
               <div className="text-xl font-black text-amber-700 mt-2">
@@ -146,7 +146,7 @@ export const TrialExpiredPaywall: React.FC = () => {
                 Tiết kiệm 70%
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-slate-800">Gói Trọn Đời 👑</span>
+                <span className="text-xs font-black text-slate-800">Gói trọn đời 👑</span>
                 {plan === 'lifetime' && <Check className="w-4 h-4 text-amber-600" />}
               </div>
               <div className="text-xl font-black text-amber-700 mt-2">
@@ -168,7 +168,7 @@ export const TrialExpiredPaywall: React.FC = () => {
                   : 'border-transparent text-slate-400 hover:text-slate-700'
               }`}
             >
-              <QrCode className="w-4 h-4" /> Quét Mã VietQR (Kích Hoạt Tự Động 3s)
+              <QrCode className="w-4 h-4" /> Quét mã VietQR (kích hoạt tự động 3s)
             </button>
             <button
               onClick={() => setActiveTab('key')}
@@ -178,7 +178,7 @@ export const TrialExpiredPaywall: React.FC = () => {
                   : 'border-transparent text-slate-400 hover:text-slate-700'
               }`}
             >
-              <Key className="w-4 h-4" /> Nhập Mã Bản Quyền
+              <Key className="w-4 h-4" /> Nhập mã bản quyền
             </button>
           </div>
         </div>
@@ -196,7 +196,7 @@ export const TrialExpiredPaywall: React.FC = () => {
                   className="w-44 h-44 sm:w-48 sm:h-48 object-contain mx-auto rounded-xl"
                 />
                 <span className="text-[10px] font-extrabold text-amber-600 flex items-center justify-center gap-1 mt-1.5">
-                  <Zap className="w-3 h-3 fill-amber-400" /> Quét bằng bất kỳ App Ngân Hàng
+                  <Zap className="w-3 h-3 fill-amber-400" /> Quét bằng bất kỳ ứng dụng ngân hàng
                 </span>
               </div>
 
@@ -227,7 +227,7 @@ export const TrialExpiredPaywall: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">Nội dung chuyển khoản (Bắt buộc)</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">Nội dung chuyển khoản (bắt buộc)</span>
                   <div className="flex items-center justify-between bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 font-mono font-black text-amber-900">
                     <span>{transferMemo}</span>
                     <button
@@ -261,7 +261,7 @@ export const TrialExpiredPaywall: React.FC = () => {
                 onClick={handleManualCheck}
                 className="py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs cursor-pointer shrink-0 active:scale-98"
               >
-                {isCheckingPayment ? 'Đang kiểm tra...' : 'Tôi Đã Chuyển Khoản'}
+                {isCheckingPayment ? 'Đang kiểm tra...' : 'Tôi đã chuyển khoản'}
               </button>
             </div>
           </div>
@@ -297,11 +297,12 @@ export const TrialExpiredPaywall: React.FC = () => {
                 type="submit"
                 className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-black text-xs shadow-md shadow-amber-300/40 cursor-pointer active:scale-98 flex items-center justify-center gap-2"
               >
-                <ShieldCheck className="w-4 h-4" /> Kích Hoạt Mở Khóa Ngay
+                <ShieldCheck className="w-4 h-4" /> Kích hoạt mở khóa ngay
               </button>
             </form>
           </div>
         )}
+
 
         {/* Footer: Emergency Backup Export */}
         <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">

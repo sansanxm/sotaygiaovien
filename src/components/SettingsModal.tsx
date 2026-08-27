@@ -252,8 +252,8 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black">Cài Đặt Hệ Thống & Tùy Biến</h3>
-              <p className="text-xs text-pink-100 font-medium">Tùy biến Thầy / Cô, màu sắc và sao lưu toàn diện</p>
+              <h3 className="text-base sm:text-lg font-black">Cài đặt hệ thống & tùy biến</h3>
+              <p className="text-xs text-pink-100 font-medium">Tùy biến Thầy/Cô, màu sắc và sao lưu toàn diện</p>
             </div>
           </div>
 
@@ -268,13 +268,13 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
         {/* Navigation Tabs */}
         <div className="flex border-b border-pink-100 bg-pink-50/50 px-6 pt-3 gap-2 overflow-x-auto">
           {[
-            { id: 'profile', label: '🎨 Giao Diện & Danh Xưng', icon: <Palette className="w-4 h-4" /> },
-            { id: 'vip', label: '👑 Bản Quyền & VietQR', icon: <Crown className="w-4 h-4 text-amber-500" /> },
-            { id: 'cloud', label: '☁️ Đồng Bộ Google & Cloud', icon: <Cloud className="w-4 h-4" /> },
-            { id: 'years', label: 'Năm Học', icon: <Calendar className="w-4 h-4" /> },
-            { id: 'classes', label: 'Lớp Học', icon: <GraduationCap className="w-4 h-4" /> },
-            { id: 'backup', label: '💾 Sao Lưu & Khôi Phục', icon: <ShieldCheck className="w-4 h-4" /> },
-            { id: 'guide', label: 'Hướng Dẫn', icon: <HelpCircle className="w-4 h-4" /> },
+            { id: 'profile', label: '🎨 Giao diện & danh xưng', icon: <Palette className="w-4 h-4" /> },
+            { id: 'vip', label: '👑 Bản quyền & VietQR', icon: <Crown className="w-4 h-4 text-amber-500" /> },
+            { id: 'cloud', label: '☁️ Đồng bộ Google & đám mây', icon: <Cloud className="w-4 h-4" /> },
+            { id: 'years', label: 'Năm học', icon: <Calendar className="w-4 h-4" /> },
+            { id: 'classes', label: 'Lớp học', icon: <GraduationCap className="w-4 h-4" /> },
+            { id: 'backup', label: '💾 Sao lưu & khôi phục', icon: <ShieldCheck className="w-4 h-4" /> },
+            { id: 'guide', label: 'Hướng dẫn', icon: <HelpCircle className="w-4 h-4" /> },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -309,7 +309,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                     <div className="flex items-center gap-2">
                       <Crown className={`w-5 h-5 ${isVip ? 'fill-slate-900 text-slate-900' : 'text-amber-500'}`} />
                       <span className="font-black text-sm uppercase tracking-wider">
-                        {isVip ? 'Tài Khoản Bản Quyền VIP Hoàng Gia 👑' : 'Bản Miễn Phí (Cơ Bản)'}
+                        {isVip ? 'Tài khoản bản quyền VIP hoàng gia 👑' : 'Bản miễn phí (cơ bản)'}
                       </span>
                     </div>
                     <p className={`text-xs ${isVip ? 'text-slate-800 font-semibold' : 'text-slate-600'}`}>
@@ -327,11 +327,11 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                       }}
                       className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:brightness-105 text-white font-black text-xs shadow-md shadow-amber-300/50 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98 shrink-0"
                     >
-                      <Zap className="w-4 h-4 fill-white" /> Quét VietQR Nâng Cấp (3s)
+                      <Zap className="w-4 h-4 fill-white" /> Quét VietQR nâng cấp (3s)
                     </button>
                   ) : (
                     <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-md text-xs font-black text-amber-900 border border-amber-300 shrink-0 self-start sm:self-auto">
-                      Vĩnh Viễn ♾️
+                      Vĩnh viễn ♾️
                     </span>
                   )}
                 </div>
@@ -341,7 +341,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               {!isVip && (
                 <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
                   <div className="font-extrabold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-amber-500" /> Kích Hoạt Bằng Mã Bản Quyền (License Key):
+                    <ShieldCheck className="w-4 h-4 text-amber-500" /> Kích hoạt bằng mã bản quyền (license key):
                   </div>
                   <div className="flex gap-2">
                     <input
@@ -366,7 +366,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                       }}
                       className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs cursor-pointer active:scale-98"
                     >
-                      Kích Hoạt
+                      Kích hoạt
                     </button>
                   </div>
 
@@ -383,15 +383,16 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               {/* VIP Benefits Card */}
               <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2.5">
                 <div className="font-extrabold text-xs text-amber-900 flex items-center gap-1.5 uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4 text-amber-600" /> Đặc Quyền Khi Sử Dụng Bản Quyền VIP:
+                  <Sparkles className="w-4 h-4 text-amber-600" /> Đặc quyền khi sử dụng bản quyền VIP:
                 </div>
                 <ul className="list-disc list-inside space-y-1 text-xs text-amber-800 font-semibold">
                   <li>Không giới hạn số năm học, lớp học và học sinh.</li>
                   <li>Cắt ảnh chân dung tự động từ ảnh tập thể bằng AI.</li>
-                  <li>Tự động sao lưu và đồng bộ đa thiết bị (Máy tính + Điện thoại) 24/7.</li>
+                  <li>Tự động sao lưu và đồng bộ đa thiết bị (máy tính + điện thoại) 24/7.</li>
                   <li>Hỗ trợ kỹ thuật ưu tiên trực tiếp từ đội ngũ phát triển.</li>
                 </ul>
               </div>
+
 
 
             </div>
@@ -406,7 +407,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-50/80 via-rose-50/40 to-white border border-pink-200 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="font-extrabold text-xs uppercase tracking-wider text-pink-900 flex items-center gap-1.5">
-                    <Cloud className="w-4 h-4 text-pink-500" /> Trạng Thái Tài Khoản Đám Mây:
+                    <Cloud className="w-4 h-4 text-pink-500" /> Trạng thái tài khoản đám mây:
                   </div>
 
                   <span className="flex items-center gap-1.5 text-xs font-bold">
@@ -423,12 +424,12 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                     />
                     <span className="text-slate-700">
                       {syncState === 'synced'
-                        ? 'Đã Đồng Bộ Mới Nhất'
+                        ? 'Đã đồng bộ mới nhất'
                         : syncState === 'syncing'
-                        ? 'Đang Đồng Bộ...'
+                        ? 'Đang đồng bộ...'
                         : syncState === 'offline'
-                        ? 'Ngoại Tuyến (Offline)'
-                        : 'Lưu Cục Bộ Trên Máy'}
+                        ? 'Ngoại tuyến (offline)'
+                        : 'Lưu cục bộ trên máy'}
                     </span>
                   </span>
                 </div>
@@ -489,7 +490,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                         title="Đẩy dữ liệu trên máy tính này lên Cloud (Ghi đè bản cũ)"
                       >
                         <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                        <span>Lưu & Ghi Đè Lên Cloud</span>
+                        <span>Lưu & ghi đè lên Cloud</span>
                       </button>
 
 
@@ -509,7 +510,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                         className="py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Download className="w-4 h-4" />
-                        <span>Tải Từ Cloud Về Máy</span>
+                        <span>Tải từ Cloud về máy</span>
                       </button>
                     </div>
 
@@ -529,7 +530,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                       onClick={() => setShowAuthModal(true)}
                       className="py-3 px-6 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 text-white font-black text-xs sm:text-sm shadow-md inline-flex items-center gap-2 cursor-pointer"
                     >
-                      <Cloud className="w-4 h-4" /> Đăng Nhập / Tạo Tài Khoản
+                      <Cloud className="w-4 h-4" /> Đăng nhập / tạo tài khoản
                     </button>
                   </div>
                 )}
@@ -538,7 +539,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               {/* Offline-First Information Box */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs text-slate-600">
                 <div className="font-bold text-slate-800 flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> Nguyên lý Hoạt Động Ngoại Tuyến (Offline-First):
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> Nguyên lý hoạt động ngoại tuyến (offline-first):
                 </div>
                 <p>
                   1. Mọi thao tác chấm điểm, điểm danh, nề nếp đều ghi trực tiếp vào máy tính trước (tốc độ 0ms, không cần mạng).
@@ -551,8 +552,6 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
             </div>
           )}
 
-
-
           
           {/* Tab 0: Profile & Theme Settings */}
           {activeTab === 'profile' && (
@@ -561,7 +560,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               {/* Teacher Title & Name */}
               <div className="p-5 rounded-2xl bg-pink-50/60 border border-pink-200 space-y-4">
                 <div className="font-extrabold text-xs uppercase tracking-wider text-pink-900 flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-pink-500" /> Danh xưng & Tên giáo viên chủ nhiệm:
+                  <UserCheck className="w-4 h-4 text-pink-500" /> Danh xưng & tên giáo viên chủ nhiệm:
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -597,7 +596,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               {/* Theme Color Picker */}
               <div className="space-y-3">
                 <div className="font-extrabold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <Palette className="w-4 h-4 text-pink-500" /> Chọn Màu Sắc Giao Diện Yêu Thích:
+                  <Palette className="w-4 h-4 text-pink-500" /> Chọn màu sắc giao diện yêu thích:
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -649,7 +648,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                   type="submit"
                   className="px-4 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold flex items-center gap-1 shadow-xs cursor-pointer"
                 >
-                  <Plus className="w-4 h-4" /> Thêm Năm Học
+                  <Plus className="w-4 h-4" /> Thêm năm học
                 </button>
               </form>
 
@@ -739,7 +738,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                   type="submit"
                   className="w-full py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs shadow-xs cursor-pointer"
                 >
-                  Tạo Lớp Mới
+                  Tạo lớp mới
                 </button>
               </form>
 
@@ -776,7 +775,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               {/* Database Summary Box */}
               <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
                 <div className="font-extrabold text-xs text-emerald-900 flex items-center gap-1.5">
-                  <Database className="w-4 h-4 text-emerald-600" /> Thống Kê Dữ Liệu Hiện Tại Trên Máy:
+                  <Database className="w-4 h-4 text-emerald-600" /> Thống kê dữ liệu hiện tại trên máy:
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-bold text-emerald-800">
                   <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
@@ -801,7 +800,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                   className="p-5 rounded-2xl border-2 border-pink-300 bg-pink-50/70 hover:bg-pink-100 text-pink-900 font-black text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Download className="w-7 h-7 text-pink-600" />
-                  <span className="text-sm">Tải File Sao Lưu Toàn Bộ</span>
+                  <span className="text-sm">Tải file sao lưu toàn bộ</span>
                   <span className="text-[10px] text-slate-500 font-normal">
                     Xuất file .json lưu về máy an toàn 100%
                   </span>
@@ -809,7 +808,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
 
                 <label className="p-5 rounded-2xl border-2 border-indigo-300 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-900 font-black text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer shadow-xs">
                   <Upload className="w-7 h-7 text-indigo-600" />
-                  <span className="text-sm">Phục Hồi Dữ Liệu Từ File</span>
+                  <span className="text-sm">Phục hồi dữ liệu từ file</span>
                   <span className="text-[10px] text-slate-500 font-normal">
                     Chọn file sao lưu .json đã lưu trước đây
                   </span>
@@ -822,14 +821,14 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                   onClick={handleClearAllData}
                   className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
                 >
-                  <Trash2 className="w-4 h-4" /> 🧹 Xóa Sạch Dữ Liệu Mẫu (Bắt Đầu Năm Học Mới)
+                  <Trash2 className="w-4 h-4" /> 🧹 Xóa sạch dữ liệu mẫu (bắt đầu năm học mới)
                 </button>
 
                 <button
                   onClick={handleResetDemo}
                   className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer py-1"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" /> Nạp lại mẫu Lớp 6A1
+                  <RefreshCw className="w-3.5 h-3.5" /> Nạp lại mẫu lớp 6A1
                 </button>
               </div>
 
@@ -844,7 +843,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                   <Sparkles className="w-4 h-4 text-pink-500" /> Bí quyết sử dụng hiệu quả:
                 </h4>
                 <ul className="list-disc list-inside space-y-1 text-slate-600">
-                  <li><strong>Tùy chọn Thầy/Cô:</strong> Trong tab "Giao Diện & Danh Xưng", thầy/cô có thể chọn màu sắc và cách xưng hô phù hợp.</li>
+                  <li><strong>Tùy chọn Thầy/Cô:</strong> Trong tab "Giao diện & danh xưng", thầy/cô có thể chọn màu sắc và cách xưng hô phù hợp.</li>
                   <li><strong>Cắt ảnh tập thể:</strong> Ở mục Học sinh, nhấp vào khuôn mặt trên ảnh lớp để gán avatar cực nhanh.</li>
                   <li><strong>Dán từ Excel:</strong> Copy bảng từ Excel và nhấn Ctrl+V để nạp danh sách trong 3 giây.</li>
                   <li><strong>Báo cáo thu chi:</strong> Xuất ảnh bảng quỹ gửi trực tiếp vào nhóm Zalo phụ huynh.</li>
@@ -852,13 +851,14 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               </div>
 
               <div className="text-center pt-2 text-[11px] text-slate-500 font-medium">
-                Ứng dụng Sổ Tay Giáo Viên • Thiết kế và phát triển bởi <strong className="text-slate-800 font-bold">Xiao System</strong> © 2026
+                Ứng dụng Sổ tay Giáo viên • Thiết kế và phát triển bởi <strong className="text-slate-800 font-bold">Xiao System</strong> © 2026
               </div>
 
             </div>
           )}
 
         </div>
+
 
       </div>
 

@@ -89,7 +89,7 @@ export const TodosView: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-pink-500" /> Sổ Tay Việc Cần Làm Của Cô
+            <CheckSquare className="w-5 h-5 text-pink-500" /> Sổ tay việc cần làm của cô
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
             Lên kế hoạch tuần, theo dõi lịch nộp báo cáo và công việc chủ nhiệm
@@ -112,8 +112,9 @@ export const TodosView: React.FC = () => {
         {/* Add Todo Form */}
         <div className="glass-card p-6 rounded-3xl h-fit">
           <h3 className="text-sm font-extrabold text-pink-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-pink-500" /> Thêm Việc Cần Làm
+            <Plus className="w-4 h-4 text-pink-500" /> Thêm việc cần làm
           </h3>
+
 
           <form onSubmit={handleAddTodo} className="space-y-4 text-xs sm:text-sm">
             <div>
