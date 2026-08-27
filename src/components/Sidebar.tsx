@@ -20,6 +20,7 @@ import {
   Edit2,
   LogOut,
   Crown,
+  BookMarked,
 } from 'lucide-react';
 
 import { useApp, type AppTheme } from '../context/AppContext';
@@ -69,9 +70,11 @@ export const Sidebar: React.FC<Props> = ({ onOpenSettings }) => {
     { id: 'behavior', label: 'Nề nếp & thi đua', icon: <Award className="w-5 h-5" />, badge: 'HOT' },
     { id: 'fund', label: 'Thu - chi quỹ lớp', icon: <Wallet className="w-5 h-5" /> },
     { id: 'comments', label: 'Ngân hàng nhận xét', icon: <BookOpen className="w-5 h-5" /> },
+    { id: 'notebook', label: 'Sổ ghi chép', icon: <BookMarked className="w-5 h-5" />, badge: 'MỚI' },
     { id: 'random-picker', label: 'Vòng quay may mắn', icon: <Dices className="w-5 h-5" /> },
     { id: 'todos', label: 'Sổ việc cần làm', icon: <CheckSquare className="w-5 h-5" /> },
   ];
+
 
   const themes: { id: AppTheme; label: string; dot: string }[] = [
     { id: 'pink', label: '🌸 Hồng dịu dàng', dot: 'bg-pink-400' },

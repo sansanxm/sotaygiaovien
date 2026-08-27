@@ -2,7 +2,9 @@ import { db } from './db';
 import type {
   SchoolYear,
   CommentTemplate,
+  NoteFolder,
 } from '../types';
+
 
 export const INITIAL_YEARS: SchoolYear[] = [
   {
@@ -59,10 +61,60 @@ export const INITIAL_COMMENT_TEMPLATES: CommentTemplate[] = [
   },
 ];
 
+export const INITIAL_NOTE_FOLDERS: NoteFolder[] = [
+
+  {
+    id: 'folder-hop-hoi-dong',
+    name: 'Họp hội đồng sư phạm',
+    icon: '🏛️',
+    color: '#ec4899',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'folder-sinh-hoat-chuyen-mon',
+    name: 'Sinh hoạt chuyên môn',
+    icon: '📚',
+    color: '#3b82f6',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'folder-trao-doi-phu-huynh',
+    name: 'Gặp gỡ & trao đổi phụ huynh',
+    icon: '👨‍👩‍👧‍👦',
+    color: '#10b981',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'folder-ke-hoach-tuan',
+    name: 'Kế hoạch công tác tuần',
+    icon: '📝',
+    color: '#f59e0b',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'folder-ghi-chu-chung',
+    name: 'Ghi chú chung',
+    icon: '💡',
+    color: '#8b5cf6',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 export async function seedInitialDatabase() {
   const count = await db.years.count();
   if (count === 0) {
     await db.years.bulkAdd(INITIAL_YEARS);
     await db.commentTemplates.bulkAdd(INITIAL_COMMENT_TEMPLATES);
   }
+
+  const folderCount = await db.noteFolders.count();
+  if (folderCount === 0) {
+    await db.noteFolders.bulkAdd(INITIAL_NOTE_FOLDERS);
+  }
 }
+

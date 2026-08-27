@@ -365,8 +365,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       db.evaluations.clear(),
       db.todos.clear(),
       db.timetable.clear(),
+      db.noteFolders.clear(),
+      db.teacherNotes.clear(),
     ]);
   };
+
 
   // Email & Password Sign In
   const signIn = async (email: string, password: string) => {

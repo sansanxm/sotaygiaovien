@@ -12,8 +12,10 @@ import { FundManager } from './components/FundManager';
 import { CommentBank } from './components/CommentBank';
 import { RandomPicker } from './components/RandomPicker';
 import { TodosView } from './components/TodosView';
+import { TeacherNotebook } from './components/TeacherNotebook';
 import { SettingsModal } from './components/SettingsModal';
 import { MobileNavigation } from './components/MobileNavigation';
+
 import { TrialExpiredPaywall } from './components/TrialExpiredPaywall';
 import { AuthAndPlanOnboarding } from './components/AuthAndPlanOnboarding';
 import { Sparkles, RefreshCw, Crown } from 'lucide-react';
@@ -101,11 +103,13 @@ const AppContent: React.FC = () => {
       case 'behavior': return { label: 'Nề nếp & thi đua', icon: '⭐' };
       case 'fund': return { label: 'Thu - chi quỹ lớp', icon: '💰' };
       case 'comments': return { label: 'Ngân hàng nhận xét', icon: '💬' };
+      case 'notebook': return { label: 'Sổ ghi chép', icon: '📖' };
       case 'random-picker': return { label: 'Vòng quay may mắn', icon: '🎲' };
       case 'todos': return { label: 'Sổ tay công việc', icon: '📝' };
       default: return { label: 'Sổ tay Giáo viên 4.0', icon: '🌸' };
     }
   };
+
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -302,8 +306,10 @@ const AppContent: React.FC = () => {
             {activeTab === 'behavior' && <BehaviorTracker />}
             {activeTab === 'fund' && <FundManager />}
             {activeTab === 'comments' && <CommentBank />}
+            {activeTab === 'notebook' && <TeacherNotebook />}
             {activeTab === 'random-picker' && <RandomPicker />}
             {activeTab === 'todos' && <TodosView />}
+
           </div>
         </main>
 

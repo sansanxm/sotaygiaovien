@@ -21,6 +21,7 @@ import {
   Sparkles,
   Crown,
   RefreshCw,
+  BookMarked,
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
@@ -63,6 +64,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
   ];
 
   const drawerMenuItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: string }[] = [
+    { id: 'notebook', label: 'Sổ ghi chép', icon: <BookMarked className="w-5 h-5 text-pink-500" />, badge: 'MỚI' },
     { id: 'behavior', label: 'Nề nếp & thi đua', icon: <Award className="w-5 h-5 text-amber-500" />, badge: 'HOT' },
     { id: 'fund', label: 'Thu - chi quỹ lớp', icon: <Wallet className="w-5 h-5 text-emerald-500" /> },
     { id: 'seating', label: 'Sơ đồ lớp học', icon: <Grid className="w-5 h-5 text-sky-500" /> },
@@ -70,6 +72,7 @@ export const MobileNavigation: React.FC<Props> = ({ onOpenSettings }) => {
     { id: 'random-picker', label: 'Vòng quay may mắn', icon: <Dices className="w-5 h-5 text-indigo-500" /> },
     { id: 'todos', label: 'Việc cần làm', icon: <CheckSquare className="w-5 h-5 text-teal-500" /> },
   ];
+
 
 
   return (

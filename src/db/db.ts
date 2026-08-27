@@ -11,6 +11,8 @@ import type {
   StudentEvaluation,
   TeacherTodo,
   TimetableEntry,
+  NoteFolder,
+  TeacherNote,
 } from '../types';
 
 
@@ -26,6 +28,8 @@ export class GVCNDatabase extends Dexie {
   evaluations!: Table<StudentEvaluation, string>;
   todos!: Table<TeacherTodo, string>;
   timetable!: Table<TimetableEntry, string>;
+  noteFolders!: Table<NoteFolder, string>;
+  teacherNotes!: Table<TeacherNote, string>;
 
   constructor() {
     super('GVCNDatabase_v1');
@@ -41,6 +45,8 @@ export class GVCNDatabase extends Dexie {
       evaluations: 'id, classId, studentId, term',
       todos: 'id, classId, isDone, priority',
       timetable: 'id, classId, [classId+dayOfWeek+session+period]',
+      noteFolders: 'id, name',
+      teacherNotes: 'id, folderId, date, isPinned',
     });
   }
 }
@@ -90,6 +96,8 @@ export async function exportDatabaseBackup(email?: string | null): Promise<strin
     evaluations: await db.evaluations.toArray(),
     todos: await db.todos.toArray(),
     timetable: await db.timetable.toArray(),
+    noteFolders: await db.noteFolders.toArray(),
+    teacherNotes: await db.teacherNotes.toArray(),
   };
   return JSON.stringify(data, null, 2);
 }
@@ -159,6 +167,8 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
         db.evaluations,
         db.todos,
         db.timetable,
+        db.noteFolders,
+        db.teacherNotes,
       ], async () => {
         if (Array.isArray(data.years)) {
           await db.years.clear();
@@ -204,6 +214,14 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
           await db.timetable.clear();
           if (data.timetable.length) await db.timetable.bulkAdd(data.timetable);
         }
+        if (Array.isArray(data.noteFolders)) {
+          await db.noteFolders.clear();
+          if (data.noteFolders.length) await db.noteFolders.bulkAdd(data.noteFolders);
+        }
+        if (Array.isArray(data.teacherNotes)) {
+          await db.teacherNotes.clear();
+          if (data.teacherNotes.length) await db.teacherNotes.bulkAdd(data.teacherNotes);
+        }
       });
     }
 
@@ -213,6 +231,8 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
     return false;
   }
 }
+
+
 
 
 

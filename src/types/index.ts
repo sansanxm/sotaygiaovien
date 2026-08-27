@@ -144,6 +144,28 @@ export interface TeacherTodo {
   category: string;
 }
 
+export interface NoteFolder {
+  id: string;
+  name: string;
+  icon?: string;
+  color?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
+export interface TeacherNote {
+  id: string;
+  folderId: string;
+  title: string;
+  content: string;
+  date: string;
+  tags?: string[];
+  isPinned?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ActiveTab = 
   | 'dashboard'
   | 'timetable'
@@ -155,5 +177,7 @@ export type ActiveTab =
   | 'comments'
   | 'random-picker'
   | 'todos'
+  | 'notebook'
   | 'settings';
+
 
