@@ -15,10 +15,17 @@ import {
   Zap,
   ShieldCheck,
   ArrowRight,
+  X,
 } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
 
-export const AuthAndPlanOnboarding: React.FC = () => {
+interface AuthAndPlanOnboardingProps {
+  onClose?: () => void;
+}
+
+export const AuthAndPlanOnboarding: React.FC<AuthAndPlanOnboardingProps> = ({ onClose }) => {
+
   const {
     signIn,
     signUp,
@@ -253,8 +260,20 @@ export const AuthAndPlanOnboarding: React.FC = () => {
 
       <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-pink-200/80 overflow-hidden relative z-10 animate-in zoom-in-95 duration-250 my-auto">
         
+        {/* Close Button if opened as Modal */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-2xl bg-white/80 hover:bg-pink-100 text-slate-400 hover:text-slate-700 transition-colors z-20 cursor-pointer shadow-2xs"
+            title="Đóng cửa sổ (Dùng Offline)"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+
         {/* Top Branding Header */}
-        <div className="p-6 sm:p-7 text-center space-y-2 border-b border-pink-100 bg-gradient-to-b from-pink-50/80 to-transparent">
+        <div className="p-6 sm:p-7 text-center space-y-2 border-b border-pink-100 bg-gradient-to-b from-pink-50/80 to-transparent relative">
+
           <div className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-tr from-pink-500 to-rose-400 text-white flex items-center justify-center text-3xl shadow-lg shadow-pink-300/50">
             🌸
           </div>
@@ -399,7 +418,19 @@ export const AuthAndPlanOnboarding: React.FC = () => {
                 </>
               )}
             </button>
+
+            {/* Offline Guest Trial Button */}
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full mt-2 py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all border border-slate-200"
+              >
+                <span>🚀 Dùng thử Offline (Không cần đăng nhập)</span>
+              </button>
+            )}
           </form>
+
 
 
           {/* Quick Guarantee */}

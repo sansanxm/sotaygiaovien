@@ -118,24 +118,16 @@ class FirebaseService {
   // 1. License & VIP Management (Strictly scoped to each individual email account)
   public getLicenseStatus(email?: string): LicenseStatus {
     const cleanEmail = (email || '').trim().toLowerCase();
-    if (!cleanEmail) {
-      return {
-        isVip: false,
-        vipExpiresAt: null,
-        isTrial: true,
-        trialDaysLeft: 30,
-        trialExpiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
-        statusText: 'Bản Dùng Thử Miễn Phí (30 ngày)',
-      };
-    }
 
-    const vipKey = getUserScopedKey('vip_token', cleanEmail);
-    const localToken = localStorage.getItem(vipKey);
+    // 1. Check VIP token (Scoped to cleanEmail if provided, or universal local token)
+    const targetEmail = cleanEmail || localStorage.getItem('gvcn_active_user_email') || 'local_user';
+    const vipKey = getUserScopedKey('vip_token', targetEmail);
+    const localToken = localStorage.getItem(vipKey) || localStorage.getItem('gvcn_vip_token');
 
     if (localToken) {
       try {
         const parsed = JSON.parse(localToken);
-        if (parsed && parsed.isVip && (!parsed.email || parsed.email === cleanEmail)) {
+        if (parsed && parsed.isVip) {
           return {
             isVip: true,
             vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
@@ -148,17 +140,28 @@ class FirebaseService {
       } catch {}
     }
 
+    // 2. Persistent 30-day Offline Trial calculation
+    let firstInstalled = Number(localStorage.getItem('gvcn_first_installed_at'));
+    if (!firstInstalled || isNaN(firstInstalled)) {
+      firstInstalled = Date.now();
+      localStorage.setItem('gvcn_first_installed_at', String(firstInstalled));
+    }
 
-    // Default 30-day trial for un-upgraded accounts
+    const elapsedDays = Math.floor((Date.now() - firstInstalled) / (1000 * 60 * 60 * 24));
+    const trialDaysLeft = Math.max(0, 30 - elapsedDays);
+    const isExpired = trialDaysLeft <= 0;
+
     return {
       isVip: false,
       vipExpiresAt: null,
-      isTrial: true,
-      trialDaysLeft: 30,
-      trialExpiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
-      statusText: 'Bản Dùng Thử Miễn Phí (30 ngày)',
+      isTrial: !isExpired,
+      trialDaysLeft,
+      trialExpiresAt: new Date(firstInstalled + 30 * 24 * 3600 * 1000).toISOString(),
+      isExpired,
+      statusText: isExpired ? 'Hết hạn Dùng thử (Vui lòng Nâng cấp VIP)' : `Bản Dùng Thử Offline (${trialDaysLeft} ngày còn lại)`,
     };
   }
+
 
   public setLocalVip(email: string, expiresAt: string = 'lifetime'): void {
     const cleanEmail = email.trim().toLowerCase();
