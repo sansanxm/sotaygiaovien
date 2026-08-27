@@ -24,13 +24,17 @@ function createWindow() {
   Menu.setApplicationMenu(null);
 
   if (app.isPackaged) {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    mainWindow.loadFile(indexPath).catch(() => {
+      mainWindow.loadFile(path.join(app.getAppPath(), 'dist/index.html'));
+    });
   } else {
     const devUrl = process.env.ELECTRON_START_URL || 'http://localhost:5173';
     mainWindow.loadURL(devUrl).catch(() => {
       mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
     });
   }
+
 
   mainWindow.on('closed', () => {
     mainWindow = null;

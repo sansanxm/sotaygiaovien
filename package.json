@@ -19,7 +19,7 @@
 
   "build": {
     "appId": "com.xiaosystem.sotaygiaovien",
-    "productName": "Sổ Tay Giáo Viên 4.0",
+    "productName": "So Tay Giao Vien 4.0",
     "directories": {
       "output": "release"
     },
@@ -41,9 +41,10 @@
       "hardenedRuntime": false
     },
     "dmg": {
-      "title": "Cài đặt Sổ Tay Giáo Viên 4.0",
+      "title": "So Tay Giao Vien 4.0",
       "icon": "build/icon.icns"
     },
+
     "win": {
       "target": [
         "nsis",
