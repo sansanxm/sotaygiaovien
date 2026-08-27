@@ -497,11 +497,15 @@ class FirebaseService {
           }
           if (snapshot.exists()) {
             const row = snapshot.data();
-            if (row?.data && row.data._clientId !== CLIENT_SESSION_ID) {
+            if (row?.data) {
+              if (row.data._clientId === CLIENT_SESSION_ID) {
+                return; // Strictly ignore echo updates from this session
+              }
               onRemoteUpdate(row.data);
             }
           }
         });
+
       } catch (err) {
         console.warn('Firestore onSnapshot listener fallback:', err);
       }

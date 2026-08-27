@@ -385,17 +385,19 @@ export const TeacherNotebook: React.FC = () => {
       updatedAt: new Date().toISOString(),
     };
 
-    // Update local state immediately for snappy typing
+    // 1. Update local state immediately for snappy typing
     setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
     setSaveStatus('saving');
 
-    // Debounced database write
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(async () => {
-      await db.teacherNotes.put(updated);
-      setSaveStatus('saved');
-    }, 600);
+    // 2. Put into Dexie DB immediately (<1ms) so IndexedDB is always up-to-date
+    db.teacherNotes.put(updated).then(() => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('saved');
+      }, 500);
+    }).catch(console.error);
   };
+
 
 
   const handleDeleteNote = async (noteId: string) => {
