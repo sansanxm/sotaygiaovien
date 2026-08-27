@@ -12,13 +12,12 @@ import {
   Download,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
 import type { Student, BehaviorLog } from '../types';
 import { exportBehaviorToExcel } from '../utils/excelExporter';
 
 export const BehaviorTracker: React.FC = () => {
   const { currentClass, teacherName, triggerConfetti } = useApp();
-
 
   const [students, setStudents] = useState<Student[]>([]);
   const [logs, setLogs] = useState<BehaviorLog[]>([]);
@@ -50,7 +49,14 @@ export const BehaviorTracker: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const unsub = onDatabaseChanged(() => {
+      loadData();
+    });
+    return () => {
+      unsub();
+    };
   }, [currentClass]);
+
 
   // Pre-set Praise presets
   const praisePresets = [

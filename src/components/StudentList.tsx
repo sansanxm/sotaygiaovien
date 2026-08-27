@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
+
 
 import type { Student, Gender } from '../types';
 import { GroupPhotoTaggingModal } from './GroupPhotoTaggingModal';
@@ -65,7 +66,14 @@ export const StudentList: React.FC = () => {
 
   useEffect(() => {
     loadStudents();
+    const unsub = onDatabaseChanged(() => {
+      loadStudents();
+    });
+    return () => {
+      unsub();
+    };
   }, [currentClass]);
+
 
   const resetForm = () => {
     setFullName('');

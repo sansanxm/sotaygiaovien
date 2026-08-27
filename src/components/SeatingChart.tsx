@@ -14,8 +14,9 @@ import {
   ArrowRightLeft,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
 import type { Student, Seat, SeatingLayoutType } from '../types';
+
 import { getStudentInitial } from '../utils/studentHelper';
 
 export const SeatingChart: React.FC = () => {
@@ -148,7 +149,14 @@ export const SeatingChart: React.FC = () => {
 
   useEffect(() => {
     loadSeatingData();
+    const unsub = onDatabaseChanged(() => {
+      loadSeatingData();
+    });
+    return () => {
+      unsub();
+    };
   }, [currentClass?.id]);
+
 
 
   const getStudentById = (id: string | null): Student | undefined => {

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
 import type { Student, AttendanceRecord, AttendanceStatus } from '../types';
 import { AttendanceExportModal } from './AttendanceExportModal';
 
@@ -55,6 +55,12 @@ export const AttendanceView: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const unsub = onDatabaseChanged(() => {
+      loadData();
+    });
+    return () => {
+      unsub();
+    };
   }, [currentClass, selectedDate, session]);
 
   const handleSetStatus = async (studentId: string, status: AttendanceStatus) => {

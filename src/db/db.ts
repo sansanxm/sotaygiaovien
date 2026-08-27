@@ -294,9 +294,11 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
           }
         });
       } finally {
-        setTimeout(() => setInternalSyncing(false), 200);
+        setInternalSyncing(false);
+        notifyDatabaseChange();
       }
     }
+
 
 
     return true;

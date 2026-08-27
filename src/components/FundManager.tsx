@@ -16,13 +16,12 @@ import {
 
 import html2canvas from 'html2canvas';
 import { useApp } from '../context/AppContext';
-import { db } from '../db/db';
+import { db, onDatabaseChanged } from '../db/db';
 import type { Student, FundTransaction } from '../types';
 import { exportFundToExcel } from '../utils/excelExporter';
 
 export const FundManager: React.FC = () => {
   const { currentClass, teacherName, triggerConfetti } = useApp();
-
 
   const [students, setStudents] = useState<Student[]>([]);
   const [transactions, setTransactions] = useState<FundTransaction[]>([]);
@@ -62,7 +61,14 @@ export const FundManager: React.FC = () => {
 
   useEffect(() => {
     loadFundData();
+    const unsub = onDatabaseChanged(() => {
+      loadFundData();
+    });
+    return () => {
+      unsub();
+    };
   }, [currentClass]);
+
 
   const handleSaveTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
