@@ -500,8 +500,6 @@ class SupabaseCloudSyncService {
         email: email,
         full_name: fullName,
         avatar_url: avatarUrl,
-        is_vip: isVipUser,
-        vip_expires_at: isVipUser ? vipExpiresAt : null,
         data: {
           ...parsedData,
           _clientId: CLIENT_SESSION_ID,
@@ -509,7 +507,6 @@ class SupabaseCloudSyncService {
         },
         updated_at: new Date().toISOString(),
       };
-
 
       const { error } = await client.from('teacher_clouds').upsert(payload, {
         onConflict: 'user_id',
@@ -519,6 +516,7 @@ class SupabaseCloudSyncService {
         console.error('Supabase upload error:', error.message);
         return { success: false, error: error.message };
       }
+
 
       return { success: true };
     } catch (err) {
