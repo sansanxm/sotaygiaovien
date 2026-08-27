@@ -257,20 +257,15 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
       }
     }
 
-    // 2. Restore VIP Token specifically for this user (Never downgrade active local VIP)
-    const localVipRaw =
-      localStorage.getItem(getUserScopedKey('vip_token', activeEmail)) ||
-      localStorage.getItem('gvcn_vip_token');
+    // 2. Restore VIP Token specifically for this user
     if (data.vipToken && data.vipToken.isVip) {
       try {
         localStorage.setItem(getUserScopedKey('vip_token', activeEmail), JSON.stringify(data.vipToken));
-        localStorage.setItem('gvcn_vip_token', JSON.stringify(data.vipToken));
       } catch (e) {
         console.warn('VIP token restore warning:', e);
       }
-    } else if (localVipRaw) {
-      console.log('Preserving existing local VIP status');
     }
+
 
 
     // 3. Restore Dexie Database Tables (With Anti-Wipe Safeguard)

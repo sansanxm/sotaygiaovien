@@ -119,26 +119,29 @@ class FirebaseService {
   public getLicenseStatus(email?: string): LicenseStatus {
     const cleanEmail = (email || '').trim().toLowerCase();
 
-    // 1. Check VIP token (Scoped to cleanEmail if provided, or universal local token)
-    const targetEmail = cleanEmail || localStorage.getItem('gvcn_active_user_email') || 'local_user';
-    const vipKey = getUserScopedKey('vip_token', targetEmail);
-    const localToken = localStorage.getItem(vipKey) || localStorage.getItem('gvcn_vip_token');
+    // 1. Check VIP token (Strictly scoped to target email)
+    const targetEmail = cleanEmail || localStorage.getItem('gvcn_active_user_email') || null;
+    if (targetEmail) {
+      const vipKey = getUserScopedKey('vip_token', targetEmail);
+      const localToken = localStorage.getItem(vipKey);
 
-    if (localToken) {
-      try {
-        const parsed = JSON.parse(localToken);
-        if (parsed && parsed.isVip) {
-          return {
-            isVip: true,
-            vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
-            isTrial: false,
-            trialDaysLeft: 9999,
-            trialExpiresAt: null,
-            statusText: 'Bản Quyền VIP Vĩnh Viễn',
-          };
-        }
-      } catch {}
+      if (localToken) {
+        try {
+          const parsed = JSON.parse(localToken);
+          if (parsed && parsed.isVip && (!parsed.email || parsed.email === targetEmail)) {
+            return {
+              isVip: true,
+              vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
+              isTrial: false,
+              trialDaysLeft: 9999,
+              trialExpiresAt: null,
+              statusText: 'Bản Quyền VIP Vĩnh Viễn',
+            };
+          }
+        } catch {}
+      }
     }
+
 
     // 2. Persistent 30-day Offline Trial calculation
     let firstInstalled = Number(localStorage.getItem('gvcn_first_installed_at'));
@@ -266,6 +269,9 @@ class FirebaseService {
     }
 
     // New signups strictly start with standard 30-day Free Trial (No free VIP leak)
+    localStorage.removeItem('gvcn_vip_token');
+    localStorage.removeItem(getUserScopedKey('vip_token', cleanEmail));
+
     const teacherUser: TeacherUser = {
       id: cleanEmail,
       email: cleanEmail,
@@ -279,6 +285,7 @@ class FirebaseService {
     this.activeUser = teacherUser;
     localStorage.setItem('gvcn_active_user_email', cleanEmail);
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(teacherUser));
+
 
     return { user: teacherUser, error: null };
   }
