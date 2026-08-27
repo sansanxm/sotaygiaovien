@@ -22,9 +22,11 @@ import { useApp } from '../context/AppContext';
 
 interface AuthAndPlanOnboardingProps {
   onClose?: () => void;
+  onSelectOffline?: () => void;
 }
 
-export const AuthAndPlanOnboarding: React.FC<AuthAndPlanOnboardingProps> = ({ onClose }) => {
+export const AuthAndPlanOnboarding: React.FC<AuthAndPlanOnboardingProps> = ({ onClose, onSelectOffline }) => {
+
 
   const {
     signIn,
@@ -420,15 +422,19 @@ export const AuthAndPlanOnboarding: React.FC<AuthAndPlanOnboardingProps> = ({ on
             </button>
 
             {/* Offline Guest Trial Button */}
-            {onClose && (
+            {(onSelectOffline || onClose) && (
               <button
                 type="button"
-                onClick={onClose}
-                className="w-full mt-2 py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all border border-slate-200"
+                onClick={() => {
+                  if (onSelectOffline) onSelectOffline();
+                  if (onClose) onClose();
+                }}
+                className="w-full mt-3 py-3 px-4 rounded-2xl bg-pink-50/80 hover:bg-pink-100 text-pink-700 font-extrabold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all border border-pink-200 shadow-2xs active:scale-98"
               >
-                <span>🚀 Dùng thử Offline (Không cần đăng nhập)</span>
+                <span>🚀 Sử dụng offline không cần đăng nhập</span>
               </button>
             )}
+
           </form>
 
 

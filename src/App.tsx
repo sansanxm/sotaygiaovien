@@ -98,6 +98,14 @@ const AppContent: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isSyncingUpload, setIsSyncingUpload] = useState(false);
   const [isSyncingDownload, setIsSyncingDownload] = useState(false);
+  const [hasChosenOffline, setHasChosenOffline] = useState<boolean>(() => {
+    return localStorage.getItem('gvcn_offline_mode_selected') === 'true';
+  });
+
+  const handleSelectOffline = () => {
+    localStorage.setItem('gvcn_offline_mode_selected', 'true');
+    setHasChosenOffline(true);
+  };
 
   const getTabLabel = () => {
     switch (activeTab) {
@@ -131,10 +139,16 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // 1. If 30-day Free Trial is Expired and User is not VIP -> Lock app with Paywall
+  // 1. Show Login / Registration Screen on initial launch if not logged in and not offline
+  if (!user && !hasChosenOffline) {
+    return <AuthAndPlanOnboarding onSelectOffline={handleSelectOffline} />;
+  }
+
+  // 2. If 30-day Free Trial is Expired and User is not VIP -> Lock app with Paywall
   if (!isVip && !licenseStatus.isVip && licenseStatus.isExpired) {
     return <TrialExpiredPaywall />;
   }
+
 
 
   const tabInfo = getTabLabel();
