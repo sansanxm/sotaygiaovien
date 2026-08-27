@@ -50,8 +50,10 @@ export const FIXED_ADMIN_BANK_CONFIG: BankConfig = {
 const STORAGE_SESSION_KEY = 'gvcn_admin_cloud_session';
 const STORAGE_INSTALL_TIMESTAMP_KEY = 'gvcn_install_timestamp';
 const TRIAL_DAYS = 30;
+export const CLIENT_SESSION_ID = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
 class SupabaseCloudSyncService {
+
   private client: SupabaseClient | null = null;
   private url: string = DEFAULT_SUPABASE_URL;
   private anonKey: string = DEFAULT_SUPABASE_ANON_KEY;
@@ -497,7 +499,11 @@ class SupabaseCloudSyncService {
         email: email,
         full_name: fullName,
         avatar_url: avatarUrl,
-        data: parsedData,
+        data: {
+          ...parsedData,
+          _clientId: CLIENT_SESSION_ID,
+          _syncAt: Date.now(),
+        },
         updated_at: new Date().toISOString(),
       };
 
@@ -568,11 +574,12 @@ class SupabaseCloudSyncService {
       return {
         success: true,
         dataJson: JSON.stringify(cloudPayload),
+        empty: false,
         isVip: isCloudVip,
-        vipExpiresAt: vipExpires,
+        vipExpiresAt: isCloudVip ? vipExpires : null,
       };
     } catch (err) {
-      console.error('Supabase download exception:', err);
+      console.error('Download backup error:', err);
       return { success: false, error: (err as Error).message };
     }
   }
@@ -600,6 +607,11 @@ class SupabaseCloudSyncService {
               const row = payload.new as any;
               const cloudData = row.data;
               if (cloudData) {
+                // If change was made by THIS same app/tab, ignore self-echo to avoid race condition!
+                if (cloudData._clientId === CLIENT_SESSION_ID) {
+                  return;
+                }
+
                 // If remote has VIP token, apply locally
                 if (cloudData.vipToken?.isVip) {
                   const token = {

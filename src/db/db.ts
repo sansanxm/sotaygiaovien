@@ -98,16 +98,26 @@ hookTableNames.forEach((tableName) => {
   const table = db[tableName] as Table<any, any>;
   if (table && typeof table.hook === 'function') {
     table.hook('creating', () => {
-      setTimeout(notifyDatabaseChange, 50);
+      if (isInternalSyncing) return;
+      setTimeout(() => {
+        if (!isInternalSyncing) notifyDatabaseChange();
+      }, 50);
     });
     table.hook('updating', () => {
-      setTimeout(notifyDatabaseChange, 50);
+      if (isInternalSyncing) return;
+      setTimeout(() => {
+        if (!isInternalSyncing) notifyDatabaseChange();
+      }, 50);
     });
     table.hook('deleting', () => {
-      setTimeout(notifyDatabaseChange, 50);
+      if (isInternalSyncing) return;
+      setTimeout(() => {
+        if (!isInternalSyncing) notifyDatabaseChange();
+      }, 50);
     });
   }
 });
+
 
 
 export const getUserScopedKey = (key: string, email?: string | null): string => {

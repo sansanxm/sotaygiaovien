@@ -212,8 +212,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [years, setYears] = useState<SchoolYear[]>([]);
   const [currentYear, setCurrentYear] = useState<SchoolYear | null>(null);
   const [classes, setClasses] = useState<ClassRoom[]>([]);
-  const [currentClass, setCurrentClass] = useState<ClassRoom | null>(null);
+  const [currentClass, setCurrentClassState] = useState<ClassRoom | null>(null);
+  const currentClassRef = useRef<ClassRoom | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const setCurrentClass = (
+    c: ClassRoom | null | ((prev: ClassRoom | null) => ClassRoom | null)
+  ) => {
+    if (typeof c === 'function') {
+      setCurrentClassState((prev) => {
+        const next = c(prev);
+        currentClassRef.current = next;
+        if (next) {
+          currentClassIdRef.current = next.id;
+          const activeEmail = user?.email || currentEmail || localStorage.getItem('gvcn_active_user_email') || null;
+          localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), next.id);
+          localStorage.setItem('gvcn_active_class_id_universal', next.id);
+        }
+        return next;
+      });
+    } else {
+      currentClassRef.current = c;
+      if (c) {
+        currentClassIdRef.current = c.id;
+        const activeEmail = user?.email || currentEmail || localStorage.getItem('gvcn_active_user_email') || null;
+        localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), c.id);
+        localStorage.setItem('gvcn_active_class_id_universal', c.id);
+      }
+      setCurrentClassState(c);
+    }
+  };
+
+
 
   // VIP & 30-Day Trial License State
   const [licenseStatus, setLicenseStatus] = useState<LicenseStatus>(() => supabaseService.getLicenseStatus(currentEmail || undefined));
@@ -369,11 +399,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const classList = await db.classes.where('yearId').equals(activeY.id).toArray();
         setClasses(classList);
 
-        const savedClassId = currentClassIdRef.current || localStorage.getItem(getUserScopedKey('active_class_id', activeEmail));
+        const savedClassId =
+          currentClassIdRef.current ||
+          localStorage.getItem('gvcn_active_class_id_universal') ||
+          localStorage.getItem(getUserScopedKey('active_class_id', activeEmail)) ||
+          currentClassRef.current?.id ||
+          null;
+
         let activeC = (savedClassId && classList.find((c) => c.id === savedClassId)) || classList[0] || null;
         if (activeC) {
           currentClassIdRef.current = activeC.id;
           localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), activeC.id);
+          localStorage.setItem('gvcn_active_class_id_universal', activeC.id);
         }
         setCurrentClass(activeC);
       } else {
@@ -425,27 +462,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // 3. Download cloud data safely (protects local data from empty cloud overwrite)
       await syncWithCloud('download');
+
+      // 4. Refresh local memory & UI with cloud data
       await refreshAppData(res.user.email);
+      triggerConfetti();
     }
     return res;
   };
 
   // Email & Password Sign Up
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string = 'Giáo viên') => {
     const res = await supabaseService.signUp(email, password, fullName);
     if (res.user) {
       localStorage.setItem('gvcn_active_user_email', res.user.email);
       setUser(res.user);
       setSyncState('synced');
 
-      setTeacherName(fullName.trim() || 'Giáo viên');
+      // Auto-activate 30-Day VIP for new signups
+      activateVip('lifetime');
 
-      // Check if local already has data; if empty, seed initial
-      const localClassesCount = await db.classes.count();
-      if (localClassesCount === 0) {
-        await seedInitialDatabase();
-      }
+      // Seed & Refresh
       await refreshAppData(res.user.email);
+      triggerConfetti();
 
       // Upload state to Cloud for this account
       await syncWithCloud('upload');
@@ -686,11 +724,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const classList = await db.classes.where('yearId').equals(found.id).toArray();
       setClasses(classList);
 
-      const savedClassId = currentClassIdRef.current || localStorage.getItem(getUserScopedKey('active_class_id', activeEmail));
+      const savedClassId = currentClassIdRef.current || localStorage.getItem('gvcn_active_class_id_universal') || localStorage.getItem(getUserScopedKey('active_class_id', activeEmail));
       const foundC = (savedClassId && classList.find((c) => c.id === savedClassId)) || classList[0] || null;
       if (foundC) {
         currentClassIdRef.current = foundC.id;
         localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), foundC.id);
+        localStorage.setItem('gvcn_active_class_id_universal', foundC.id);
       }
       setCurrentClass(foundC);
     }
@@ -700,6 +739,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentClassIdRef.current = id;
     const activeEmail = user?.email || localStorage.getItem('gvcn_active_user_email') || null;
     localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), id);
+    localStorage.setItem('gvcn_active_class_id_universal', id);
 
     const found = classes.find((c) => c.id === id);
     if (found) {
