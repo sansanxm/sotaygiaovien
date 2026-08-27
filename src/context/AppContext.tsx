@@ -501,6 +501,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let isMounted = true;
 
+    // Safety timeout to ensure loading screen never hangs
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) setIsLoading(false);
+    }, 1200);
+
     const initAuth = async () => {
       try {
         const currentUser = await supabaseService.getCurrentUser();
@@ -530,6 +535,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch (err) {
         console.error('Init auth error:', err);
+      } finally {
+        if (isMounted) {
+          await refreshAppData();
+          setIsLoading(false);
+        }
       }
     };
 
@@ -537,8 +547,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimeout);
     };
   }, []);
+
 
   // Supabase Realtime WebSocket Listener (Auto-sync between PC, Phone, iPad in ~0.05s)
   useEffect(() => {
