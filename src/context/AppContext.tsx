@@ -523,7 +523,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Bidirectional Smart Cloud Sync (Compares timestamps between Local & Cloud)
   const syncWithCloud = useCallback(
     async (direction: 'upload' | 'download' | 'both' | 'smart' = 'smart'): Promise<boolean> => {
-      if (!user) {
+      let activeUser = user;
+      if (!activeUser) {
+        activeUser = await supabaseService.getCurrentUser();
+        if (activeUser) {
+          setUser(activeUser);
+        }
+      }
+      if (!activeUser) {
+        const savedEmail = localStorage.getItem('gvcn_active_user_email');
+        if (savedEmail) {
+          activeUser = {
+            id: savedEmail,
+            email: savedEmail,
+            isVip: true,
+            vipExpiresAt: 'lifetime',
+            user_metadata: { full_name: 'Giáo viên' }
+          };
+          setUser(activeUser);
+        }
+      }
+
+      if (!activeUser) {
         setSyncState('local-only');
         return false;
       }
@@ -534,20 +555,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       try {
         if (direction === 'download') {
-          const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
+          const sbRes = await supabaseService.downloadBackupFromCloud(activeUser as any);
           if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
-            await importDatabaseBackup(sbRes.dataJson, user.email);
+            await importDatabaseBackup(sbRes.dataJson, activeUser.email);
             if (sbRes.isVip) {
               activateVip(sbRes.vipExpiresAt || 'lifetime');
             }
-            await refreshAppData(user.email);
+            await refreshAppData(activeUser.email);
             if (sbRes.syncAt) {
               localStorage.setItem('gvcn_local_last_modified', sbRes.syncAt.toString());
             }
           }
         } else if (direction === 'upload') {
-          const backupJson = await exportDatabaseBackup(user.email);
-          const uploadRes = await supabaseService.uploadBackupToCloud(user as any, backupJson);
+          const backupJson = await exportDatabaseBackup(activeUser.email);
+          const uploadRes = await supabaseService.uploadBackupToCloud(activeUser as any, backupJson);
           if (!uploadRes.success) {
             console.error('Upload backup failed:', uploadRes.error);
             setSyncState('error');
@@ -556,7 +577,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
         } else {
           // 'smart' or 'both'
-          const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
+          const sbRes = await supabaseService.downloadBackupFromCloud(activeUser as any);
           const localLastModified = Number(localStorage.getItem('gvcn_local_last_modified') || '0');
           const cloudSyncAt = Number(sbRes.syncAt || 0);
 
@@ -568,25 +589,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             // Compare timestamps: If Cloud has newer changes from another machine/web:
             if (cloudSyncAt > localLastModified || !hasLocalData) {
               console.log('⚡ Cloud data is newer than local. Downloading from Cloud...');
-              await importDatabaseBackup(sbRes.dataJson, user.email);
+              await importDatabaseBackup(sbRes.dataJson, activeUser.email);
               if (sbRes.isVip) {
                 activateVip(sbRes.vipExpiresAt || 'lifetime');
               }
-              await refreshAppData(user.email);
+              await refreshAppData(activeUser.email);
               localStorage.setItem('gvcn_local_last_modified', cloudSyncAt.toString());
             } else {
               console.log('⚡ Local data is newer. Uploading to Cloud...');
-              const backupJson = await exportDatabaseBackup(user.email);
-              await supabaseService.uploadBackupToCloud(user as any, backupJson);
+              const backupJson = await exportDatabaseBackup(activeUser.email);
+              await supabaseService.uploadBackupToCloud(activeUser as any, backupJson);
               localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
             }
           } else {
             // Cloud is empty, upload local data
-            const backupJson = await exportDatabaseBackup(user.email);
-            await supabaseService.uploadBackupToCloud(user as any, backupJson);
+            const backupJson = await exportDatabaseBackup(activeUser.email);
+            await supabaseService.uploadBackupToCloud(activeUser as any, backupJson);
             localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
           }
         }
+
 
         setSyncState('synced');
         setLastSyncedAt(new Date());
