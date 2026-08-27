@@ -528,11 +528,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return false;
       }
 
-      if (!navigator.onLine) {
-        setSyncState('offline');
-        return false;
-      }
-
       if (syncingRef.current) return false;
       syncingRef.current = true;
       setSyncState('syncing');
@@ -552,7 +547,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         } else if (direction === 'upload') {
           const backupJson = await exportDatabaseBackup(user.email);
-          await supabaseService.uploadBackupToCloud(user as any, backupJson);
+          const uploadRes = await supabaseService.uploadBackupToCloud(user as any, backupJson);
+          if (!uploadRes.success) {
+            console.error('Upload backup failed:', uploadRes.error);
+            setSyncState('error');
+            return false;
+          }
           localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
         } else {
           // 'smart' or 'both'
@@ -601,6 +601,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     },
     [user]
   );
+
 
   // Initialize Supabase Auth state on mount (runs once)
   useEffect(() => {
