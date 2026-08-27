@@ -409,6 +409,10 @@ class SupabaseCloudSyncService {
         };
       }
 
+      this.setLocalVip(cleanEmail, 'lifetime');
+      this.enrichVipStatus(teacherUser);
+      teacherUser.isVip = true;
+      teacherUser.vipExpiresAt = 'lifetime';
       this.activeUser = teacherUser;
       localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(teacherUser));
 
@@ -417,6 +421,7 @@ class SupabaseCloudSyncService {
       return { user: null, error: err as Error };
     }
   }
+
 
   public async signOut(): Promise<void> {
     try {
