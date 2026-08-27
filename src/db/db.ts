@@ -53,6 +53,63 @@ export class GVCNDatabase extends Dexie {
 
 export const db = new GVCNDatabase();
 
+type ChangeListener = () => void;
+const changeListeners: Set<ChangeListener> = new Set();
+let isInternalSyncing = false;
+
+export const setInternalSyncing = (val: boolean) => {
+  isInternalSyncing = val;
+};
+
+export const onDatabaseChanged = (listener: ChangeListener) => {
+  changeListeners.add(listener);
+  return () => {
+    changeListeners.delete(listener);
+  };
+};
+
+const notifyDatabaseChange = () => {
+  if (isInternalSyncing) return;
+  changeListeners.forEach((fn) => {
+    try {
+      fn();
+    } catch {}
+  });
+};
+
+// Auto-register hooks on all Dexie tables
+const hookTableNames: (keyof GVCNDatabase)[] = [
+  'years',
+  'classes',
+  'students',
+  'attendance',
+  'behaviorLogs',
+  'fundTransactions',
+  'seats',
+  'commentTemplates',
+  'evaluations',
+  'todos',
+  'timetable',
+  'noteFolders',
+  'teacherNotes',
+];
+
+hookTableNames.forEach((tableName) => {
+  const table = db[tableName] as Table<any, any>;
+  if (table && typeof table.hook === 'function') {
+    table.hook('creating', () => {
+      setTimeout(notifyDatabaseChange, 50);
+    });
+    table.hook('updating', () => {
+      setTimeout(notifyDatabaseChange, 50);
+    });
+    table.hook('deleting', () => {
+      setTimeout(notifyDatabaseChange, 50);
+    });
+  }
+});
+
+
 export const getUserScopedKey = (key: string, email?: string | null): string => {
   if (!email) {
     const active = localStorage.getItem('gvcn_active_user_email');
@@ -155,75 +212,81 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
     // 3. Restore Dexie Database Tables
     const hasAnyTable = Array.isArray(data.years) || Array.isArray(data.classes) || Array.isArray(data.students);
     if (hasAnyTable) {
-      await db.transaction('rw', [
-        db.years,
-        db.classes,
-        db.students,
-        db.attendance,
-        db.behaviorLogs,
-        db.fundTransactions,
-        db.seats,
-        db.commentTemplates,
-        db.evaluations,
-        db.todos,
-        db.timetable,
-        db.noteFolders,
-        db.teacherNotes,
-      ], async () => {
-        if (Array.isArray(data.years)) {
-          await db.years.clear();
-          if (data.years.length) await db.years.bulkAdd(data.years);
-        }
-        if (Array.isArray(data.classes)) {
-          await db.classes.clear();
-          if (data.classes.length) await db.classes.bulkAdd(data.classes);
-        }
-        if (Array.isArray(data.students)) {
-          await db.students.clear();
-          if (data.students.length) await db.students.bulkAdd(data.students);
-        }
-        if (Array.isArray(data.attendance)) {
-          await db.attendance.clear();
-          if (data.attendance.length) await db.attendance.bulkAdd(data.attendance);
-        }
-        if (Array.isArray(data.behaviorLogs)) {
-          await db.behaviorLogs.clear();
-          if (data.behaviorLogs.length) await db.behaviorLogs.bulkAdd(data.behaviorLogs);
-        }
-        if (Array.isArray(data.fundTransactions)) {
-          await db.fundTransactions.clear();
-          if (data.fundTransactions.length) await db.fundTransactions.bulkAdd(data.fundTransactions);
-        }
-        if (Array.isArray(data.seats)) {
-          await db.seats.clear();
-          if (data.seats.length) await db.seats.bulkAdd(data.seats);
-        }
-        if (Array.isArray(data.commentTemplates)) {
-          await db.commentTemplates.clear();
-          if (data.commentTemplates.length) await db.commentTemplates.bulkAdd(data.commentTemplates);
-        }
-        if (Array.isArray(data.evaluations)) {
-          await db.evaluations.clear();
-          if (data.evaluations.length) await db.evaluations.bulkAdd(data.evaluations);
-        }
-        if (Array.isArray(data.todos)) {
-          await db.todos.clear();
-          if (data.todos.length) await db.todos.bulkAdd(data.todos);
-        }
-        if (Array.isArray(data.timetable)) {
-          await db.timetable.clear();
-          if (data.timetable.length) await db.timetable.bulkAdd(data.timetable);
-        }
-        if (Array.isArray(data.noteFolders)) {
-          await db.noteFolders.clear();
-          if (data.noteFolders.length) await db.noteFolders.bulkAdd(data.noteFolders);
-        }
-        if (Array.isArray(data.teacherNotes)) {
-          await db.teacherNotes.clear();
-          if (data.teacherNotes.length) await db.teacherNotes.bulkAdd(data.teacherNotes);
-        }
-      });
+      setInternalSyncing(true);
+      try {
+        await db.transaction('rw', [
+          db.years,
+          db.classes,
+          db.students,
+          db.attendance,
+          db.behaviorLogs,
+          db.fundTransactions,
+          db.seats,
+          db.commentTemplates,
+          db.evaluations,
+          db.todos,
+          db.timetable,
+          db.noteFolders,
+          db.teacherNotes,
+        ], async () => {
+          if (Array.isArray(data.years)) {
+            await db.years.clear();
+            if (data.years.length) await db.years.bulkAdd(data.years);
+          }
+          if (Array.isArray(data.classes)) {
+            await db.classes.clear();
+            if (data.classes.length) await db.classes.bulkAdd(data.classes);
+          }
+          if (Array.isArray(data.students)) {
+            await db.students.clear();
+            if (data.students.length) await db.students.bulkAdd(data.students);
+          }
+          if (Array.isArray(data.attendance)) {
+            await db.attendance.clear();
+            if (data.attendance.length) await db.attendance.bulkAdd(data.attendance);
+          }
+          if (Array.isArray(data.behaviorLogs)) {
+            await db.behaviorLogs.clear();
+            if (data.behaviorLogs.length) await db.behaviorLogs.bulkAdd(data.behaviorLogs);
+          }
+          if (Array.isArray(data.fundTransactions)) {
+            await db.fundTransactions.clear();
+            if (data.fundTransactions.length) await db.fundTransactions.bulkAdd(data.fundTransactions);
+          }
+          if (Array.isArray(data.seats)) {
+            await db.seats.clear();
+            if (data.seats.length) await db.seats.bulkAdd(data.seats);
+          }
+          if (Array.isArray(data.commentTemplates)) {
+            await db.commentTemplates.clear();
+            if (data.commentTemplates.length) await db.commentTemplates.bulkAdd(data.commentTemplates);
+          }
+          if (Array.isArray(data.evaluations)) {
+            await db.evaluations.clear();
+            if (data.evaluations.length) await db.evaluations.bulkAdd(data.evaluations);
+          }
+          if (Array.isArray(data.todos)) {
+            await db.todos.clear();
+            if (data.todos.length) await db.todos.bulkAdd(data.todos);
+          }
+          if (Array.isArray(data.timetable)) {
+            await db.timetable.clear();
+            if (data.timetable.length) await db.timetable.bulkAdd(data.timetable);
+          }
+          if (Array.isArray(data.noteFolders)) {
+            await db.noteFolders.clear();
+            if (data.noteFolders.length) await db.noteFolders.bulkAdd(data.noteFolders);
+          }
+          if (Array.isArray(data.teacherNotes)) {
+            await db.teacherNotes.clear();
+            if (data.teacherNotes.length) await db.teacherNotes.bulkAdd(data.teacherNotes);
+          }
+        });
+      } finally {
+        setTimeout(() => setInternalSyncing(false), 200);
+      }
     }
+
 
     return true;
   } catch (err) {

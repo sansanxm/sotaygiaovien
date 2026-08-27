@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { db, exportDatabaseBackup, importDatabaseBackup, getUserScopedKey } from '../db/db';
+import { db, exportDatabaseBackup, importDatabaseBackup, getUserScopedKey, onDatabaseChanged } from '../db/db';
+
 
 import { seedInitialDatabase } from '../db/initialData';
 import { supabaseService, type TeacherUser as CloudUser, type SyncState, type LicenseStatus } from '../services/supabase';
@@ -235,6 +236,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 
   const syncingRef = useRef(false);
+  const autoSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+
 
 
   const setTheme = (newTheme: AppTheme) => {
@@ -533,9 +537,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setVipExpiresAt(lic.vipExpiresAt);
           }
 
-          // Auto-download cloud data if online
+          // Auto-download cloud data if online & push local state
           if (navigator.onLine) {
             await syncWithCloud('download');
+            setTimeout(() => syncWithCloud('upload'), 600);
           }
         }
       } catch (err) {
@@ -556,8 +561,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
-
-  // Supabase Realtime WebSocket Listener (Auto-sync between PC, Phone, iPad in ~0.05s)
+  // 1. Supabase Realtime WebSocket Listener (Auto-sync from other devices in ~0.05s)
   useEffect(() => {
     if (!user || !user.id) return;
 
@@ -579,6 +583,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       unsubscribe();
     };
   }, [user]);
+
+  // 2. Hands-Free Automatic Cloud Sync whenever local data changes (0-touch)
+  useEffect(() => {
+    if (!user || !user.id) return;
+
+    const handleLocalDataChanged = () => {
+      if (!navigator.onLine) return;
+      if (autoSyncTimerRef.current) clearTimeout(autoSyncTimerRef.current);
+      autoSyncTimerRef.current = setTimeout(async () => {
+        console.log('⚡ Hands-free Auto Sync to Supabase Realtime...');
+        await syncWithCloud('upload');
+      }, 500);
+    };
+
+    const unsubscribe = onDatabaseChanged(handleLocalDataChanged);
+
+    return () => {
+      unsubscribe();
+      if (autoSyncTimerRef.current) clearTimeout(autoSyncTimerRef.current);
+    };
+  }, [user, syncWithCloud]);
+
 
 
 
