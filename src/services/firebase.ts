@@ -45,13 +45,15 @@ const FIREBASE_CONFIG_KEY = 'gvcn_custom_firebase_config';
 
 // Default Firebase Configuration for Sổ Tay Giáo Viên 4.0
 export const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyD-defaultTeacherKeyPlaceholder",
-  authDomain: "sotaygiaovien-app.firebaseapp.com",
-  projectId: "sotaygiaovien-app",
-  storageBucket: "sotaygiaovien-app.appspot.com",
-  messagingSenderId: "108745263892",
-  appId: "1:108745263892:web:9c8a7b6d5e4f3a2b1c0"
+  apiKey: "AIzaSyAfQwMRNi2z2tPF4e_ubV7PmOLtlZ8nNnM",
+  authDomain: "sotaygv.firebaseapp.com",
+  projectId: "sotaygv",
+  storageBucket: "sotaygv.firebasestorage.app",
+  messagingSenderId: "1060984774556",
+  appId: "1:1060984774556:web:f524593b0ce15fa8d3b259",
+  measurementId: "G-YFS230PJ6Q"
 };
+
 
 const CLIENT_SESSION_ID = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
