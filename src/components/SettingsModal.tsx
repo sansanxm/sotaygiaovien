@@ -973,9 +973,10 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                 </ul>
               </div>
 
-              <div className="text-center pt-2 text-[11px] text-slate-500 font-medium">
-                Ứng dụng Sổ tay Giáo viên • Thiết kế và phát triển bởi <strong className="text-slate-800 font-bold">Xiao System</strong> © 2026
+              <div className="text-center pt-2 text-[10px] text-slate-400 font-medium">
+                Ứng dụng Sổ tay Giáo viên • Thiết kế và phát triển bởi <strong className="text-slate-600 font-bold">Xiao System</strong> © 2026 • <span className="text-pink-600 font-bold">HỖ TRỢ 24/7: 0971986343</span>
               </div>
+
 
             </div>
           )}

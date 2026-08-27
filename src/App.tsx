@@ -321,9 +321,12 @@ const AppContent: React.FC = () => {
         </main>
 
         {/* Footer info bar (hidden on mobile to maximize screen area) */}
-        <footer className="hidden md:block w-full bg-white/80 backdrop-blur-md border-t border-slate-200/80 py-3 px-6 text-xs text-slate-500 font-extrabold tracking-wider uppercase text-center shrink-0">
-          THIẾT KẾ VÀ PHÁT TRIỂN BỞI <strong className="text-slate-800 font-black">XIAO SYSTEM</strong> © 2026
+        <footer className="hidden md:block w-full bg-white/80 backdrop-blur-md border-t border-slate-200/80 py-1.5 px-6 text-[10px] text-slate-400 font-bold tracking-wider uppercase text-center shrink-0">
+          <span>THIẾT KẾ VÀ PHÁT TRIỂN BỞI <strong className="text-slate-600 font-black">XIAO SYSTEM</strong> © 2026</span>
+          <span className="mx-2 text-slate-300">•</span>
+          <span className="text-pink-600 font-extrabold">HỖ TRỢ 24/7: 0971986343</span>
         </footer>
+
       </div>
 
       {/* Settings Modal */}
