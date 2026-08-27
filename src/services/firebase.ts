@@ -455,7 +455,10 @@ class FirebaseService {
     if (db) {
       try {
         const docRef = doc(db, 'teacher_clouds', cleanEmail);
-        return onSnapshot(docRef, (snapshot) => {
+        return onSnapshot(docRef, { includeMetadataChanges: true }, (snapshot) => {
+          if (snapshot.metadata.hasPendingWrites) {
+            return; // Ignore local pending write echoes
+          }
           if (snapshot.exists()) {
             const row = snapshot.data();
             if (row?.data && row.data._clientId !== CLIENT_SESSION_ID) {
@@ -470,6 +473,7 @@ class FirebaseService {
 
     return () => {};
   }
+
 }
 
 export const firebaseService = new FirebaseService();

@@ -281,6 +281,10 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
           const primaryYearId = importedYears.find((y: any) => y.isCurrent)?.id || importedYears[0]?.id;
 
           if (Array.isArray(data.classes)) {
+            const existingLocalClasses = await db.classes.toArray();
+            const incomingClassIds = new Set(data.classes.map((c: any) => c.id));
+            const classesToKeep = existingLocalClasses.filter((c: any) => !incomingClassIds.has(c.id));
+
             await db.classes.clear();
             const normalizedClasses = data.classes.map((c: any) => {
               if (!validYearIds.has(c.yearId) && primaryYearId) {
@@ -288,13 +292,20 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
               }
               return c;
             });
-            if (normalizedClasses.length) await db.classes.bulkAdd(normalizedClasses);
+            const mergedClasses = [...normalizedClasses, ...classesToKeep];
+            if (mergedClasses.length) await db.classes.bulkAdd(mergedClasses);
           }
 
           if (Array.isArray(data.students)) {
+            const existingLocalStudents = await db.students.toArray();
+            const incomingStudentIds = new Set(data.students.map((s: any) => s.id));
+            const studentsToKeep = existingLocalStudents.filter((s: any) => !incomingStudentIds.has(s.id));
+
             await db.students.clear();
-            if (data.students.length) await db.students.bulkAdd(data.students);
+            const mergedStudents = [...data.students, ...studentsToKeep];
+            if (mergedStudents.length) await db.students.bulkAdd(mergedStudents);
           }
+
           if (Array.isArray(data.attendance)) {
             await db.attendance.clear();
             if (data.attendance.length) await db.attendance.bulkAdd(data.attendance);
