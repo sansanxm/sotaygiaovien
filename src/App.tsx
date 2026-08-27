@@ -79,6 +79,7 @@ const AppContent: React.FC = () => {
     isLoading,
     user,
     licenseStatus,
+
     isVip,
     setShowVipModal,
     syncState,
@@ -86,7 +87,11 @@ const AppContent: React.FC = () => {
     triggerConfetti,
     currentClass,
     currentYear,
+    refreshAppData,
   } = useApp();
+
+
+
 
 
   const [showSettings, setShowSettings] = useState(false);
@@ -239,8 +244,9 @@ const AppContent: React.FC = () => {
                     const ok = await syncWithCloud('download');
                     setIsSyncingDownload(false);
                     if (ok) {
+                      await refreshAppData();
                       triggerConfetti();
-                      alert('✅ Đã khôi phục dữ liệu từ Cloud về máy thành công!');
+                      alert('✅ Đã khôi phục toàn bộ Năm học, Lớp học và Gói VIP từ Cloud thành công!');
                     } else {
                       alert('❌ Không thể khôi phục. Vui lòng kiểm tra kết nối mạng.');
                     }
@@ -252,6 +258,7 @@ const AppContent: React.FC = () => {
                 <span>{isSyncingDownload ? 'Đang tải...' : '⬇️ Khôi phục'}</span>
               </button>
             </div>
+
 
             {/* User Account Chip */}
             <div
