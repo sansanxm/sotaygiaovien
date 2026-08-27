@@ -139,15 +139,15 @@ export async function exportDatabaseBackup(email?: string | null): Promise<strin
   const activeEmail = email || localStorage.getItem('gvcn_active_user_email') || 'guest';
   let vipToken = null;
   try {
-    const rawVip =
-      localStorage.getItem(getUserScopedKey('vip_token', activeEmail)) ||
-      localStorage.getItem('gvcn_vip_token') ||
-      localStorage.getItem(getUserScopedKey('vip_token', 'local_user')) ||
-      localStorage.getItem('gvcn_active_vip_token');
+    const rawVip = localStorage.getItem(getUserScopedKey('vip_token', activeEmail));
     if (rawVip) {
-      vipToken = JSON.parse(rawVip);
+      const parsed = JSON.parse(rawVip);
+      if (parsed && parsed.isVip && (!parsed.email || parsed.email === activeEmail)) {
+        vipToken = { ...parsed, email: activeEmail };
+      }
     }
   } catch {}
+
 
   const data = {
     version: '4.0.0',

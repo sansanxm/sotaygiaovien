@@ -327,12 +327,23 @@ class FirebaseService {
       const parsedData = JSON.parse(dataJson);
       const fullName = (user as any).user_metadata?.full_name || 'Giáo viên';
 
-      // Always guarantee VIP token in payload
-      parsedData.vipToken = {
-        isVip: true,
-        vipExpiresAt: 'lifetime',
-        activatedAt: new Date().toISOString(),
-      };
+      // Strictly check actual VIP license status for this user
+      const lic = this.getLicenseStatus(email);
+      if (lic.isVip) {
+        parsedData.vipToken = {
+          email: email,
+          isVip: true,
+          vipExpiresAt: lic.vipExpiresAt || 'lifetime',
+          activatedAt: new Date().toISOString(),
+        };
+      } else {
+        parsedData.vipToken = {
+          email: email,
+          isVip: false,
+          vipExpiresAt: null,
+        };
+      }
+
 
       const payload = {
         userId: email,
