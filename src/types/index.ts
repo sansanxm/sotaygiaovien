@@ -6,7 +6,11 @@ export interface UserSettings {
   teacherTitle: TeacherTitle;
   teacherName: string;
   theme: AppTheme;
+  teacherAvatar?: string | null;
+  teacherCover?: string | null;
+  teacherBio?: string;
 }
+
 
 export interface SchoolYear {
   id: string;

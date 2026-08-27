@@ -130,6 +130,12 @@ export interface AppContextType {
   setTeacherTitle: (title: TeacherTitle) => void;
   teacherName: string;
   setTeacherName: (name: string) => void;
+  teacherAvatar: string | null;
+  setTeacherAvatar: (avatar: string | null) => void;
+  teacherCover: string | null;
+  setTeacherCover: (cover: string | null) => void;
+  teacherBio: string;
+  setTeacherBio: (bio: string) => void;
   years: SchoolYear[];
   currentYear: SchoolYear | null;
   setCurrentYearId: (id: string) => void;
@@ -178,6 +184,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return localStorage.getItem('gvcn_teacher_name') || '';
   });
 
+  const [teacherAvatar, setTeacherAvatarState] = useState<string | null>(() => {
+    return localStorage.getItem('gvcn_teacher_avatar') || null;
+  });
+
+  const [teacherCover, setTeacherCoverState] = useState<string | null>(() => {
+    return localStorage.getItem('gvcn_teacher_cover') || null;
+  });
+
+  const [teacherBio, setTeacherBioState] = useState<string>(() => {
+    return localStorage.getItem('gvcn_teacher_bio') || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui';
+  });
+
+
 
   const [years, setYears] = useState<SchoolYear[]>([]);
   const [currentYear, setCurrentYear] = useState<SchoolYear | null>(null);
@@ -223,7 +242,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('gvcn_teacher_name', newName);
   };
 
+  const setTeacherAvatar = (newAvatar: string | null) => {
+    setTeacherAvatarState(newAvatar);
+    if (newAvatar) {
+      localStorage.setItem('gvcn_teacher_avatar', newAvatar);
+    } else {
+      localStorage.removeItem('gvcn_teacher_avatar');
+    }
+  };
+
+  const setTeacherCover = (newCover: string | null) => {
+    setTeacherCoverState(newCover);
+    if (newCover) {
+      localStorage.setItem('gvcn_teacher_cover', newCover);
+    } else {
+      localStorage.removeItem('gvcn_teacher_cover');
+    }
+  };
+
+  const setTeacherBio = (newBio: string) => {
+    setTeacherBioState(newBio);
+    localStorage.setItem('gvcn_teacher_bio', newBio);
+  };
+
   const triggerConfetti = () => {
+
     confetti({
       particleCount: 100,
       spread: 70,
@@ -464,8 +507,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setTeacherTitle,
         teacherName,
         setTeacherName,
+        teacherAvatar,
+        setTeacherAvatar,
+        teacherCover,
+        setTeacherCover,
+        teacherBio,
+        setTeacherBio,
         years,
         currentYear,
+
         setCurrentYearId,
         classes,
         currentClass,

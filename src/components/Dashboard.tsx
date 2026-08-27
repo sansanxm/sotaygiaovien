@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Users,
   CalendarCheck,
@@ -15,15 +15,37 @@ import {
   Flame,
   Award,
   Calendar,
+  Camera,
+  Trash2,
+  Edit3,
+  Crown,
+  X,
 } from 'lucide-react';
+
 
 import { useApp } from '../context/AppContext';
 import { db } from '../db/db';
-import type { Student, AttendanceRecord, TeacherTodo, TimetableEntry, DayOfWeek } from '../types';
+import type { Student, AttendanceRecord, TeacherTodo, TimetableEntry, DayOfWeek, TeacherTitle } from '../types';
 
 
 export const Dashboard: React.FC = () => {
-  const { currentClass, currentYear, teacherTitle, teacherName, setActiveTab, triggerConfetti } = useApp();
+  const {
+    currentClass,
+    currentYear,
+    teacherTitle,
+    setTeacherTitle,
+    teacherName,
+    setTeacherName,
+    teacherAvatar,
+    setTeacherAvatar,
+    teacherCover,
+    setTeacherCover,
+    teacherBio,
+    setTeacherBio,
+    isVip,
+    setActiveTab,
+    triggerConfetti,
+  } = useApp();
 
   const [students, setStudents] = useState<Student[]>([]);
   const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord[]>([]);
@@ -33,6 +55,72 @@ export const Dashboard: React.FC = () => {
   const [todos, setTodos] = useState<TeacherTodo[]>([]);
   const [todayLessons, setTodayLessons] = useState<TimetableEntry[]>([]);
   const [newTodoTitle, setNewTodoTitle] = useState('');
+
+  // Profile Edit Modal State
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editTitle, setEditTitle] = useState<TeacherTitle>(teacherTitle);
+  const [editName, setEditName] = useState(teacherName);
+  const [editBio, setEditBio] = useState(teacherBio);
+
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Handle Photo Upload & Image Compression
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDimension = type === 'cover' ? 1400 : 450;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.85);
+          if (type === 'avatar') {
+            setTeacherAvatar(compressed);
+          } else {
+            setTeacherCover(compressed);
+          }
+          triggerConfetti();
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    // Reset file input so re-selecting same file triggers onChange
+    e.target.value = '';
+  };
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setTeacherTitle(editTitle);
+    setTeacherName(editName);
+    setTeacherBio(editBio);
+    setIsEditingProfile(false);
+    triggerConfetti();
+  };
+
 
 
 
@@ -195,47 +283,299 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl theme-banner p-6 sm:p-8 text-white shadow-xl transition-all duration-300">
-        {/* Cute decorative floating sparkles */}
-        <div className="absolute top-2 right-4 text-white/20 text-7xl select-none">🌸</div>
-        <div className="absolute -bottom-4 right-28 text-white/15 text-8xl select-none">✨</div>
+      {/* Hidden File Inputs for Cover and Avatar */}
+      <input
+        type="file"
+        ref={coverInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handlePhotoUpload(e, 'cover')}
+      />
+      <input
+        type="file"
+        ref={avatarInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handlePhotoUpload(e, 'avatar')}
+      />
 
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-extrabold uppercase tracking-wider mb-3 border border-white/30">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" /> {currentYear?.name || 'Năm học mới'}
+      {/* Facebook-style Teacher Profile Header Card */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-md overflow-hidden relative transition-all duration-300">
+        
+        {/* 1. COVER PHOTO BANNER */}
+        <div className="relative w-full h-48 sm:h-64 md:h-72 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 overflow-hidden group">
+          {teacherCover ? (
+            <img
+              src={teacherCover}
+              alt="Ảnh bìa giáo viên"
+              className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-101"
+            />
+          ) : (
+            <div className="w-full h-full theme-banner relative flex items-center justify-center p-6 text-white select-none">
+              {/* Cute floating stickers */}
+              <div className="absolute top-4 left-6 text-white/20 text-6xl animate-pulse">🌸</div>
+              <div className="absolute top-6 right-10 text-white/20 text-7xl">✨</div>
+              <div className="absolute bottom-4 left-1/4 text-white/15 text-5xl">📚</div>
+              <div className="absolute bottom-6 right-1/3 text-white/20 text-6xl">🎓</div>
+
+              <div className="text-center space-y-1 relative z-10">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black uppercase tracking-wider border border-white/30 text-white shadow-xs">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-200" /> Sổ tay Giáo viên 4.0
+                </div>
+                <h3 className="text-xl sm:text-3xl font-black text-white drop-shadow-sm">
+                  Chào mừng {teacherName ? `${teacherTitle} ${teacherName}` : teacherTitle}! 💖
+                </h3>
+                <p className="text-xs sm:text-sm text-white/90 font-medium">
+                  {currentYear?.name || 'Năm học mới'} • Lớp {currentClass.name} • {currentClass.roomNumber || 'Phòng học chính'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Gradient Overlay at Bottom */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
+
+          {/* Year & Class Pill Badge (Top-Left) */}
+          <div className="absolute top-3.5 left-4 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur-md text-[11px] font-bold text-white border border-white/25 shadow-xs">
+            <Sparkles className="w-3 h-3 text-amber-300" /> {currentYear?.name || 'Năm học mới'} • Lớp {currentClass.name}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
-            Chào mừng {teacherName ? `${teacherTitle} ${teacherName}` : teacherTitle} đến với {currentClass.name}! 💖
-          </h1>
-          <p className="text-sm sm:text-base text-white/90 font-medium leading-relaxed">
-            {currentClass.homeroomTeacher ? `${currentClass.homeroomTeacher} • ` : ''} 
-            {currentClass.roomNumber || 'Phòng học chính'}. Chúc {teacherTitle.toLowerCase()} một ngày giảng dạy tràn ngập niềm vui và năng lượng tích cực!
-          </p>
 
+          {/* Cover Photo Action Buttons (Bottom-Right) */}
+          <div className="absolute bottom-3.5 right-4 z-10 flex items-center gap-2">
+            <button
+              onClick={() => coverInputRef.current?.click()}
+              className="px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white text-slate-800 font-bold text-xs shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-102 active:scale-98"
+              title="Tải ảnh bìa mới từ máy tính"
+            >
+              <Camera className="w-4 h-4 text-slate-700" />
+              <span>{teacherCover ? 'Đổi ảnh bìa' : 'Thêm ảnh bìa'}</span>
+            </button>
 
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <button
-              onClick={() => setActiveTab('attendance')}
-              className="px-4 py-2 rounded-xl bg-white text-slate-800 font-extrabold text-xs shadow-md hover:bg-white/90 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <CalendarCheck className="w-4 h-4 theme-text" /> Điểm danh hôm nay
-            </button>
-            <button
-              onClick={() => setActiveTab('random-picker')}
-              className="px-4 py-2 rounded-xl theme-banner-btn text-white font-extrabold text-xs hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Dices className="w-4 h-4" /> Vòng quay gọi tên
-            </button>
-            <button
-              onClick={() => setActiveTab('behavior')}
-              className="px-4 py-2 rounded-xl theme-banner-btn text-white font-extrabold text-xs hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Star className="w-4 h-4 text-amber-300 fill-amber-300" /> Tích sao thi đua
-            </button>
+            {teacherCover && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Thầy/Cô có muốn xóa ảnh bìa và quay về ảnh nền mặc định?')) {
+                    setTeacherCover(null);
+                  }
+                }}
+                className="p-2 rounded-xl bg-black/40 hover:bg-rose-600/90 text-white backdrop-blur-md transition-colors cursor-pointer"
+                title="Xóa ảnh bìa tùy chỉnh"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
+
+        {/* 2. PROFILE DETAILS & AVATAR ROW (Overlapping Cover) */}
+        <div className="px-6 sm:px-8 pb-6 pt-2">
+          <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 -mt-16 sm:-mt-20 relative z-20">
+            
+            {/* Left: Avatar + Names + Homeroom Info */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-5 text-center sm:text-left">
+              
+              {/* Avatar Circle Container */}
+              <div className="relative group">
+                <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-white shadow-xl bg-gradient-to-tr from-pink-400 to-rose-500 overflow-hidden relative flex items-center justify-center text-white text-4xl sm:text-5xl font-black shrink-0">
+                  {teacherAvatar ? (
+                    <img
+                      src={teacherAvatar}
+                      alt="Ảnh đại diện giáo viên"
+                      className="w-full h-full object-cover object-center"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-pink-400 via-rose-400 to-amber-300 text-white font-black text-4xl sm:text-5xl select-none">
+                      {(teacherName || teacherTitle || 'GV').slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Camera Badge to Upload Avatar */}
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center shadow-lg border-2 border-white cursor-pointer active:scale-95 transition-transform"
+                  title="Thay đổi ảnh đại diện"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+
+                {teacherAvatar && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Thầy/Cô có muốn xóa ảnh đại diện tùy chỉnh?')) {
+                        setTeacherAvatar(null);
+                      }
+                    }}
+                    className="absolute top-0 right-0 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-md border border-white cursor-pointer"
+                    title="Xóa ảnh đại diện"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Name & Metadata */}
+              <div className="space-y-1 sm:pb-2">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
+                    {teacherName ? `${teacherTitle} ${teacherName}` : teacherTitle}
+                  </h1>
+
+                  {isVip ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-extrabold text-[11px] shadow-xs border border-amber-300">
+                      <Crown className="w-3 h-3 fill-slate-900" /> VIP
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 font-extrabold text-[11px]">
+                      <Sparkles className="w-3 h-3 text-pink-500" /> GVCN
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs sm:text-sm text-slate-600 font-semibold flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <span>GVCN Lớp <strong className="text-slate-800 font-bold">{currentClass.name}</strong></span>
+                  <span>•</span>
+                  <span>{currentClass.roomNumber || 'Phòng học chính'}</span>
+                  <span>•</span>
+                  <span>Sĩ số: <strong className="text-pink-600 font-bold">{students.length} em</strong></span>
+                </p>
+
+                {/* Slogan / Bio Quote */}
+                <div className="pt-1 flex items-center justify-center sm:justify-start gap-2">
+                  <p className="text-xs text-slate-500 italic max-w-lg font-medium">
+                    "{teacherBio || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui'}"
+                  </p>
+                  <button
+                    onClick={() => {
+                      setEditTitle(teacherTitle);
+                      setEditName(teacherName);
+                      setEditBio(teacherBio);
+                      setIsEditingProfile(true);
+                    }}
+                    className="p-1 text-slate-400 hover:text-pink-600 cursor-pointer rounded-lg hover:bg-pink-50"
+                    title="Chỉnh sửa thông tin & châm ngôn"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right: Quick Action Buttons (Facebook Header Style) */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2 md:pt-0 sm:pb-2">
+              <button
+                onClick={() => setActiveTab('attendance')}
+                className="px-4 py-2.5 rounded-xl theme-btn-primary text-white font-extrabold text-xs shadow-sm hover:brightness-105 flex items-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+              >
+                <CalendarCheck className="w-4 h-4" /> Điểm danh
+              </button>
+
+              <button
+                onClick={() => setActiveTab('random-picker')}
+                className="px-4 py-2.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-extrabold text-xs border border-pink-200 flex items-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+              >
+                <Dices className="w-4 h-4" /> Vòng quay gọi tên
+              </button>
+
+              <button
+                onClick={() => setActiveTab('behavior')}
+                className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs border border-amber-200 flex items-center gap-1.5 cursor-pointer active:scale-98 transition-all"
+              >
+                <Star className="w-4 h-4 text-amber-500 fill-amber-400" /> Tích sao
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditTitle(teacherTitle);
+                  setEditName(teacherName);
+                  setEditBio(teacherBio);
+                  setIsEditingProfile(true);
+                }}
+                className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-1 cursor-pointer"
+                title="Chỉnh sửa thông tin trang cá nhân"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+            </div>
+
+          </div>
+        </div>
+
       </div>
+
+      {/* Profile Edit Modal */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-pink-200 w-full max-w-md overflow-hidden animate-in zoom-in-95">
+            <div className="p-5 bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2 font-black text-sm sm:text-base">
+                <Edit3 className="w-5 h-5" /> Chỉnh sửa hồ sơ Thầy/Cô
+              </div>
+              <button
+                onClick={() => setIsEditingProfile(false)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="p-6 space-y-4 text-xs sm:text-sm">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Xưng hô:</label>
+                <select
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value as TeacherTitle)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50"
+                >
+                  <option value="Cô giáo">Cô giáo 👩‍🏫</option>
+                  <option value="Thầy giáo">Thầy giáo 👨‍🏫</option>
+                  <option value="Thầy/Cô">Thầy/Cô 🧑‍🏫</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Họ và tên giáo viên:</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Ví dụ: Nguyễn Thị Nga..."
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Lời nhắn / Châm ngôn giảng dạy:</label>
+                <textarea
+                  rows={2}
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  placeholder="Ví dụ: Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-pink-400 bg-slate-50"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl theme-btn-primary text-white font-black text-xs shadow-md cursor-pointer"
+                >
+                  Lưu thay đổi
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
 
       {/* 4 Core Metric Cards */}
