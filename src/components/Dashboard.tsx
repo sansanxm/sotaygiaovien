@@ -340,14 +340,14 @@ export const Dashboard: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
 
           {/* Year & Class Pill Badge (Top-Left) */}
-          <div className="absolute top-3.5 left-4 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur-md text-[11px] font-bold text-white border border-white/25 shadow-xs">
+          <div className="absolute top-3.5 left-4 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md text-[11px] font-bold text-white border border-white/25 shadow-xs">
             <Sparkles className="w-3 h-3 text-amber-300" /> {currentYear?.name || 'Năm học mới'} • Lớp {currentClass.name}
           </div>
 
-          {/* Cover Photo Action Buttons (Bottom-Right) */}
-          <div className="absolute bottom-3.5 right-4 z-10 flex items-center gap-2">
+          {/* Cover Photo Action Buttons (Top-Right - avoids overlapping with profile buttons below) */}
+          <div className="absolute top-3.5 right-4 z-30 flex items-center gap-2">
             <label
-              className="px-3.5 py-2 rounded-xl bg-white/90 hover:bg-white text-slate-800 font-bold text-xs shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-102 active:scale-98 select-none"
+              className="px-3.5 py-2 rounded-xl bg-white/95 hover:bg-white text-slate-800 font-extrabold text-xs shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105 active:scale-95 select-none"
               title="Tải ảnh bìa mới từ thiết bị"
             >
               <input
@@ -375,6 +375,7 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+
 
         {/* 2. PROFILE DETAILS & AVATAR ROW (Overlapping Cover) */}
         <div className="px-6 sm:px-8 pb-6 pt-2">
