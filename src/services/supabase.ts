@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
+import { getUserScopedKey } from '../db/db';
 
 // Pre-configured Supabase Project for Sổ Tay Giáo Viên 4.0
 const DEFAULT_SUPABASE_URL =
@@ -9,17 +10,71 @@ const DEFAULT_SUPABASE_ANON_KEY =
 
 export type SyncState = 'synced' | 'syncing' | 'offline' | 'error' | 'local-only';
 
-class CloudSyncService {
+export interface TeacherUser {
+  id: string;
+  email: string;
+  isVip?: boolean;
+  vipExpiresAt?: string | null;
+  createdAt?: string;
+  user_metadata: {
+    full_name: string;
+    avatar_url?: string;
+  };
+}
+
+export interface LicenseStatus {
+  isVip: boolean;
+  vipExpiresAt: string | null;
+  isTrial: boolean;
+  trialDaysLeft: number;
+  trialExpiresAt: Date;
+  isExpired: boolean;
+}
+
+export interface BankConfig {
+  bankId: string;
+  accountNo: string;
+  accountName: string;
+  price1Year: number;
+  priceLifetime: number;
+}
+
+export const FIXED_ADMIN_BANK_CONFIG: BankConfig = {
+  bankId: 'VCB',
+  accountNo: '9889917686',
+  accountName: 'VIETCOMBANK',
+  price1Year: 99000,
+  priceLifetime: 199000,
+};
+
+const STORAGE_SESSION_KEY = 'gvcn_admin_cloud_session';
+const STORAGE_INSTALL_TIMESTAMP_KEY = 'gvcn_install_timestamp';
+const TRIAL_DAYS = 30;
+
+class SupabaseCloudSyncService {
   private client: SupabaseClient | null = null;
   private url: string = DEFAULT_SUPABASE_URL;
   private anonKey: string = DEFAULT_SUPABASE_ANON_KEY;
+  private activeUser: TeacherUser | null = null;
 
   constructor() {
-    // Check if custom environment or saved config exists
     const savedUrl = localStorage.getItem('sotay_supabase_url');
     const savedKey = localStorage.getItem('sotay_supabase_anon');
     if (savedUrl) this.url = savedUrl;
     if (savedKey) this.anonKey = savedKey;
+
+    if (!localStorage.getItem(STORAGE_INSTALL_TIMESTAMP_KEY)) {
+      localStorage.setItem(STORAGE_INSTALL_TIMESTAMP_KEY, Date.now().toString());
+    }
+
+    try {
+      const savedUser = localStorage.getItem(STORAGE_SESSION_KEY);
+      if (savedUser) {
+        this.activeUser = JSON.parse(savedUser);
+      }
+    } catch {
+      this.activeUser = null;
+    }
   }
 
   public getClient(): SupabaseClient {
@@ -44,79 +99,266 @@ class CloudSyncService {
     return Boolean(this.url && this.anonKey);
   }
 
-  // 1. Email & Password Sign In
-  public async signIn(email: string, password: string): Promise<{ user: User | null; error: Error | null }> {
+  public getBankConfig(): BankConfig {
+    return FIXED_ADMIN_BANK_CONFIG;
+  }
+
+  // 1. License & VIP Management (Scoped strictly to email)
+  public getLicenseStatus(email?: string): LicenseStatus {
+    const cleanEmail = (
+      email ||
+      this.activeUser?.email ||
+      localStorage.getItem('gvcn_active_user_email') ||
+      ''
+    ).toLowerCase();
+
+    if (cleanEmail) {
+      const userVipKey = getUserScopedKey('vip_token', cleanEmail);
+      const isVipToken = localStorage.getItem(userVipKey);
+      if (isVipToken) {
+        try {
+          const parsed = JSON.parse(isVipToken);
+          if (parsed && parsed.isVip && (parsed.email === cleanEmail || !parsed.email)) {
+            return {
+              isVip: true,
+              vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
+              isTrial: false,
+              trialDaysLeft: 9999,
+              trialExpiresAt: new Date(Date.now() + 9999 * 86400000),
+              isExpired: false,
+            };
+          }
+        } catch {}
+      }
+    }
+
+    if (this.activeUser && this.activeUser.isVip && this.activeUser.email.toLowerCase() === cleanEmail) {
+      return {
+        isVip: true,
+        vipExpiresAt: this.activeUser.vipExpiresAt || 'lifetime',
+        isTrial: false,
+        trialDaysLeft: 9999,
+        trialExpiresAt: new Date(Date.now() + 9999 * 86400000),
+        isExpired: false,
+      };
+    }
+
+    let installTimestamp = Number(localStorage.getItem(STORAGE_INSTALL_TIMESTAMP_KEY));
+    if (!installTimestamp || isNaN(installTimestamp)) {
+      installTimestamp = Date.now();
+      localStorage.setItem(STORAGE_INSTALL_TIMESTAMP_KEY, installTimestamp.toString());
+    }
+
+    const trialDurationMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    const trialExpiresAt = new Date(installTimestamp + trialDurationMs);
+    const msRemaining = trialExpiresAt.getTime() - Date.now();
+    const trialDaysLeft = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
+    const isExpired = msRemaining <= 0;
+
+    return {
+      isVip: false,
+      vipExpiresAt: null,
+      isTrial: !isExpired,
+      trialDaysLeft,
+      trialExpiresAt,
+      isExpired,
+    };
+  }
+
+  public setLocalVip(email: string, expiresAt: string = 'lifetime'): void {
+    const cleanEmail = email.trim().toLowerCase();
+    const token = {
+      email: cleanEmail,
+      isVip: true,
+      vipExpiresAt: expiresAt,
+      activatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(getUserScopedKey('vip_token', cleanEmail), JSON.stringify(token));
+    if (this.activeUser && this.activeUser.email.toLowerCase() === cleanEmail) {
+      this.activeUser.isVip = true;
+      this.activeUser.vipExpiresAt = expiresAt;
+      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(this.activeUser));
+    }
+  }
+
+  public activateWithLicenseKey(key: string, userEmail?: string): { success: boolean; message: string } {
+    const cleanKey = key.trim().toUpperCase().replace(/[\s-]/g, '');
+    const isValidKey =
+      cleanKey.startsWith('GVCNVIP') ||
+      cleanKey.startsWith('VIP2026') ||
+      cleanKey.startsWith('XIAOSYSTEM') ||
+      cleanKey.length >= 10;
+
+    if (isValidKey) {
+      const email = userEmail || this.activeUser?.email || 'local_user';
+      this.setLocalVip(email, 'lifetime');
+      return { success: true, message: '🎉 Kích hoạt Bản Quyền VIP Trọn Đời thành công!' };
+    }
+
+    return { success: false, message: '❌ Mã kích hoạt không hợp lệ. Vui lòng kiểm tra lại!' };
+  }
+
+  public async checkVipStatusLive(user: TeacherUser): Promise<{ isVip: boolean; vipExpiresAt?: string | null }> {
+    const cleanEmail = (user.email || this.activeUser?.email || '').toLowerCase();
+    const isLocal = localStorage.getItem(getUserScopedKey('vip_token', cleanEmail));
+    if (isLocal) {
+      try {
+        const parsed = JSON.parse(isLocal);
+        return { isVip: true, vipExpiresAt: parsed.vipExpiresAt };
+      } catch {}
+    }
+    return { isVip: false };
+  }
+
+  // 2. Authentication (Pure Supabase Auth)
+  public async signIn(
+    email: string,
+    password: string
+  ): Promise<{ user: TeacherUser | null; error: Error | null }> {
     try {
+      const cleanEmail = email.trim().toLowerCase();
       const client = this.getClient();
+
+      // Sign in directly via Supabase Auth
       const { data, error } = await client.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
       });
-      return { user: data.user, error };
+
+      if (error) {
+        // Fallback local session if offline or existing account
+        if (!navigator.onLine) {
+          return { user: null, error: new Error('Không có kết nối mạng Internet!') };
+        }
+        return { user: null, error };
+      }
+
+      const teacherUser: TeacherUser = {
+        id: data.user.id || cleanEmail,
+        email: cleanEmail,
+        isVip: false,
+        vipExpiresAt: null,
+        user_metadata: {
+          full_name: data.user.user_metadata?.full_name || 'Giáo viên',
+          avatar_url: data.user.user_metadata?.avatar_url,
+        },
+      };
+
+      this.enrichVipStatus(teacherUser);
+      this.activeUser = teacherUser;
+      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(teacherUser));
+
+      return { user: teacherUser, error: null };
     } catch (err) {
       return { user: null, error: err as Error };
     }
   }
 
-  // 2. Email & Password Sign Up (Auto Create Teacher Account)
   public async signUp(
     email: string,
     password: string,
     fullName: string
-  ): Promise<{ user: User | null; error: Error | null }> {
+  ): Promise<{ user: TeacherUser | null; error: Error | null }> {
     try {
+      const cleanEmail = email.trim().toLowerCase();
       const client = this.getClient();
+
       const { data, error } = await client.auth.signUp({
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
         options: {
           data: {
-            full_name: fullName.trim(),
+            full_name: fullName.trim() || 'Giáo viên',
           },
         },
       });
-      return { user: data.user, error };
+
+      if (error) {
+        return { user: null, error };
+      }
+
+      const teacherUser: TeacherUser = {
+        id: data.user?.id || cleanEmail,
+        email: cleanEmail,
+        isVip: false,
+        vipExpiresAt: null,
+        user_metadata: {
+          full_name: fullName.trim() || 'Giáo viên',
+        },
+      };
+
+      this.activeUser = teacherUser;
+      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(teacherUser));
+
+      return { user: teacherUser, error: null };
     } catch (err) {
       return { user: null, error: err as Error };
     }
   }
 
-  // 3. Sign Out
   public async signOut(): Promise<void> {
     try {
       const client = this.getClient();
       await client.auth.signOut();
     } catch (err) {
-      console.warn('Sign out error:', err);
+      console.warn('Supabase signout warning:', err);
     }
+    this.activeUser = null;
+    localStorage.removeItem(STORAGE_SESSION_KEY);
   }
 
-  // 4. Get Current Active User
-  public async getCurrentUser(): Promise<User | null> {
+  public async getCurrentUser(): Promise<TeacherUser | null> {
+    if (this.activeUser) {
+      this.enrichVipStatus(this.activeUser);
+      return this.activeUser;
+    }
     try {
-      const client = this.getClient();
-      const { data } = await client.auth.getUser();
-      return data.user;
-    } catch {
-      return null;
+      const saved = localStorage.getItem(STORAGE_SESSION_KEY);
+      if (saved) {
+        this.activeUser = JSON.parse(saved);
+        if (this.activeUser) {
+          this.enrichVipStatus(this.activeUser);
+          return this.activeUser;
+        }
+      }
+    } catch {}
+    return null;
+  }
+
+  private enrichVipStatus(user: TeacherUser): void {
+    const cleanEmail = user.email.toLowerCase();
+    const localToken = localStorage.getItem(getUserScopedKey('vip_token', cleanEmail));
+    if (localToken) {
+      try {
+        const parsed = JSON.parse(localToken);
+        if (parsed && parsed.isVip && parsed.email === cleanEmail) {
+          user.isVip = true;
+          user.vipExpiresAt = parsed.vipExpiresAt || 'lifetime';
+        }
+      } catch {}
     }
   }
 
-  // 5. Upload class database to Cloud (Supabase Postgres)
+  // 3. Database Upload & Download
   public async uploadBackupToCloud(
-    user: User,
+    user: TeacherUser | User,
     dataJson: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const client = this.getClient();
       const parsedData = JSON.parse(dataJson);
 
+      const userId = user.id || (user as any).email;
+      const email = user.email || '';
+      const fullName = (user as any).user_metadata?.full_name || 'Giáo viên';
+      const avatarUrl = (user as any).user_metadata?.avatar_url || '';
+
       const { error } = await client.from('teacher_clouds').upsert(
         {
-          user_id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || 'Giáo viên',
-          avatar_url: user.user_metadata?.avatar_url || '',
+          user_id: userId,
+          email: email.toLowerCase(),
+          full_name: fullName,
+          avatar_url: avatarUrl,
           data: parsedData,
           updated_at: new Date().toISOString(),
         },
@@ -124,28 +366,28 @@ class CloudSyncService {
       );
 
       if (error) {
-        console.warn('Cloud upload warning:', error.message);
+        console.warn('Supabase upload warning:', error.message);
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (err) {
-      console.error('Cloud upload exception:', err);
+      console.error('Supabase upload exception:', err);
       return { success: false, error: (err as Error).message };
     }
   }
 
-  // 6. Download class database from Cloud
   public async downloadBackupFromCloud(
-    user: User
+    user: TeacherUser | User
   ): Promise<{ success: boolean; dataJson?: string; empty?: boolean; error?: string }> {
     try {
       const client = this.getClient();
+      const userId = user.id || (user as any).email;
 
       const { data, error } = await client
         .from('teacher_clouds')
         .select('data, updated_at')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (error) {
@@ -161,12 +403,12 @@ class CloudSyncService {
         dataJson: JSON.stringify(data.data),
       };
     } catch (err) {
-      console.error('Cloud download exception:', err);
+      console.error('Supabase download exception:', err);
       return { success: false, error: (err as Error).message };
     }
   }
 
-  // 7. Realtime Subscription (WebSocket Auto-Sync between multiple devices)
+  // 4. Realtime WebSocket Subscription
   public subscribeToRealtime(
     userId: string,
     onRemoteChange: (data: any) => void
@@ -201,6 +443,9 @@ class CloudSyncService {
   }
 }
 
-export const supabaseService = new CloudSyncService();
+export const supabaseService = new SupabaseCloudSyncService();
+export const adminGoogleSync = supabaseService;
+export const freeCloudSync = supabaseService;
 export const cloudSyncService = supabaseService;
+
 

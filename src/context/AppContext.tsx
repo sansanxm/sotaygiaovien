@@ -3,10 +3,10 @@ import confetti from 'canvas-confetti';
 import { db, exportDatabaseBackup, importDatabaseBackup, getUserScopedKey } from '../db/db';
 
 import { seedInitialDatabase } from '../db/initialData';
-import { adminGoogleSync, type TeacherUser as CloudUser, type SyncState, type LicenseStatus } from '../services/adminGoogleScriptSync';
-import { supabaseService } from '../services/supabase';
+import { supabaseService, type TeacherUser as CloudUser, type SyncState, type LicenseStatus } from '../services/supabase';
 import type { SchoolYear, ClassRoom, ActiveTab, TeacherTitle, AppTheme } from '../types';
 import { VipUpgradeModal } from '../components/VipUpgradeModal';
+
 
 
 export type { AppTheme, SyncState, CloudUser, LicenseStatus };
@@ -213,7 +213,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isLoading, setIsLoading] = useState(true);
 
   // VIP & 30-Day Trial License State
-  const [licenseStatus, setLicenseStatus] = useState<LicenseStatus>(() => adminGoogleSync.getLicenseStatus(currentEmail || undefined));
+  const [licenseStatus, setLicenseStatus] = useState<LicenseStatus>(() => supabaseService.getLicenseStatus(currentEmail || undefined));
 
   const [isVip, setIsVip] = useState<boolean>(() => licenseStatus.isVip);
   const [vipExpiresAt, setVipExpiresAt] = useState<string | null>(() => licenseStatus.vipExpiresAt);
@@ -223,12 +223,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetEmail = user?.email || currentEmail || 'local_user';
     setIsVip(true);
     setVipExpiresAt(expiresAt);
-    adminGoogleSync.setLocalVip(targetEmail, expiresAt);
-    setLicenseStatus(adminGoogleSync.getLicenseStatus(targetEmail));
+    supabaseService.setLocalVip(targetEmail, expiresAt);
+    setLicenseStatus(supabaseService.getLicenseStatus(targetEmail));
     if (user && navigator.onLine) {
       setTimeout(() => syncWithCloud('upload'), 300);
     }
   };
+
 
 
 
@@ -317,7 +318,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setTeacherBioState(localStorage.getItem(getUserScopedKey('teacher_bio', activeEmail)) || 'Tận tâm vì học sinh thân yêu • Mỗi ngày đến trường là một ngày vui');
       setThemeState((localStorage.getItem(getUserScopedKey('theme', activeEmail)) as AppTheme) || 'pink');
 
-      const lic = adminGoogleSync.getLicenseStatus(activeEmail || undefined);
+      const lic = supabaseService.getLicenseStatus(activeEmail || undefined);
       setLicenseStatus(lic);
       setIsVip(lic.isVip);
       setVipExpiresAt(lic.vipExpiresAt);
@@ -375,7 +376,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Email & Password Sign In
   const signIn = async (email: string, password: string) => {
-    const res = await adminGoogleSync.signIn(email, password);
+    const res = await supabaseService.signIn(email, password);
     if (res.user) {
       // 1. Wipe previous local data completely
       await wipeLocalTables();
@@ -386,7 +387,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSyncState('synced');
       
       // 3. Check VIP
-      const liveVip = await adminGoogleSync.checkVipStatusLive(res.user);
+      const liveVip = await supabaseService.checkVipStatusLive(res.user);
       if (liveVip.isVip) {
         activateVip(liveVip.vipExpiresAt || 'lifetime');
       }
@@ -400,7 +401,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Email & Password Sign Up (Creates a completely clean, isolated new account)
   const signUp = async (email: string, password: string, fullName: string) => {
-    const res = await adminGoogleSync.signUp(email, password, fullName);
+    const res = await supabaseService.signUp(email, password, fullName);
     if (res.user) {
       // 1. Wipe previous local data completely
       await wipeLocalTables();
@@ -427,7 +428,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Sign Out (Completely wipes active memory to ensure total account isolation)
   const signOut = async () => {
-    await adminGoogleSync.signOut();
+    await supabaseService.signOut();
     localStorage.removeItem('gvcn_active_user_email');
     setUser(null);
     setSyncState('local-only');
@@ -471,36 +472,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       try {
         if (direction === 'download') {
-          // 1. Try Supabase Cloud first
-          let downloaded = false;
-          try {
-            const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
-            if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
-              await importDatabaseBackup(sbRes.dataJson, user.email);
-              await refreshAppData(user.email);
-              downloaded = true;
-            }
-          } catch (e) {
-            console.warn('Supabase download fallback:', e);
-          }
-
-          // 2. Fallback to Google Cloud if Supabase didn't have data
-          if (!downloaded) {
-            const res = await adminGoogleSync.downloadBackupFromCloud(user);
-            if (res.success && res.dataJson && !res.empty) {
-              await importDatabaseBackup(res.dataJson, user.email);
-              await refreshAppData(user.email);
-            }
+          const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
+          if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
+            await importDatabaseBackup(sbRes.dataJson, user.email);
+            await refreshAppData(user.email);
           }
         } else {
-          // 'upload' - Export current user's local data and send to Cloud
+          // 'upload' - Export current user's local data and send to Supabase Cloud
           const backupJson = await exportDatabaseBackup(user.email);
-          
-          // Dual sync: Supabase Realtime + Google Cloud Backup
-          await Promise.allSettled([
-            supabaseService.uploadBackupToCloud(user as any, backupJson),
-            adminGoogleSync.uploadBackupToCloud(user, backupJson),
-          ]);
+          await supabaseService.uploadBackupToCloud(user as any, backupJson);
         }
 
         setSyncState('synced');
@@ -517,27 +497,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     [user]
   );
 
-  // Initialize Admin Google Auth state on mount (runs once)
+  // Initialize Supabase Auth state on mount (runs once)
   useEffect(() => {
     let isMounted = true;
 
     const initAuth = async () => {
       try {
-        const currentUser = await adminGoogleSync.getCurrentUser();
+        const currentUser = await supabaseService.getCurrentUser();
         if (currentUser && isMounted) {
           localStorage.setItem('gvcn_active_user_email', currentUser.email);
           setUser(currentUser);
           setSyncState('synced');
 
           // Check VIP live from Cloud or Local
-          const liveVip = await adminGoogleSync.checkVipStatusLive(currentUser);
+          const liveVip = await supabaseService.checkVipStatusLive(currentUser);
           if (liveVip.isVip) {
             setIsVip(true);
             setVipExpiresAt(liveVip.vipExpiresAt || 'lifetime');
-            adminGoogleSync.setLocalVip(currentUser.email, liveVip.vipExpiresAt || 'lifetime');
-            setLicenseStatus(adminGoogleSync.getLicenseStatus(currentUser.email));
+            supabaseService.setLocalVip(currentUser.email, liveVip.vipExpiresAt || 'lifetime');
+            setLicenseStatus(supabaseService.getLicenseStatus(currentUser.email));
           } else {
-            const lic = adminGoogleSync.getLicenseStatus(currentUser.email);
+            const lic = supabaseService.getLicenseStatus(currentUser.email);
             setLicenseStatus(lic);
             setIsVip(lic.isVip);
             setVipExpiresAt(lic.vipExpiresAt);
@@ -607,13 +587,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [user, syncWithCloud]);
 
-
-
-  useEffect(() => {
-    refreshAppData();
-  }, []);
-
   const setCurrentYearId = async (id: string) => {
+
     const found = years.find((y) => y.id === id);
     if (found) {
       setCurrentYear(found);
@@ -658,7 +633,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Overwrite Cloud with clean database
     if (user) {
       const cleanBackupJson = await exportDatabaseBackup();
-      await adminGoogleSync.uploadBackupToCloud(user, cleanBackupJson);
+      await supabaseService.uploadBackupToCloud(user, cleanBackupJson);
       setLastSyncedAt(new Date());
     }
 

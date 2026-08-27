@@ -25,8 +25,9 @@ import {
 import { useApp, THEME_CONFIGS } from '../context/AppContext';
 import { db, exportDatabaseBackup, importDatabaseBackup } from '../db/db';
 import { GoogleAuthModal } from './GoogleAuthModal';
-import { adminGoogleSync } from '../services/adminGoogleScriptSync';
+import { adminGoogleSync } from '../services/supabase';
 import type { TeacherTitle, AppTheme } from '../types';
+
 
 
 export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({

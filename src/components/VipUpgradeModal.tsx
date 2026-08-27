@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
-import { adminGoogleSync } from '../services/adminGoogleScriptSync';
+import { adminGoogleSync } from '../services/supabase';
+
 
 interface Props {
   isOpen: boolean;

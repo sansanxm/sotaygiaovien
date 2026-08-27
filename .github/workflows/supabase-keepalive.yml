@@ -1,0 +1,24 @@
+name: Supabase Keep Alive (Anti-Pause Heartbeat)
+
+on:
+  schedule:
+    # Run every day at 00:00 UTC and 12:00 UTC to keep Supabase database active
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Heartbeat Ping to Supabase API
+        run: |
+          echo "Sending keep-alive ping to Supabase..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "https://msheiqwtzwaaysqfuigy.supabase.co/rest/v1/" \
+            -H "apikey: sb_publishable_N0tXH2iBEmZvnktpESPVpw_DucbkeWB" \
+            -H "Authorization: Bearer sb_publishable_N0tXH2iBEmZvnktpESPVpw_DucbkeWB")
+          echo "Supabase Response HTTP Status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 500 ]; then
+            echo "✅ Supabase project is active and healthy!"
+          else
+            echo "⚠️ Unexpected status: $HTTP_STATUS"
+          fi

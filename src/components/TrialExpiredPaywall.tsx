@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
-import { adminGoogleSync } from '../services/adminGoogleScriptSync';
+import { adminGoogleSync } from '../services/supabase';
 import { exportDatabaseBackup } from '../db/db';
+
 
 export const TrialExpiredPaywall: React.FC = () => {
   const { user, activateVip, triggerConfetti } = useApp();
