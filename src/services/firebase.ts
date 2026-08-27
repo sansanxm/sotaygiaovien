@@ -115,17 +115,27 @@ class FirebaseService {
     return this.auth;
   }
 
-  // 1. License & VIP Management
+  // 1. License & VIP Management (Strictly scoped to each individual email account)
   public getLicenseStatus(email?: string): LicenseStatus {
     const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail) {
+      return {
+        isVip: false,
+        vipExpiresAt: null,
+        isTrial: true,
+        trialDaysLeft: 30,
+        trialExpiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+        statusText: 'Bản Dùng Thử Miễn Phí (30 ngày)',
+      };
+    }
+
     const vipKey = getUserScopedKey('vip_token', cleanEmail);
-    const universalVip = localStorage.getItem('gvcn_vip_token');
-    const localToken = localStorage.getItem(vipKey) || universalVip;
+    const localToken = localStorage.getItem(vipKey);
 
     if (localToken) {
       try {
         const parsed = JSON.parse(localToken);
-        if (parsed && parsed.isVip) {
+        if (parsed && parsed.isVip && parsed.email === cleanEmail) {
           return {
             isVip: true,
             vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
@@ -138,7 +148,7 @@ class FirebaseService {
       } catch {}
     }
 
-    // Default 30-day trial for unregistered guests
+    // Default 30-day trial for un-upgraded accounts
     return {
       isVip: false,
       vipExpiresAt: null,
@@ -158,8 +168,8 @@ class FirebaseService {
       activatedAt: new Date().toISOString(),
     };
     localStorage.setItem(getUserScopedKey('vip_token', cleanEmail), JSON.stringify(token));
-    localStorage.setItem('gvcn_vip_token', JSON.stringify(token));
-    localStorage.setItem('gvcn_active_vip_token', JSON.stringify(token));
+    localStorage.removeItem('gvcn_vip_token');
+    localStorage.removeItem('gvcn_active_vip_token');
   }
 
   public async checkVipStatusLive(user: TeacherUser | { email: string }): Promise<{ isVip: boolean; vipExpiresAt?: string | null }> {
@@ -168,7 +178,7 @@ class FirebaseService {
     return { isVip: lic.isVip, vipExpiresAt: lic.vipExpiresAt };
   }
 
-  // 2. Authentication (Firebase Auth with Offline Fallback)
+  // 2. Authentication (Strict Firebase Auth)
   public async signIn(
     email: string,
     password: string
@@ -181,43 +191,37 @@ class FirebaseService {
       return { user: null, error: new Error('Mật khẩu phải có ít nhất 6 ký tự!') };
     }
 
+    const auth = this.getAuthClient();
+    let displayName = 'Giáo viên';
+
+    if (auth) {
+      try {
+        const res = await signInWithEmailAndPassword(auth, cleanEmail, password);
+        if (res.user) {
+          displayName = res.user.displayName || 'Giáo viên';
+        }
+      } catch (authErr: any) {
+        if (authErr.code === 'auth/user-not-found' || authErr.code === 'auth/invalid-credential') {
+          return { user: null, error: new Error('Tài khoản chưa tồn tại hoặc sai mật khẩu! Vui lòng Đăng ký nếu chưa có tài khoản.') };
+        }
+        if (authErr.code === 'auth/wrong-password') {
+          return { user: null, error: new Error('Mật khẩu không chính xác!') };
+        }
+        return { user: null, error: new Error(authErr.message || 'Lỗi đăng nhập!') };
+      }
+    }
+
     const lic = this.getLicenseStatus(cleanEmail);
 
-    let teacherUser: TeacherUser = {
+    const teacherUser: TeacherUser = {
       id: cleanEmail,
       email: cleanEmail,
       isVip: lic.isVip,
       vipExpiresAt: lic.vipExpiresAt,
       user_metadata: {
-        full_name: 'Giáo viên',
+        full_name: displayName,
       },
     };
-
-    try {
-      const auth = this.getAuthClient();
-      if (auth) {
-        try {
-          const res = await signInWithEmailAndPassword(auth, cleanEmail, password);
-          if (res.user) {
-            teacherUser.user_metadata = {
-              full_name: res.user.displayName || 'Giáo viên',
-            };
-          }
-        } catch (authErr: any) {
-          // If user doesn't exist in Firebase Auth yet, try creating
-          if (authErr.code === 'auth/user-not-found' || authErr.code === 'auth/invalid-credential') {
-            try {
-              const signUpRes = await createUserWithEmailAndPassword(auth, cleanEmail, password);
-              if (signUpRes.user) {
-                teacherUser.user_metadata = {
-                  full_name: signUpRes.user.displayName || 'Giáo viên',
-                };
-              }
-            } catch {}
-          }
-        }
-      }
-    } catch {}
 
     this.activeUser = teacherUser;
     localStorage.setItem('gvcn_active_user_email', cleanEmail);
@@ -239,8 +243,26 @@ class FirebaseService {
       return { user: null, error: new Error('Mật khẩu phải có ít nhất 6 ký tự!') };
     }
 
-    // New signups start with standard 30-day Free Trial
-    let teacherUser: TeacherUser = {
+    const auth = this.getAuthClient();
+    if (auth) {
+      try {
+        const res = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+        if (res.user) {
+          try {
+            const { updateProfile } = await import('firebase/auth');
+            await updateProfile(res.user, { displayName: fullName.trim() || 'Giáo viên' });
+          } catch {}
+        }
+      } catch (authErr: any) {
+        if (authErr.code === 'auth/email-already-in-use') {
+          return { user: null, error: new Error('Email này đã được đăng ký! Vui lòng chọn thẻ Đăng nhập.') };
+        }
+        return { user: null, error: new Error(authErr.message || 'Lỗi đăng ký tài khoản!') };
+      }
+    }
+
+    // New signups strictly start with standard 30-day Free Trial (No free VIP leak)
+    const teacherUser: TeacherUser = {
       id: cleanEmail,
       email: cleanEmail,
       isVip: false,
@@ -250,21 +272,13 @@ class FirebaseService {
       },
     };
 
-    try {
-      const auth = this.getAuthClient();
-      if (auth) {
-        try {
-          await createUserWithEmailAndPassword(auth, cleanEmail, password);
-        } catch {}
-      }
-    } catch {}
-
     this.activeUser = teacherUser;
     localStorage.setItem('gvcn_active_user_email', cleanEmail);
     localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(teacherUser));
 
     return { user: teacherUser, error: null };
   }
+
 
 
   public async signOut(): Promise<void> {
