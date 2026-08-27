@@ -135,7 +135,7 @@ class FirebaseService {
     if (localToken) {
       try {
         const parsed = JSON.parse(localToken);
-        if (parsed && parsed.isVip && parsed.email === cleanEmail) {
+        if (parsed && parsed.isVip && (!parsed.email || parsed.email === cleanEmail)) {
           return {
             isVip: true,
             vipExpiresAt: parsed.vipExpiresAt || 'lifetime',
@@ -147,6 +147,7 @@ class FirebaseService {
         }
       } catch {}
     }
+
 
     // Default 30-day trial for un-upgraded accounts
     return {
@@ -408,12 +409,17 @@ class FirebaseService {
           if (snap.exists()) {
             const row = snap.data();
             if (row?.data) {
+              const isCloudVip = Boolean(row.data.vipToken?.isVip);
+              const vipExpires = row.data.vipToken?.vipExpiresAt || 'lifetime';
+              if (isCloudVip) {
+                this.setLocalVip(email, vipExpires);
+              }
               return {
                 success: true,
                 dataJson: JSON.stringify(row.data),
                 empty: false,
-                isVip: true,
-                vipExpiresAt: 'lifetime',
+                isVip: isCloudVip,
+                vipExpiresAt: isCloudVip ? vipExpires : null,
                 updatedAt: row.updatedAt,
                 syncAt: row.data._syncAt || Date.now(),
               };
@@ -438,19 +444,26 @@ class FirebaseService {
         const rows = await res.json();
         if (Array.isArray(rows) && rows.length > 0 && rows[0]?.data) {
           const row = rows[0];
+          const isCloudVip = Boolean(row.data.vipToken?.isVip);
+          const vipExpires = row.data.vipToken?.vipExpiresAt || 'lifetime';
+          if (isCloudVip) {
+            this.setLocalVip(email, vipExpires);
+          }
           return {
             success: true,
             dataJson: JSON.stringify(row.data),
             empty: false,
-            isVip: true,
-            vipExpiresAt: 'lifetime',
+            isVip: isCloudVip,
+            vipExpiresAt: isCloudVip ? vipExpires : null,
             updatedAt: row.updated_at,
             syncAt: row.data._syncAt || Date.now(),
           };
         }
       } catch {}
 
-      return { success: true, empty: true, isVip: true, vipExpiresAt: 'lifetime' };
+      const lic = this.getLicenseStatus(email);
+      return { success: true, empty: true, isVip: lic.isVip, vipExpiresAt: lic.vipExpiresAt };
+
     } catch (err: any) {
       return { success: false, error: err.message };
     }

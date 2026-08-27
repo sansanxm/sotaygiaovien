@@ -481,9 +481,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setUser(res.user);
       setSyncState('synced');
 
-      // Auto-activate lifetime VIP for signups
-      activateVip('lifetime');
-
       // Seed & Refresh
       await refreshAppData(res.user.email);
       triggerConfetti();
@@ -493,6 +490,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     return res;
   };
+
 
 
 
