@@ -518,11 +518,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 
 
-  // Bidirectional Cloud Sync
+  // Bidirectional Smart Cloud Sync (Compares timestamps between Local & Cloud)
   const syncWithCloud = useCallback(
-    async (direction: 'upload' | 'download' | 'both' = 'upload'): Promise<boolean> => {
+    async (direction: 'upload' | 'download' | 'both' | 'smart' = 'smart'): Promise<boolean> => {
       if (!user) {
-
         setSyncState('local-only');
         return false;
       }
@@ -539,42 +538,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         if (direction === 'download') {
           const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
-          const localStudentsCount = await db.students.count();
+          if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
+            await importDatabaseBackup(sbRes.dataJson, user.email);
+            if (sbRes.isVip) {
+              activateVip(sbRes.vipExpiresAt || 'lifetime');
+            }
+            await refreshAppData(user.email);
+            if (sbRes.syncAt) {
+              localStorage.setItem('gvcn_local_last_modified', sbRes.syncAt.toString());
+            }
+          }
+        } else if (direction === 'upload') {
+          const backupJson = await exportDatabaseBackup(user.email);
+          await supabaseService.uploadBackupToCloud(user as any, backupJson);
+          localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
+        } else {
+          // 'smart' or 'both'
+          const sbRes = await supabaseService.downloadBackupFromCloud(user as any);
+          const localLastModified = Number(localStorage.getItem('gvcn_local_last_modified') || '0');
+          const cloudSyncAt = Number(sbRes.syncAt || 0);
+
           const localClassesCount = await db.classes.count();
-          const hasLocalData = localStudentsCount > 0 || localClassesCount > 0;
+          const localStudentsCount = await db.students.count();
+          const hasLocalData = localClassesCount > 0 || localStudentsCount > 0;
 
           if (sbRes.success && sbRes.dataJson && !sbRes.empty) {
-            const parsed = JSON.parse(sbRes.dataJson);
-            const cloudStudentsCount = Array.isArray(parsed.students) ? parsed.students.length : 0;
-            const cloudClassesCount = Array.isArray(parsed.classes) ? parsed.classes.length : 0;
-
-            if (cloudStudentsCount === 0 && cloudClassesCount === 0 && hasLocalData) {
-              console.warn('Local has active data while Cloud is empty. Uploading local data to Cloud!');
-              const backupJson = await exportDatabaseBackup(user.email);
-              await supabaseService.uploadBackupToCloud(user as any, backupJson);
-            } else {
+            // Compare timestamps: If Cloud has newer changes from another machine/web:
+            if (cloudSyncAt > localLastModified || !hasLocalData) {
+              console.log('⚡ Cloud data is newer than local. Downloading from Cloud...');
               await importDatabaseBackup(sbRes.dataJson, user.email);
               if (sbRes.isVip) {
                 activateVip(sbRes.vipExpiresAt || 'lifetime');
               }
               await refreshAppData(user.email);
+              localStorage.setItem('gvcn_local_last_modified', cloudSyncAt.toString());
+            } else {
+              console.log('⚡ Local data is newer. Uploading to Cloud...');
+              const backupJson = await exportDatabaseBackup(user.email);
+              await supabaseService.uploadBackupToCloud(user as any, backupJson);
+              localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
             }
           } else {
-            // Cloud is empty for this user: Upload current local database to Supabase!
+            // Cloud is empty, upload local data
             const backupJson = await exportDatabaseBackup(user.email);
             await supabaseService.uploadBackupToCloud(user as any, backupJson);
+            localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
           }
-        } else {
-          // 'upload' - Export current user's local data and send to Supabase Cloud
-          const backupJson = await exportDatabaseBackup(user.email);
-          await supabaseService.uploadBackupToCloud(user as any, backupJson);
         }
 
         setSyncState('synced');
         setLastSyncedAt(new Date());
         return true;
-
-
       } catch (err) {
         console.error('Sync failed:', err);
         setSyncState('error');
@@ -617,10 +631,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setVipExpiresAt(lic.vipExpiresAt);
           }
 
-          // Auto-download cloud data if online & push local state
+          // Auto smart sync on app/web start
           if (navigator.onLine) {
-            await syncWithCloud('download');
-            setTimeout(() => syncWithCloud('upload'), 600);
+            await syncWithCloud('smart');
           }
         }
       } catch (err) {
@@ -640,6 +653,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearTimeout(safetyTimeout);
     };
   }, []);
+
 
   // 1. Supabase Realtime WebSocket Listener (Auto-sync from other devices in ~0.05s)
   useEffect(() => {
@@ -693,25 +707,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 
 
-  // Online / Offline network listeners
+  // Online / Offline & Window Focus/Visibility listeners (Smart Sync)
   useEffect(() => {
     const handleOnline = () => {
       if (user) {
-        syncWithCloud('upload');
+        syncWithCloud('smart');
       }
     };
     const handleOffline = () => {
       setSyncState('offline');
     };
 
+    const handleFocus = () => {
+      if (user && navigator.onLine && !syncingRef.current) {
+        console.log('🔄 Tab/Window focused. Checking for remote cloud updates...');
+        syncWithCloud('smart');
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        handleFocus();
+      }
+    };
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [user, syncWithCloud]);
+
 
   const setCurrentYearId = async (id: string) => {
     currentYearIdRef.current = id;

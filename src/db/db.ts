@@ -70,12 +70,16 @@ export const onDatabaseChanged = (listener: ChangeListener) => {
 
 const notifyDatabaseChange = () => {
   if (isInternalSyncing) return;
+  try {
+    localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
+  } catch {}
   changeListeners.forEach((fn) => {
     try {
       fn();
     } catch {}
   });
 };
+
 
 // Auto-register hooks on all Dexie tables
 const hookTableNames: (keyof GVCNDatabase)[] = [

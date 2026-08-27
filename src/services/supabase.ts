@@ -531,8 +531,11 @@ class SupabaseCloudSyncService {
     empty?: boolean;
     isVip?: boolean;
     vipExpiresAt?: string | null;
+    updatedAt?: string;
+    syncAt?: number;
     error?: string;
   }> {
+
     try {
       const client = this.getClient();
       const email = (user.email || '').trim().toLowerCase();
@@ -577,12 +580,15 @@ class SupabaseCloudSyncService {
         empty: false,
         isVip: isCloudVip,
         vipExpiresAt: isCloudVip ? vipExpires : null,
+        updatedAt: data.updated_at,
+        syncAt: (cloudPayload as any)?._syncAt || (data.updated_at ? new Date(data.updated_at).getTime() : 0),
       };
     } catch (err) {
       console.error('Download backup error:', err);
       return { success: false, error: (err as Error).message };
     }
   }
+
 
   // 4. Realtime WebSocket Subscription
   public subscribeToRealtime(
