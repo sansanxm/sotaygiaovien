@@ -171,6 +171,12 @@ export const TeacherNotebook: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const saveTimeoutRef = useRef<any>(null);
 
+  // Keep ref of selectedNoteId to avoid stale closure in loadData
+  const selectedNoteIdRef = useRef<string | null>(selectedNoteId);
+  useEffect(() => {
+    selectedNoteIdRef.current = selectedNoteId;
+  }, [selectedNoteId]);
+
   // Load Data
   const loadData = async () => {
     try {
@@ -179,9 +185,15 @@ export const TeacherNotebook: React.FC = () => {
       setFolders(dbFolders);
       setNotes(dbNotes);
 
-      // Auto-select first note if none selected
-      if (!selectedNoteId && dbNotes.length > 0) {
-        setSelectedNoteId(dbNotes[0].id);
+      const currentSelected = selectedNoteIdRef.current;
+      if (!currentSelected && dbNotes.length > 0) {
+        const firstId = dbNotes[0].id;
+        setSelectedNoteId(firstId);
+        selectedNoteIdRef.current = firstId;
+      } else if (currentSelected && !dbNotes.some((n) => n.id === currentSelected) && dbNotes.length > 0) {
+        const firstId = dbNotes[0].id;
+        setSelectedNoteId(firstId);
+        selectedNoteIdRef.current = firstId;
       }
     } catch (err) {
       console.error('Error loading notebook data:', err);
@@ -197,6 +209,7 @@ export const TeacherNotebook: React.FC = () => {
       unsub();
     };
   }, []);
+
 
 
   // Filtered Notes
@@ -381,9 +394,9 @@ export const TeacherNotebook: React.FC = () => {
     saveTimeoutRef.current = setTimeout(async () => {
       await db.teacherNotes.put(updated);
       setSaveStatus('saved');
-      if (user && navigator.onLine) syncWithCloud('upload');
     }, 600);
   };
+
 
   const handleDeleteNote = async (noteId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa ghi chép này không?')) {

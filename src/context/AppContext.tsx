@@ -714,10 +714,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!navigator.onLine) return;
       if (autoSyncTimerRef.current) clearTimeout(autoSyncTimerRef.current);
       autoSyncTimerRef.current = setTimeout(async () => {
-        console.log('⚡ Hands-free Auto Sync to Supabase Realtime...');
+        console.log('⚡ Smooth Auto Sync to Cloud...');
         await syncWithCloud('upload');
-      }, 500);
+      }, 2500);
     };
+
 
     const unsubscribe = onDatabaseChanged(handleLocalDataChanged);
 
