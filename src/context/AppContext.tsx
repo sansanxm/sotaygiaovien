@@ -239,6 +239,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const syncingRef = useRef(false);
   const autoSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentYearIdRef = useRef<string | null>(localStorage.getItem(getUserScopedKey('active_year_id', currentEmail)) || null);
+  const currentClassIdRef = useRef<string | null>(localStorage.getItem(getUserScopedKey('active_class_id', currentEmail)) || null);
+
 
 
 
@@ -354,10 +357,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const allYears = await db.years.toArray();
       setYears(allYears);
 
-      let activeY = allYears.find((y) => y.isCurrent) || allYears[0] || null;
-      if (currentYear) {
-        const found = allYears.find((y) => y.id === currentYear.id);
-        if (found) activeY = found;
+      const savedYearId = currentYearIdRef.current || localStorage.getItem(getUserScopedKey('active_year_id', activeEmail));
+      let activeY = (savedYearId && allYears.find((y) => y.id === savedYearId)) || allYears.find((y) => y.isCurrent) || allYears[0] || null;
+      if (activeY) {
+        currentYearIdRef.current = activeY.id;
+        localStorage.setItem(getUserScopedKey('active_year_id', activeEmail), activeY.id);
       }
       setCurrentYear(activeY);
 
@@ -365,10 +369,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const classList = await db.classes.where('yearId').equals(activeY.id).toArray();
         setClasses(classList);
 
-        let activeC = classList[0] || null;
-        if (currentClass) {
-          const foundC = classList.find((c) => c.id === currentClass.id);
-          if (foundC) activeC = foundC;
+        const savedClassId = currentClassIdRef.current || localStorage.getItem(getUserScopedKey('active_class_id', activeEmail));
+        let activeC = (savedClassId && classList.find((c) => c.id === savedClassId)) || classList[0] || null;
+        if (activeC) {
+          currentClassIdRef.current = activeC.id;
+          localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), activeC.id);
         }
         setCurrentClass(activeC);
       } else {
@@ -381,6 +386,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsLoading(false);
     }
   };
+
 
   // Helper to clear local in-memory database tables
   const wipeLocalTables = async () => {
@@ -670,22 +676,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [user, syncWithCloud]);
 
   const setCurrentYearId = async (id: string) => {
+    currentYearIdRef.current = id;
+    const activeEmail = user?.email || localStorage.getItem('gvcn_active_user_email') || null;
+    localStorage.setItem(getUserScopedKey('active_year_id', activeEmail), id);
 
     const found = years.find((y) => y.id === id);
     if (found) {
       setCurrentYear(found);
       const classList = await db.classes.where('yearId').equals(found.id).toArray();
       setClasses(classList);
-      setCurrentClass(classList[0] || null);
+
+      const savedClassId = currentClassIdRef.current || localStorage.getItem(getUserScopedKey('active_class_id', activeEmail));
+      const foundC = (savedClassId && classList.find((c) => c.id === savedClassId)) || classList[0] || null;
+      if (foundC) {
+        currentClassIdRef.current = foundC.id;
+        localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), foundC.id);
+      }
+      setCurrentClass(foundC);
     }
   };
 
   const setCurrentClassId = (id: string) => {
+    currentClassIdRef.current = id;
+    const activeEmail = user?.email || localStorage.getItem('gvcn_active_user_email') || null;
+    localStorage.setItem(getUserScopedKey('active_class_id', activeEmail), id);
+
     const found = classes.find((c) => c.id === id);
     if (found) {
       setCurrentClass(found);
     }
   };
+
 
   // Clear all data permanently and wipe cloud storage
   const clearAllData = async () => {
