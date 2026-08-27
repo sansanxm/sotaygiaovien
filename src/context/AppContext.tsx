@@ -4,13 +4,15 @@ import { db, exportDatabaseBackup, importDatabaseBackup, getUserScopedKey, onDat
 
 
 import { seedInitialDatabase } from '../db/initialData';
-import { supabaseService, type TeacherUser as CloudUser, type SyncState, type LicenseStatus } from '../services/supabase';
+import { firebaseService, type TeacherUser as CloudUser, type LicenseStatus } from '../services/firebase';
+import type { SyncState } from '../services/supabase';
 import type { SchoolYear, ClassRoom, ActiveTab, TeacherTitle, AppTheme } from '../types';
 import { VipUpgradeModal } from '../components/VipUpgradeModal';
 
-
+const supabaseService = firebaseService;
 
 export type { AppTheme, SyncState, CloudUser, LicenseStatus };
+
 
 
 

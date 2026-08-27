@@ -3,7 +3,6 @@
   "productName": "Sổ Tay Giáo Viên 4.0",
   "private": true,
   "version": "4.0.0",
-
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -18,7 +17,6 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-
   "build": {
     "appId": "com.xiaosystem.sotaygiaovien",
     "productName": "So Tay Giao Vien 4.0",
@@ -46,7 +44,6 @@
       "title": "So Tay Giao Vien 4.0",
       "icon": "build/icon.icns"
     },
-
     "win": {
       "target": [
         "nsis",
@@ -66,6 +63,7 @@
     "canvas-confetti": "^1.9.4",
     "dexie": "^4.4.5",
     "exceljs": "^4.4.0",
+    "firebase": "^12.18.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^1.34.0",
     "react": "^19.2.8",
