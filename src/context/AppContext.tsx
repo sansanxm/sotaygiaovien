@@ -735,6 +735,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Online / Offline & Window Focus/Visibility listeners (Smart Sync)
   useEffect(() => {
+    let lastBlurTimestamp = 0;
+
     const handleOnline = () => {
       if (user) {
         syncWithCloud('smart');
@@ -744,9 +746,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSyncState('offline');
     };
 
+    const handleBlur = () => {
+      lastBlurTimestamp = Date.now();
+    };
+
     const handleFocus = () => {
-      if (user && navigator.onLine && !syncingRef.current) {
-        console.log('🔄 Tab/Window focused. Checking for remote cloud updates...');
+      const now = Date.now();
+      // Only perform smart sync if user was actually away for > 15 seconds to avoid dialog closing race conditions
+      if (user && navigator.onLine && !syncingRef.current && lastBlurTimestamp > 0 && now - lastBlurTimestamp > 15000) {
+        console.log('🔄 Tab/Window focused after being away. Checking for remote cloud updates...');
         syncWithCloud('smart');
       }
     };
@@ -754,21 +762,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         handleFocus();
+      } else {
+        handleBlur();
       }
     };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('blur', handleBlur);
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [user, syncWithCloud]);
+
 
 
   const setCurrentYearId = async (id: string) => {

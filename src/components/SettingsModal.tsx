@@ -160,10 +160,11 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
       localStorage.removeItem('gvcn_active_class_id_universal');
       await refreshAppData();
       if (user && navigator.onLine) {
-        syncWithCloud('upload');
+        await syncWithCloud('upload');
       }
     }
   };
+
 
   const handleAddClass = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,7 +191,7 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
     await refreshAppData();
     triggerConfetti();
     if (user && navigator.onLine) {
-      syncWithCloud('upload');
+      await syncWithCloud('upload');
     }
   };
 
@@ -210,10 +211,11 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
       triggerConfetti();
       
       if (user && navigator.onLine) {
-        syncWithCloud('upload');
+        await syncWithCloud('upload');
       }
     }
   };
+
 
 
   const handleExport = async () => {

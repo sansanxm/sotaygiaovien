@@ -160,10 +160,11 @@ export const StudentList: React.FC = () => {
       await loadStudents();
       triggerConfetti();
       if (user && navigator.onLine) {
-        syncWithCloud('upload');
+        await syncWithCloud('upload');
       }
     }
   };
+
 
 
   const handleExportExcel = async () => {
