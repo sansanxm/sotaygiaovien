@@ -2,21 +2,115 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Dices,
   Star,
-  Users,
-  CheckCircle2,
   Trophy,
   RotateCcw,
-  Sparkles,
   Maximize,
   Minimize,
   X,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '../context/AppContext';
 import { db } from '../db/db';
 import type { Student, BehaviorLog } from '../types';
 
-import { getStudentInitial } from '../utils/studentHelper';
+
+// Web Audio API Synthesizer for Zero-Latency Spin Sounds
+let audioCtx: AudioContext | null = null;
+
+const getAudioContext = () => {
+  if (!audioCtx) {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioCtx) {
+      audioCtx = new AudioCtx();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+};
+
+// Crisp tick sound when wheel needle passes segment pin
+const playTickSound = (speedRatio: number) => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    const baseFreq = 480 + Math.max(0, speedRatio) * 520;
+    osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.035);
+
+    gain.gain.setValueAtTime(0.28, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.035);
+  } catch {}
+};
+
+// Grand Victory Fanfare audio effect when wheel lands on winner
+const playVictorySound = () => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const notes = [
+      { f: 523.25, time: 0, duration: 0.15 },    // C5
+      { f: 659.25, time: 0.12, duration: 0.15 }, // E5
+      { f: 783.99, time: 0.24, duration: 0.15 }, // G5
+      { f: 1046.50, time: 0.36, duration: 0.4 }, // C6
+    ];
+
+    notes.forEach((n) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(n.f, ctx.currentTime + n.time);
+
+      gain.gain.setValueAtTime(0, ctx.currentTime + n.time);
+      gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + n.time + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.time + n.duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(ctx.currentTime + n.time);
+      osc.stop(ctx.currentTime + n.time + n.duration);
+    });
+
+    // Grand victory chord arpeggio burst
+    setTimeout(() => {
+      if (!ctx) return;
+      [1046.50, 1318.51, 1567.98].forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 1.2);
+      });
+    }, 450);
+
+  } catch {}
+};
+
 
 export const RandomPicker: React.FC = () => {
   const { currentClass } = useApp();
@@ -28,7 +122,7 @@ export const RandomPicker: React.FC = () => {
   const [showWinnerPopup, setShowWinnerPopup] = useState<boolean>(false);
   const [calledHistory, setCalledHistory] = useState<Student[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
-
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,11 +197,20 @@ export const RandomPicker: React.FC = () => {
     ctx.fill();
     ctx.restore();
 
+    // Draw Wheel Outer Ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius + 4, 0, 2 * Math.PI);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.15)';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.restore();
+
     // Draw Segments
-    for (let i = 0; i < numSegments; i++) {
+    students.forEach((st, i) => {
       const startAngle = rotationAngle + i * segmentAngle;
       const endAngle = startAngle + segmentAngle;
-      const student = students[i];
 
       ctx.save();
       ctx.beginPath();
@@ -115,10 +218,9 @@ export const RandomPicker: React.FC = () => {
       ctx.arc(centerX, centerY, radius, startAngle, endAngle);
       ctx.closePath();
 
-      // Alternating pastel color
       ctx.fillStyle = wheelColors[i % wheelColors.length];
       ctx.fill();
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 1.5;
       ctx.strokeStyle = '#ffffff';
       ctx.stroke();
 
@@ -128,35 +230,38 @@ export const RandomPicker: React.FC = () => {
       ctx.rotate(startAngle + segmentAngle / 2);
       ctx.textAlign = 'right';
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 13px Quicksand, Nunito, sans-serif';
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur = 4;
+      ctx.font = 'bold 13px Nunito, sans-serif';
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 3;
 
-      // Truncate name if long
-      const displayName = student.fullName.length > 15 ? student.fullName.slice(0, 13) + '..' : student.fullName;
-      ctx.fillText(displayName, radius - 20, 5);
+      // Truncate long names
+      let nameText = `${st.rollNumber}. ${st.fullName}`;
+      if (numSegments > 25 && nameText.length > 12) {
+        nameText = nameText.slice(0, 10) + '...';
+      }
+      ctx.fillText(nameText, radius - 20, 4);
       ctx.restore();
 
       ctx.restore();
-    }
+    });
 
     // Draw Center Circle Cap
     ctx.save();
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 34, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, 38, 0, 2 * Math.PI);
     ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = 'rgba(0,0,0,0.2)';
+    ctx.shadowBlur = 8;
     ctx.fill();
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = '#f472b6';
     ctx.stroke();
 
-    // Center emoji / star
+    // Center Icon / Text
+    ctx.fillStyle = '#db2777';
+    ctx.font = 'black 14px Quicksand, sans-serif';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = '22px sans-serif';
-    ctx.fillText('🎯', centerX, centerY);
+    ctx.fillText('GVCN 4.0', centerX, centerY + 5);
     ctx.restore();
   };
 
@@ -164,17 +269,18 @@ export const RandomPicker: React.FC = () => {
     drawWheel(currentRotationRef.current);
   }, [students]);
 
+  // Grand Confetti Burst
   const triggerGrandConfetti = () => {
     const count = 200;
-    const defaults = { origin: { y: 0.6 } };
+    const defaults = { origin: { y: 0.7 } };
 
-    const fire = (particleRatio: number, opts: confetti.Options) => {
+    function fire(particleRatio: number, opts: confetti.Options) {
       confetti({
         ...defaults,
         ...opts,
         particleCount: Math.floor(count * particleRatio),
       });
-    };
+    }
 
     fire(0.25, { spread: 26, startVelocity: 55 });
     fire(0.2, { spread: 60 });
@@ -183,7 +289,7 @@ export const RandomPicker: React.FC = () => {
     fire(0.1, { spread: 120, startVelocity: 45 });
   };
 
-  // Spin Wheel with Easing
+  // Spin Wheel with Easing & Sound Effects
   const spinWheel = () => {
     if (isSpinning || students.length === 0) return;
 
@@ -221,6 +327,7 @@ export const RandomPicker: React.FC = () => {
     const duration = 4800; // 4.8 seconds
 
     const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    let lastPinIndex = -1;
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
@@ -230,6 +337,15 @@ export const RandomPicker: React.FC = () => {
       const currentAngle = startRotation + (finalRotation - startRotation) * easedProgress;
       currentRotationRef.current = currentAngle;
       drawWheel(currentAngle);
+
+      // Play tick sound when needle passes a segment boundary pin
+      const currentPinIndex = Math.floor(currentAngle / segmentAngle);
+      if (currentPinIndex !== lastPinIndex) {
+        lastPinIndex = currentPinIndex;
+        if (soundEnabled) {
+          playTickSound(1 - progress);
+        }
+      }
 
       if (progress < 1) {
         animationFrameRef.current = requestAnimationFrame(animate);
@@ -241,6 +357,10 @@ export const RandomPicker: React.FC = () => {
           const newHistory = [...chosenWinners, ...prev.filter((p) => !chosenWinners.some((w) => w.id === p.id))];
           return newHistory.slice(0, 15);
         });
+
+        if (soundEnabled) {
+          playVictorySound();
+        }
         triggerGrandConfetti();
       }
     };
@@ -281,20 +401,21 @@ export const RandomPicker: React.FC = () => {
 
     await db.behaviorLogs.add(newLog);
     triggerGrandConfetti();
-    alert(`Đã cộng +${points} điểm sao cho em ${targetStudent.fullName}! ⭐`);
+    alert(`Đã cộng +${points} điểm cho em ${targetStudent.fullName}! ⭐`);
   };
 
+  if (!currentClass) {
+    return (
+      <div className="glass-card p-12 rounded-3xl text-center text-slate-500 font-bold">
+        Vui lòng chọn hoặc tạo Lớp học để sử dụng Vòng quay may mắn! 🎲
+      </div>
+    );
+  }
 
   return (
-    <div
-      ref={containerRef}
-      style={isFullscreen ? { background: 'var(--theme-bg-gradient)' } : undefined}
-      className={`space-y-6 animate-in fade-in duration-300 ${
-        isFullscreen ? 'p-6 sm:p-10 min-h-screen overflow-y-auto' : ''
-      }`}
-    >
+    <div ref={containerRef} className={`space-y-6 animate-in fade-in duration-300 ${isFullscreen ? 'bg-slate-900 p-6 overflow-y-auto min-h-screen text-white' : ''}`}>
       
-      {/* Top Header Bar */}
+      {/* Header Bar */}
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-lg sm:text-2xl font-black text-slate-800 flex items-center gap-2.5">
@@ -305,10 +426,24 @@ export const RandomPicker: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div className="text-xs sm:text-sm font-extrabold theme-badge px-4 py-2 rounded-2xl">
             Sĩ số: {students.length} học sinh
           </div>
+
+          {/* Sound Toggle Button */}
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`px-3.5 py-2.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer border ${
+              soundEnabled
+                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 shadow-xs'
+                : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+            }`}
+            title={soundEnabled ? 'Tắt âm thanh quay' : 'Bật âm thanh quay & nhạc mừng'}
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-amber-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+            <span className="hidden sm:inline">{soundEnabled ? 'Nhạc: Bật 🔊' : 'Nhạc: Tắt 🔇'}</span>
+          </button>
 
           {/* Fullscreen Toggle Button */}
           <button
@@ -317,7 +452,7 @@ export const RandomPicker: React.FC = () => {
             title={isFullscreen ? 'Thoát toàn màn hình' : 'Mở toàn màn hình cho cả lớp quan sát'}
           >
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-            <span>{isFullscreen ? 'Thu nhỏ màn hình' : 'Toàn màn hình 📺'}</span>
+            <span>{isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình 📺'}</span>
           </button>
         </div>
       </div>
@@ -354,365 +489,165 @@ export const RandomPicker: React.FC = () => {
             ))}
           </div>
 
-          {/* Wheel Pointer (Kim chỉ trên đỉnh) */}
+          {/* Wheel Pointer */}
           <div className="relative z-20 flex flex-col items-center -mb-4">
             <div className="w-7 h-10 theme-btn-primary rounded-b-full shadow-2xl border-2 border-white flex items-center justify-center transform drop-shadow-lg">
               <span className="text-[12px] text-white font-black">▼</span>
             </div>
           </div>
 
-          {/* The Canvas Wheel */}
-          <div className="relative my-2">
+          {/* Canvas Container */}
+          <div className="relative z-10 p-2">
             <canvas
               ref={canvasRef}
-              width={isFullscreen ? 520 : 440}
-              height={isFullscreen ? 520 : 440}
-              className="max-w-full h-auto drop-shadow-2xl transition-all"
+              width={440}
+              height={440}
+              className="max-w-full h-auto drop-shadow-xl"
             />
           </div>
 
           {/* Spin Trigger Button */}
-          <div className="mt-6">
-            <button
-              disabled={isSpinning || students.length === 0}
-              onClick={spinWheel}
-              className={`px-10 py-4 rounded-3xl font-black text-base sm:text-xl flex items-center justify-center gap-3 shadow-2xl transition-all cursor-pointer ${
-                isSpinning
-                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                  : 'theme-btn-primary text-white transform hover:scale-105 active:scale-95'
-              }`}
-            >
-              <RotateCcw className={`w-6 h-6 ${isSpinning ? 'animate-spin' : ''}`} />
-              <span>
-                {isSpinning
-                  ? `Đang quay chọn ${pickCount} học sinh...`
-                  : `Quay gọi ${pickCount} học sinh 🎯`}
-              </span>
-            </button>
-          </div>
-
+          <button
+            disabled={isSpinning || students.length === 0}
+            onClick={spinWheel}
+            className="mt-6 z-20 px-8 py-3.5 rounded-2xl theme-btn-primary font-black text-sm sm:text-base shadow-xl flex items-center gap-2.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60"
+          >
+            <Dices className={`w-5 h-5 ${isSpinning ? 'animate-spin' : ''}`} />
+            <span>{isSpinning ? 'Đang quay ngẫu nhiên...' : 'QUAY NGAY HÔM NAY! 🎲'}</span>
+          </button>
         </div>
 
-        {/* Right Column: History List */}
-        <div className="space-y-6">
-          
-          {/* Winner Snapshot Card */}
-          <div className="glass-card p-6 rounded-3xl text-center space-y-4">
-            <h3 className="text-sm font-black uppercase tracking-wider theme-text flex items-center justify-center gap-1.5">
-              <Sparkles className="w-4 h-4" /> Vừa bốc thăm gần nhất
-            </h3>
-
-            {winners.length > 0 ? (
-              <div className="space-y-3">
-                {winners.length === 1 ? (
-                  <>
-                    {winners[0].avatarUrl ? (
-                      <img
-                        src={winners[0].avatarUrl}
-                        alt={winners[0].fullName}
-                        className="w-20 h-20 rounded-full mx-auto border-4 theme-card-border shadow-md object-cover"
-                      />
-                    ) : (
-                      <div
-                        className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center font-black text-2xl shadow-md border-4 ${
-                          winners[0].gender === 'Nữ'
-                            ? 'bg-rose-200 text-rose-800 border-rose-300'
-                            : 'bg-sky-200 text-sky-800 border-sky-300'
-                        }`}
-                      >
-                        {getStudentInitial(winners[0].fullName)}
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="text-xl font-black text-slate-800">{winners[0].fullName}</h4>
-                      <p className="text-xs sm:text-sm font-bold theme-text">
-                        STT: {winners[0].rollNumber} • Giới tính: {winners[0].gender}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold theme-text block">
-                      Đã chọn {winners.length} học sinh cùng lúc:
-                    </span>
-                    <div className="grid grid-cols-2 gap-2">
-                      {winners.map((w) => (
-                        <div
-                          key={w.id}
-                          className="p-2 rounded-xl bg-white border border-slate-200 text-left flex items-center gap-2 shadow-2xs"
-                        >
-                          {w.avatarUrl ? (
-                            <img src={w.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
-                          ) : (
-                            <span className="w-7 h-7 rounded-full theme-soft-bg theme-text font-bold text-xs flex items-center justify-center shrink-0">
-                              {getStudentInitial(w.fullName)}
-                            </span>
-                          )}
-                          <div className="truncate">
-                            <p className="font-extrabold text-xs text-slate-800 truncate">{w.fullName}</p>
-                            <p className="text-[10px] text-slate-400 font-semibold">#{w.rollNumber}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  onClick={() => setShowWinnerPopup(true)}
-                  className="px-4 py-2 rounded-xl theme-btn-secondary text-xs font-bold transition-colors cursor-pointer w-full mt-2"
-                >
-                  Xem lại bảng chúc mừng 🎊
-                </button>
-              </div>
-            ) : (
-              <div className="py-8 text-xs sm:text-sm text-slate-400 font-medium">
-                Bấm nút "QUAY GỌI HỌC SINH" để bắt đầu!
-              </div>
-            )}
-          </div>
-
-          {/* Called History */}
-          <div className="glass-card p-6 rounded-3xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-xl theme-soft-bg theme-text">
-                  <Users className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700">
-                  Đã gọi gần đây
-                </h4>
-              </div>
-
-
-              {calledHistory.length > 0 && (
-                <button
-                  onClick={() => setCalledHistory([])}
-                  className="text-xs font-bold text-slate-400 hover:text-pink-600 cursor-pointer"
-                >
-                  Xóa
-                </button>
-              )}
+        {/* Right Column: History of Called Students */}
+        <div className="glass-card p-6 rounded-3xl flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-800 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" /> Lịch sử gọi tên gần nhất
+              </h3>
+              <span className="text-xs font-bold text-slate-400">Top 15</span>
             </div>
 
             {calledHistory.length === 0 ? (
-              <p className="text-xs sm:text-sm text-slate-400 text-center py-4">Chưa có lượt quay nào</p>
+              <div className="text-center py-12 text-slate-400 text-xs font-semibold">
+                Chưa có học sinh nào được gọi. Hãy nhấn nút "Quay ngay" để bắt đầu! 🌸
+              </div>
             ) : (
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+              <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
                 {calledHistory.map((st, idx) => (
                   <div
                     key={`${st.id}-${idx}`}
-                    className="p-3 rounded-2xl bg-white/90 border theme-card-border flex items-center justify-between text-xs sm:text-sm font-bold text-slate-800 shadow-2xs"
+                    className="p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      {st.avatarUrl ? (
-                        <img src={st.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover" />
-                      ) : (
-                        <span className="w-6 h-6 rounded-full theme-soft-bg theme-text font-black text-xs flex items-center justify-center">
-                          {getStudentInitial(st.fullName)}
-                        </span>
-                      )}
-                      <span>{st.fullName}</span>
+                      <span className="w-6 h-6 rounded-xl bg-amber-100 text-amber-800 font-extrabold text-[11px] flex items-center justify-center">
+                        #{idx + 1}
+                      </span>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">
+                          {st.rollNumber}. {st.fullName}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-medium">Giới tính: {st.gender}</div>
+                      </div>
                     </div>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+
+                    <button
+                      onClick={() => handleAddStarToSingleWinner(st, 1, 'Hăng hái phát biểu (Vòng quay)')}
+                      className="px-2 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold border border-amber-200 flex items-center gap-1 transition-colors cursor-pointer"
+                      title="Cộng 1 sao thi đua"
+                    >
+                      <Star className="w-3 h-3 text-amber-500 fill-amber-400" /> +1 Sao
+                    </button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
+          {calledHistory.length > 0 && (
+            <button
+              onClick={() => setCalledHistory([])}
+              className="w-full mt-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center gap-1 transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Xóa lịch sử gọi
+            </button>
+          )}
         </div>
 
       </div>
 
-      {/* =========================================================
-          GIANT CENTER WINNER POPUP MODAL (1, 2, 3, or 4 Students)
-          ========================================================= */}
+      {/* Winner Popup Modal */}
       {showWinnerPopup && winners.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-          <div
-            className={`bg-white rounded-3xl w-full border-4 border-amber-300 shadow-2xl overflow-hidden text-center relative p-6 sm:p-8 animate-in zoom-in-95 duration-300 ${
-              winners.length === 1 ? 'max-w-xl' : 'max-w-4xl'
-            }`}
-          >
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border theme-card-border shadow-2xl animate-in zoom-in-95 text-center relative overflow-hidden">
             
-            {/* Close button */}
-            <button
-              onClick={() => setShowWinnerPopup(false)}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center cursor-pointer transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Sparkles Ribbon */}
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 text-amber-950 font-black text-xs sm:text-sm uppercase tracking-widest shadow-lg shadow-amber-300/50 mb-4 animate-bounce">
-              <Sparkles className="w-4 h-4" />
-              {winners.length === 1
-                ? 'CHÚC MỪNG HỌC SINH MAY MẮN 🎉'
-                : `CHÚC MỪNG ${winners.length} HỌC SINH ĐƯỢC GỌI 🎉`}
+            {/* Top Confetti & Trophy Header */}
+            <div className="w-20 h-20 mx-auto rounded-full theme-soft-bg border-2 theme-card-border flex items-center justify-center text-3xl shadow-inner mb-3 animate-bounce">
+              🎉
             </div>
 
-            {/* Case 1: Single Winner */}
-            {winners.length === 1 && (
-              <>
-                <div className="my-4 relative inline-block">
-                  {winners[0].avatarUrl ? (
-                    <img
-                      src={winners[0].avatarUrl}
-                      alt={winners[0].fullName}
-                      className="w-32 h-32 sm:w-40 sm:h-40 rounded-full mx-auto border-4 border-amber-400 shadow-2xl object-cover"
-                    />
-                  ) : (
-                    <div
-                      className={`w-32 h-32 sm:w-40 sm:h-40 rounded-full mx-auto flex items-center justify-center font-black text-5xl sm:text-6xl shadow-2xl border-4 ${
-                        winners[0].gender === 'Nữ'
-                          ? 'bg-gradient-to-tr from-pink-300 to-rose-200 text-pink-900 border-pink-400'
-                          : 'bg-gradient-to-tr from-sky-300 to-blue-200 text-sky-900 border-sky-400'
-                      }`}
-                    >
-                      {getStudentInitial(winners[0].fullName)}
-                    </div>
-                  )}
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-amber-400 border-2 border-white text-white flex items-center justify-center font-black text-lg shadow-md">
-                    ⭐
-                  </div>
-                </div>
+            <h3 className="text-lg sm:text-xl font-black theme-text uppercase tracking-tight">
+              CHÚC MỪNG HỌC SINH ĐƯỢC CHỌN!
+            </h3>
+            <p className="text-xs text-slate-500 font-bold mt-1">
+              Thầy/Cô hãy gọi các em lên bảng hoặc chuẩn bị trả lời nhé!
+            </p>
 
-                <div className="space-y-1 my-3">
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-                    {winners[0].fullName}
-                  </h2>
-                  <p className="text-sm sm:text-base font-extrabold text-pink-600">
-                    STT: {winners[0].rollNumber} • Giới tính: {winners[0].gender} • {currentClass?.name}
-                  </p>
-                </div>
-
-                {/* Instant Star Reward Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-100">
-                  <button
-                    onClick={() => handleAddStarToSingleWinner(winners[0], 5, 'Trả lời bài cũ xuất sắc')}
-                    className="py-3 px-4 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-300 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-transform active:scale-95"
-                  >
-                    <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
-                    <span>+5 Sao Bài Cũ Tốt ⭐</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleAddStarToSingleWinner(winners[0], 10, 'Phát biểu đúng câu hỏi khó')}
-                    className="py-3 px-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-2 border-emerald-300 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-transform active:scale-95"
-                  >
-                    <Trophy className="w-4 h-4 text-emerald-600" />
-                    <span>+10 Sao Điểm 10 🏆</span>
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* Case 2: Multi Winners (2, 3, or 4 students) */}
-            {winners.length > 1 && (
-              <div className="my-4 space-y-4">
+            {/* Winner List */}
+            <div className="my-5 space-y-2.5">
+              {winners.map((w, idx) => (
                 <div
-                  className={`grid gap-4 ${
-                    winners.length === 2
-                      ? 'grid-cols-1 sm:grid-cols-2'
-                      : winners.length === 3
-                      ? 'grid-cols-1 sm:grid-cols-3'
-                      : 'grid-cols-2 sm:grid-cols-4'
-                  }`}
+                  key={w.id}
+                  className="p-3.5 rounded-2xl theme-soft-bg border theme-card-border shadow-xs flex items-center justify-between"
                 >
-                  {winners.map((st, idx) => (
-                    <div
-                      key={st.id}
-                      className="p-4 rounded-3xl bg-slate-50 border-2 border-amber-200/80 shadow-md flex flex-col items-center justify-between text-center relative space-y-2 hover:border-amber-400 transition-all"
-                    >
-                      <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-amber-400 text-white font-black text-xs flex items-center justify-center shadow-xs">
-                        {idx + 1}
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-full theme-btn-primary font-black text-xs flex items-center justify-center shadow-xs">
+                      #{idx + 1}
+                    </span>
+                    <div className="text-left">
+                      <div className="text-sm font-black text-slate-800">
+                        {w.rollNumber}. {w.fullName}
                       </div>
-
-                      {st.avatarUrl ? (
-                        <img
-                          src={st.avatarUrl}
-                          alt={st.fullName}
-                          className="w-20 h-20 rounded-full object-cover border-4 border-amber-300 shadow-md"
-                        />
-                      ) : (
-                        <div
-                          className={`w-20 h-20 rounded-full flex items-center justify-center font-black text-2xl shadow-md border-4 ${
-                            st.gender === 'Nữ'
-                              ? 'bg-rose-200 text-rose-800 border-rose-300'
-                              : 'bg-sky-200 text-sky-800 border-sky-300'
-                          }`}
-                        >
-                          {getStudentInitial(st.fullName)}
-                        </div>
-                      )}
-
-                      <div>
-                        <h4 className="text-base sm:text-lg font-black text-slate-800 leading-tight">
-                          {st.fullName}
-                        </h4>
-                        <p className="text-xs font-bold theme-text mt-0.5">
-                          STT: {st.rollNumber} • {st.gender}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => handleAddStarToSingleWinner(st, 5, 'Phát biểu hăng hái')}
-                        className="w-full py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-extrabold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                      >
-                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                        <span>+5 Sao</span>
-                      </button>
+                      <div className="text-xs font-semibold text-slate-500">Giới tính: {w.gender}</div>
                     </div>
-                  ))}
-                </div>
-
-                {/* Group Star Reward Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
-                  <button
-                    onClick={() => handleAddStarToAllWinners(5, 'Trả lời bài tốt')}
-                    className="py-3 px-4 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border-2 border-amber-300 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-transform active:scale-95"
-                  >
-                    <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
-                    <span>+5 Sao Cho Cả {winners.length} Bạn ⭐</span>
-                  </button>
+                  </div>
 
                   <button
-                    onClick={() => handleAddStarToAllWinners(10, 'Nhóm hoàn thành xuất sắc')}
-                    className="py-3 px-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-2 border-emerald-300 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-transform active:scale-95"
+                    onClick={() => handleAddStarToSingleWinner(w, 1, 'Hăng hái trả lời (Vòng quay)')}
+                    className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 font-extrabold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                   >
-                    <Trophy className="w-4 h-4 text-emerald-600" />
-                    <span>+10 Sao Cho Cả {winners.length} Bạn 🏆</span>
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> +1 Sao
                   </button>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
 
-            {/* Action Bottom */}
-            <div className="mt-4 flex gap-2">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
               <button
-                onClick={() => {
-                  setShowWinnerPopup(false);
-                  setTimeout(spinWheel, 300);
-                }}
-                className="flex-1 py-3 rounded-2xl theme-btn-primary text-white font-extrabold text-sm sm:text-base shadow-lg transition-transform active:scale-95 cursor-pointer"
+                onClick={() => handleAddStarToAllWinners(1, 'Khen thưởng Vòng quay may mắn')}
+                className="w-full sm:flex-1 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all"
               >
-                🎯 Quay Lượt Tiếp Theo
+                <Star className="w-4 h-4 fill-white" /> Cộng +1 Sao cả {winners.length} em
               </button>
 
               <button
                 onClick={() => setShowWinnerPopup(false)}
-                className="px-6 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-sm cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer active:scale-95 transition-all"
               >
                 Đóng
               </button>
             </div>
 
+            <button
+              onClick={() => setShowWinnerPopup(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
           </div>
         </div>
       )}
-
 
     </div>
   );
