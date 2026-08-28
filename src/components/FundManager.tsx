@@ -10,9 +10,8 @@ import {
   Download,
   Share2,
   DollarSign,
-  TrendingUp,
-  TrendingDown,
 } from 'lucide-react';
+
 
 import html2canvas from 'html2canvas';
 import { useApp } from '../context/AppContext';
@@ -202,7 +201,7 @@ export const FundManager: React.FC = () => {
               setTransType('expense');
               setShowAddModal(true);
             }}
-            className="px-4 py-2 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-pink-300/50 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-2xl theme-btn-primary text-xs font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer active:scale-95"
           >
             <Plus className="w-4 h-4" /> Thêm thu / chi
           </button>
@@ -226,8 +225,8 @@ export const FundManager: React.FC = () => {
             </span>
             <span className="text-xs font-bold text-emerald-600">đ</span>
           </div>
-          <div className="mt-2 text-xs font-semibold text-emerald-700 flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> Quỹ đóng góp từ CMHS
+          <div className="mt-2 text-xs font-semibold text-emerald-600">
+            Quỹ đóng góp từ CMHS
           </div>
         </div>
 
@@ -245,8 +244,8 @@ export const FundManager: React.FC = () => {
             </span>
             <span className="text-xs font-bold text-rose-600">đ</span>
           </div>
-          <div className="mt-2 text-xs font-semibold text-rose-700 flex items-center gap-1">
-            <TrendingDown className="w-3.5 h-3.5" /> Hoạt động, quà thưởng, mua sắm
+          <div className="mt-2 text-xs font-semibold text-rose-600">
+            Hoạt động, quà thưởng, mua sắm
           </div>
         </div>
 
@@ -272,13 +271,13 @@ export const FundManager: React.FC = () => {
       </div>
 
       {/* Sub Tabs: Sổ Giao Dịch vs Theo Dõi Đóng Tiền Học Sinh */}
-      <div className="flex gap-2 border-b border-pink-200/80 pb-2">
+      <div className="flex gap-2 border-b theme-card-border pb-2">
         <button
           onClick={() => setActiveSubTab('history')}
           className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeSubTab === 'history'
-              ? 'bg-pink-500 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:bg-pink-50'
+              ? 'theme-btn-primary shadow-xs'
+              : 'bg-white text-slate-600 hover:theme-soft-bg'
           }`}
         >
           Sổ giao dịch thu - chi ({transactions.length})
@@ -288,8 +287,8 @@ export const FundManager: React.FC = () => {
           onClick={() => setActiveSubTab('tracking')}
           className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeSubTab === 'tracking'
-              ? 'bg-pink-500 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:bg-pink-50'
+              ? 'theme-btn-primary shadow-xs'
+              : 'bg-white text-slate-600 hover:theme-soft-bg'
           }`}
         >
           Theo dõi đóng tiền từng học sinh ({collectionCampaigns.length} đợt)
@@ -299,7 +298,7 @@ export const FundManager: React.FC = () => {
 
       {/* View 1: History Transactions */}
       {activeSubTab === 'history' ? (
-        <div className="glass-card rounded-3xl overflow-hidden shadow-xs border border-pink-200/80">
+        <div className="glass-card rounded-3xl overflow-hidden shadow-xs border theme-card-border">
           {transactions.length === 0 ? (
             <div className="text-center py-12 text-slate-400 text-xs font-semibold">
               Chưa có khoản thu chi nào. Bấm nút "Thêm Thu / Chi" để bắt đầu ghi chép.
@@ -307,7 +306,7 @@ export const FundManager: React.FC = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-pink-100/70 text-pink-900 uppercase font-extrabold text-[11px]">
+                <thead className="theme-soft-bg theme-text uppercase font-extrabold text-[11px]">
                   <tr>
                     <th className="py-3 px-4">Ngày</th>
                     <th className="py-3 px-4">Loại</th>
@@ -437,9 +436,9 @@ export const FundManager: React.FC = () => {
       {/* Modal Add Transaction */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-pink-800 mb-4 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-pink-500" /> Thêm khoản thu / chi mới
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border theme-card-border shadow-2xl animate-in zoom-in-95">
+            <h3 className="text-lg font-bold theme-text mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 theme-text" /> Thêm khoản thu / chi mới
             </h3>
 
             <form onSubmit={handleSaveTransaction} className="space-y-4 text-xs sm:text-sm">
@@ -476,7 +475,7 @@ export const FundManager: React.FC = () => {
                   value={transTitle}
                   onChange={(e) => setTransTitle(e.target.value)}
                   placeholder="Ví dụ: Thu quỹ học kỳ 1, Mua hoa 20/11..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
                 />
               </div>
 
@@ -490,7 +489,7 @@ export const FundManager: React.FC = () => {
                     required
                     value={transAmount}
                     onChange={(e) => setTransAmount(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-bold text-pink-600"
+                    className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-bold theme-text"
                   />
                 </div>
                 <div>
@@ -500,7 +499,7 @@ export const FundManager: React.FC = () => {
                     required
                     value={transDate}
                     onChange={(e) => setTransDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                    className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
                   />
                 </div>
               </div>
@@ -511,7 +510,7 @@ export const FundManager: React.FC = () => {
                   <select
                     value={transCategory}
                     onChange={(e) => setTransCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                    className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
                   >
                     <option value="Quỹ lớp">Quỹ lớp</option>
                     <option value="Hoạt động">Hoạt động, dã ngoại</option>
@@ -527,14 +526,14 @@ export const FundManager: React.FC = () => {
                     value={transPerson}
                     onChange={(e) => setTransPerson(e.target.value)}
                     placeholder="Ban CMHS, Nhà sách..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                    className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
                   />
                 </div>
               </div>
 
               {transType === 'income' && (
-                <div className="p-3 rounded-2xl bg-pink-50/80 border border-pink-200">
-                  <label className="block text-xs font-bold text-pink-800 mb-1">
+                <div className="p-3 rounded-2xl theme-soft-bg border theme-card-border">
+                  <label className="block text-xs font-bold theme-text mb-1">
                     🎯 Mức thu mỗi học sinh (nếu chia đều cả lớp)
                   </label>
                   <input
@@ -544,9 +543,9 @@ export const FundManager: React.FC = () => {
                     value={targetPerStudent}
                     onChange={(e) => setTargetPerStudent(Number(e.target.value))}
                     placeholder="Ví dụ: 300000 (để mở bảng tích tên đóng tiền)"
-                    className="w-full px-3.5 py-2 rounded-xl border border-pink-300 bg-white font-bold text-xs"
+                    className="w-full px-3.5 py-2 rounded-xl border theme-card-border bg-white font-bold text-xs"
                   />
-                  <span className="text-[10px] text-pink-600 mt-1 block">
+                  <span className="text-[10px] theme-text mt-1 block">
                     Điền mục này sẽ tự động tạo bảng kiểm tra học sinh nào đã đóng/chưa đóng.
                   </span>
                 </div>
@@ -559,11 +558,11 @@ export const FundManager: React.FC = () => {
                   value={transNote}
                   onChange={(e) => setTransNote(e.target.value)}
                   placeholder="Ghi chú thêm..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-pink-100">
+              <div className="flex justify-end gap-2 pt-3 border-t theme-card-border">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -573,7 +572,7 @@ export const FundManager: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-pink-500 hover:bg-pink-600 rounded-xl shadow-md shadow-pink-300/50"
+                  className="px-5 py-2 text-xs font-bold text-white theme-btn-primary rounded-xl shadow-md"
                 >
                   Lưu giao dịch
                 </button>
@@ -586,11 +585,11 @@ export const FundManager: React.FC = () => {
       {/* Modal Zalo Report Preview */}
       {showReportModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-pink-200 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-xl w-full border theme-card-border shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             
-            <div className="flex items-center justify-between mb-4 border-b border-pink-100 pb-3">
-              <h3 className="text-base font-bold text-pink-800 flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-pink-500" /> Báo cáo thu chi quỹ lớp (gửi Zalo)
+            <div className="flex items-center justify-between mb-4 border-b theme-card-border pb-3">
+              <h3 className="text-base font-bold theme-text flex items-center gap-2">
+                <Share2 className="w-5 h-5 theme-text" /> Báo cáo thu chi quỹ lớp (gửi Zalo)
               </h3>
               <button
                 onClick={() => setShowReportModal(false)}
@@ -603,10 +602,10 @@ export const FundManager: React.FC = () => {
             {/* Printable & Capture Area */}
             <div
               ref={reportRef}
-              className="p-6 bg-gradient-to-b from-pink-50/80 via-white to-rose-50/50 rounded-2xl border-2 border-pink-300 shadow-xs space-y-4 text-slate-800"
+              className="p-6 theme-quote-box rounded-2xl border-2 shadow-xs space-y-4 text-slate-800"
             >
-              <div className="text-center border-b-2 border-pink-200 pb-3">
-                <div className="text-lg font-black text-pink-700 uppercase tracking-tight">
+              <div className="text-center border-b-2 theme-card-border pb-3">
+                <div className="text-lg font-black theme-text uppercase tracking-tight">
                   🌸 BÁO CÁO THU CHI QUỸ LỚP {currentClass?.name} 🌸
                 </div>
                 <div className="text-xs font-bold text-slate-500 mt-1">
@@ -615,12 +614,12 @@ export const FundManager: React.FC = () => {
               </div>
 
               {/* Summary table */}
-              <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold py-2 bg-white rounded-xl border border-pink-200">
-                <div className="p-2 border-r border-pink-100">
+              <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold py-2 bg-white rounded-xl border theme-card-border">
+                <div className="p-2 border-r theme-card-border">
                   <div className="text-slate-500 text-[10px]">TỔNG THU</div>
                   <div className="text-emerald-600 font-extrabold text-sm">+{totalIncome.toLocaleString('vi-VN')} đ</div>
                 </div>
-                <div className="p-2 border-r border-pink-100">
+                <div className="p-2 border-r theme-card-border">
                   <div className="text-slate-500 text-[10px]">TỔNG CHI</div>
                   <div className="text-rose-600 font-extrabold text-sm">-{totalExpense.toLocaleString('vi-VN')} đ</div>
                 </div>
@@ -632,10 +631,10 @@ export const FundManager: React.FC = () => {
 
               {/* Recent detailed records */}
               <div className="space-y-1.5 text-xs">
-                <div className="font-extrabold text-pink-800 text-[11px] uppercase tracking-wider">
+                <div className="font-extrabold theme-text text-[11px] uppercase tracking-wider">
                   Chi tiết các khoản gần nhất:
                 </div>
-                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 bg-white p-2 rounded-xl border border-pink-100">
+                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 bg-white p-2 rounded-xl border theme-card-border">
                   {transactions.slice(0, 10).map((t) => (
                     <div key={t.id} className="flex justify-between items-center py-1 border-b border-slate-50 text-[11px]">
                       <span className="truncate max-w-[240px]">
@@ -649,7 +648,7 @@ export const FundManager: React.FC = () => {
                 </div>
               </div>
 
-              <div className="text-center text-[10px] text-pink-600/80 italic pt-2">
+              <div className="text-center text-[10px] theme-text italic pt-2">
                 "Kính chúc quý phụ huynh và các con học sinh luôn mạnh khỏe, hạnh phúc và gặt hái nhiều thành công!"
               </div>
             </div>
@@ -658,7 +657,7 @@ export const FundManager: React.FC = () => {
             <div className="mt-6 flex justify-end gap-2">
               <button
                 onClick={handleExportImageForZalo}
-                className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-300/50"
+                className="w-full py-2.5 rounded-2xl theme-btn-primary font-bold text-xs flex items-center justify-center gap-2 shadow-md"
               >
                 <Download className="w-4 h-4" /> Tải ảnh báo cáo gửi Zalo phụ huynh
               </button>

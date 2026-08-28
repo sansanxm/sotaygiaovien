@@ -200,20 +200,20 @@ export const StudentList: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm tên, SĐT, STT..."
-              className="w-full pl-10 pr-4 py-2 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 text-xs sm:text-sm font-semibold bg-white/90"
+              className="w-full pl-10 pr-4 py-2 rounded-2xl border theme-card-border focus:outline-none text-xs sm:text-sm font-semibold bg-white/90"
             />
           </div>
 
           {/* Gender Filter Buttons */}
-          <div className="flex bg-pink-50 p-1 rounded-2xl border border-pink-200">
+          <div className="flex theme-soft-bg p-1 rounded-2xl border theme-card-border">
             {(['All', 'Nam', 'Nữ'] as const).map((g) => (
               <button
                 key={g}
                 onClick={() => setFilterGender(g)}
                 className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   filterGender === g
-                    ? 'bg-pink-500 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-pink-600'
+                    ? 'theme-btn-primary shadow-xs'
+                    : 'text-slate-600 hover:theme-text'
                 }`}
               >
                 {g === 'All' ? 'Tất cả' : g}
@@ -222,11 +222,11 @@ export const StudentList: React.FC = () => {
           </div>
 
           {/* View Mode */}
-          <div className="flex bg-pink-50 p-1 rounded-2xl border border-pink-200">
+          <div className="flex theme-soft-bg p-1 rounded-2xl border theme-card-border">
             <button
               onClick={() => setViewMode('cards')}
               className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                viewMode === 'cards' ? 'bg-white text-pink-600 shadow-xs' : 'text-slate-500'
+                viewMode === 'cards' ? 'bg-white theme-text shadow-xs' : 'text-slate-500'
               }`}
               title="Xem dạng thẻ"
             >
@@ -235,7 +235,7 @@ export const StudentList: React.FC = () => {
             <button
               onClick={() => setViewMode('table')}
               className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                viewMode === 'table' ? 'bg-white text-pink-600 shadow-xs' : 'text-slate-500'
+                viewMode === 'table' ? 'bg-white theme-text shadow-xs' : 'text-slate-500'
               }`}
               title="Xem dạng bảng"
             >
@@ -250,10 +250,10 @@ export const StudentList: React.FC = () => {
           {/* Smart Group Photo Face Cropper */}
           <button
             onClick={() => setShowGroupPhotoModal(true)}
-            className="px-3 py-2 rounded-2xl bg-pink-100 hover:bg-pink-200 text-pink-800 border border-pink-300 text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-2 rounded-2xl theme-btn-secondary text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Tải ảnh tập thể lớp và click vào mặt học sinh để gán avatar"
           >
-            <Camera className="w-4 h-4 text-pink-600" />
+            <Camera className="w-4 h-4 theme-text" />
             <span>Gán ảnh tập thể 📸</span>
           </button>
 
@@ -308,7 +308,7 @@ export const StudentList: React.FC = () => {
             >
               {/* Top Bar: RollNumber & Gender Badge */}
               <div className="flex items-center justify-between mb-3">
-                <span className="w-7 h-7 rounded-xl bg-pink-100 text-pink-700 font-extrabold text-xs flex items-center justify-center shadow-2xs">
+                <span className="w-7 h-7 rounded-xl theme-avatar font-extrabold text-xs flex items-center justify-center shadow-2xs">
                   {st.rollNumber}
                 </span>
 
@@ -331,13 +331,13 @@ export const StudentList: React.FC = () => {
                   <img
                     src={st.avatarUrl}
                     alt={st.fullName}
-                    className="w-16 h-16 mx-auto rounded-full object-cover shadow-sm border-2 border-pink-300"
+                    className="w-16 h-16 mx-auto rounded-full object-cover shadow-sm border-2 theme-card-border"
                   />
                 ) : (
                   <div
                     className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center font-black text-base shadow-sm border-2 ${
                       st.gender === 'Nữ'
-                        ? 'bg-gradient-to-tr from-pink-200 to-rose-100 text-pink-700 border-pink-200'
+                        ? 'theme-avatar border-pink-200'
                         : 'bg-gradient-to-tr from-sky-200 to-blue-100 text-sky-700 border-sky-200'
                     }`}
                   >
@@ -345,23 +345,23 @@ export const StudentList: React.FC = () => {
                   </div>
                 )}
 
-                <h4 className="text-sm font-bold text-slate-800 mt-2 truncate group-hover:text-pink-600 transition-colors">
+                <h4 className="text-sm font-bold text-slate-800 mt-2 truncate group-hover:theme-text transition-colors">
                   {st.fullName}
                 </h4>
                 <div className="text-xs text-slate-500 font-medium flex items-center justify-center gap-1 mt-0.5">
-                  <Cake className="w-3 h-3 text-pink-400" />
+                  <Cake className="w-3 h-3 theme-text" />
                   <span>{st.dob}</span>
                 </div>
               </div>
 
               {/* Parent & Health Badges */}
-              <div className="space-y-1.5 my-3 pt-2 border-t border-pink-100/60 text-xs">
+              <div className="space-y-1.5 my-3 pt-2 border-t theme-card-border text-xs">
                 {st.parentPhone && (
-                  <div className="flex items-center justify-between text-slate-600 bg-pink-50/50 px-2 py-1 rounded-xl">
+                  <div className="flex items-center justify-between text-slate-600 theme-soft-bg px-2 py-1 rounded-xl">
                     <span className="font-semibold truncate">{st.parentName || 'PH'}</span>
                     <a
                       href={`tel:${st.parentPhone}`}
-                      className="text-pink-600 font-bold hover:underline flex items-center gap-1 shrink-0"
+                      className="theme-text font-bold hover:underline flex items-center gap-1 shrink-0"
                     >
                       <Phone className="w-3 h-3" /> {st.parentPhone}
                     </a>
@@ -377,10 +377,10 @@ export const StudentList: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between gap-1 pt-2 border-t border-pink-100">
+              <div className="flex items-center justify-between gap-1 pt-2 border-t theme-card-border">
                 <button
                   onClick={() => setViewingStudent(st)}
-                  className="flex-1 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                  className="flex-1 py-1.5 rounded-xl theme-btn-secondary font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
                 >
                   <Eye className="w-3.5 h-3.5" /> Chi tiết
                 </button>
@@ -406,10 +406,10 @@ export const StudentList: React.FC = () => {
       ) : (
 
         /* Table View */
-        <div className="glass-card rounded-3xl overflow-hidden shadow-xs border border-pink-200/80">
+        <div className="glass-card rounded-3xl overflow-hidden shadow-xs border theme-card-border">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-pink-100/70 text-pink-900 uppercase font-extrabold text-[11px]">
+              <thead className="theme-soft-bg theme-text uppercase font-extrabold text-[11px]">
                 <tr>
                   <th className="py-3 px-4">STT</th>
                   <th className="py-3 px-4">Họ và tên</th>
@@ -421,16 +421,16 @@ export const StudentList: React.FC = () => {
                   <th className="py-3 px-4 text-center">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-pink-100">
+              <tbody className="divide-y divide-slate-100">
                 {filteredStudents.map((st) => (
-                  <tr key={st.id} className="hover:bg-pink-50/50 transition-colors font-medium text-slate-700">
-                    <td className="py-3 px-4 font-bold text-pink-600">{st.rollNumber}</td>
+                  <tr key={st.id} className="hover:theme-soft-bg transition-colors font-medium text-slate-700">
+                    <td className="py-3 px-4 font-bold theme-text">{st.rollNumber}</td>
                     <td className="py-3 px-4 font-bold text-slate-800">
                       <div className="flex items-center gap-2">
                         {st.avatarUrl ? (
-                          <img src={st.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover border border-pink-300" />
+                          <img src={st.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover border theme-card-border" />
                         ) : (
-                          <span className="w-6 h-6 rounded-full bg-pink-100 text-pink-700 font-bold text-[10px] flex items-center justify-center">
+                          <span className="w-6 h-6 rounded-full theme-avatar font-bold text-[10px] flex items-center justify-center">
                             {getStudentInitial(st.fullName)}
                           </span>
                         )}
@@ -446,7 +446,7 @@ export const StudentList: React.FC = () => {
                     <td className="py-3 px-4">
                       <div>{st.parentName || 'Chưa cập nhật'}</div>
                       {st.parentPhone && (
-                        <a href={`tel:${st.parentPhone}`} className="text-pink-600 font-bold hover:underline text-xs flex items-center gap-1">
+                        <a href={`tel:${st.parentPhone}`} className="theme-text font-bold hover:underline text-xs flex items-center gap-1">
                           <Phone className="w-3 h-3" /> {st.parentPhone}
                         </a>
                       )}
@@ -465,7 +465,7 @@ export const StudentList: React.FC = () => {
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => setViewingStudent(st)}
-                          className="p-1.5 rounded-lg hover:bg-pink-100 text-pink-600"
+                          className="p-1.5 rounded-lg hover:theme-soft-bg theme-text"
                           title="Xem chi tiết"
                         >
                           <Eye className="w-4 h-4" />
@@ -604,11 +604,11 @@ export const StudentList: React.FC = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Năng khiếu, hoàn cảnh, đặc điểm tính cách..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                  className="w-full px-3.5 py-2 rounded-xl border theme-card-border focus:outline-none font-semibold"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-pink-100">
+              <div className="flex justify-end gap-2 pt-3 border-t theme-card-border">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -618,7 +618,7 @@ export const StudentList: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-pink-500 hover:bg-pink-600 rounded-xl shadow-md shadow-pink-300/50"
+                  className="px-5 py-2 text-xs font-bold text-white theme-btn-primary rounded-xl shadow-md"
                 >
                   {editingStudent ? 'Lưu thay đổi' : 'Lưu học sinh'}
                 </button>
@@ -631,19 +631,19 @@ export const StudentList: React.FC = () => {
       {/* Modal View Student Profile 360 */}
       {viewingStudent && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-pink-200 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border theme-card-border shadow-2xl animate-in zoom-in-95">
             <div className="text-center">
               {viewingStudent.avatarUrl ? (
                 <img
                   src={viewingStudent.avatarUrl}
                   alt={viewingStudent.fullName}
-                  className="w-24 h-24 mx-auto rounded-full object-cover shadow-md border-4 border-pink-300"
+                  className="w-24 h-24 mx-auto rounded-full object-cover shadow-md border-4 theme-card-border"
                 />
               ) : (
                 <div
                   className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center font-black text-2xl shadow-md border-4 ${
                     viewingStudent.gender === 'Nữ'
-                      ? 'bg-gradient-to-tr from-pink-300 to-rose-200 text-pink-800 border-pink-100'
+                      ? 'theme-avatar border-pink-100'
                       : 'bg-gradient-to-tr from-sky-300 to-blue-200 text-sky-800 border-sky-100'
                   }`}
                 >
@@ -659,7 +659,7 @@ export const StudentList: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-6 space-y-3 bg-pink-50/50 p-4 rounded-2xl border border-pink-100 text-xs sm:text-sm">
+            <div className="mt-6 space-y-3 theme-soft-bg p-4 rounded-2xl border theme-card-border text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Phụ huynh:</span>
                 <span className="font-bold text-slate-800">{viewingStudent.parentName || 'Chưa cập nhật'}</span>
@@ -670,7 +670,7 @@ export const StudentList: React.FC = () => {
                   <div className="flex gap-2">
                     <a
                       href={`tel:${viewingStudent.parentPhone}`}
-                      className="px-2.5 py-1 rounded-lg bg-pink-500 text-white font-bold text-xs flex items-center gap-1"
+                      className="px-2.5 py-1 rounded-lg theme-btn-primary text-white font-bold text-xs flex items-center gap-1"
                     >
                       <Phone className="w-3 h-3" /> Gọi
                     </a>
@@ -698,9 +698,9 @@ export const StudentList: React.FC = () => {
                 </div>
               )}
               {viewingStudent.notes && (
-                <div className="pt-2 border-t border-pink-200/60">
+                <div className="pt-2 border-t theme-card-border">
                   <span className="text-slate-500 font-medium block mb-1">Ghi chú của cô:</span>
-                  <p className="text-slate-700 italic bg-white p-2 rounded-xl border border-pink-100">{viewingStudent.notes}</p>
+                  <p className="text-slate-700 italic bg-white p-2 rounded-xl border theme-card-border">{viewingStudent.notes}</p>
                 </div>
               )}
             </div>

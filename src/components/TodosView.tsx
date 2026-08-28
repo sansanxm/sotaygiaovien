@@ -96,7 +96,7 @@ export const TodosView: React.FC = () => {
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
-            <CheckSquare className="w-5 h-5 text-pink-500" /> Sổ tay việc cần làm của cô
+            <CheckSquare className="w-5 h-5 theme-text" /> Sổ tay việc cần làm của cô
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
             Lên kế hoạch tuần, theo dõi lịch nộp báo cáo và công việc chủ nhiệm
@@ -118,10 +118,9 @@ export const TodosView: React.FC = () => {
         
         {/* Add Todo Form */}
         <div className="glass-card p-6 rounded-3xl h-fit">
-          <h3 className="text-sm font-extrabold text-pink-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-pink-500" /> Thêm việc cần làm
+          <h3 className="text-sm font-extrabold theme-text uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Plus className="w-4 h-4 theme-text" /> Thêm việc cần làm
           </h3>
-
 
           <form onSubmit={handleAddTodo} className="space-y-4 text-xs sm:text-sm">
             <div>
@@ -132,7 +131,7 @@ export const TodosView: React.FC = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ví dụ: Nộp sổ điểm, họp phụ huynh..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
               />
             </div>
 
@@ -142,7 +141,7 @@ export const TodosView: React.FC = () => {
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold"
+                className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
               />
             </div>
 
@@ -152,7 +151,7 @@ export const TodosView: React.FC = () => {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-bold"
+                  className="w-full px-3 py-2.5 rounded-xl border theme-card-border focus:outline-none font-bold"
                 >
                   <option value="Chủ nhiệm">Chủ nhiệm</option>
                   <option value="Hành chính">Hành chính</option>
@@ -167,7 +166,7 @@ export const TodosView: React.FC = () => {
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 font-bold"
+                  className="w-full px-3 py-2.5 rounded-xl border theme-card-border focus:outline-none font-bold"
                 >
                   <option value="high">Gấp 🔥</option>
                   <option value="medium">Bình thường ⚡</option>
@@ -178,7 +177,7 @@ export const TodosView: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white font-bold text-xs shadow-md shadow-pink-300/50 transition-all cursor-pointer mt-2"
+              className="w-full py-2.5 rounded-2xl theme-btn-primary font-black text-xs shadow-md transition-all cursor-pointer mt-2 active:scale-98"
             >
               Lưu Công Việc Ngay
             </button>
@@ -198,8 +197,8 @@ export const TodosView: React.FC = () => {
                   onClick={() => setFilterCategory(c)}
                   className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     filterCategory === c
-                      ? 'bg-pink-500 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-pink-600'
+                      ? 'theme-btn-primary shadow-xs'
+                      : 'text-slate-600 hover:theme-text'
                   }`}
                 >
                   {c}
@@ -208,11 +207,11 @@ export const TodosView: React.FC = () => {
             </div>
 
             {/* Status Filter */}
-            <div className="flex bg-pink-50 p-1 rounded-xl border border-pink-200 text-xs font-bold">
+            <div className="flex theme-soft-bg p-1 rounded-xl border theme-card-border text-xs font-bold">
               <button
                 onClick={() => setFilterStatus('all')}
                 className={`px-2.5 py-1 rounded-lg transition-all ${
-                  filterStatus === 'all' ? 'bg-white text-pink-700 shadow-2xs' : 'text-slate-500'
+                  filterStatus === 'all' ? 'bg-white theme-text shadow-2xs' : 'text-slate-500'
                 }`}
               >
                 Tất cả
@@ -220,7 +219,7 @@ export const TodosView: React.FC = () => {
               <button
                 onClick={() => setFilterStatus('pending')}
                 className={`px-2.5 py-1 rounded-lg transition-all ${
-                  filterStatus === 'pending' ? 'bg-white text-pink-700 shadow-2xs' : 'text-slate-500'
+                  filterStatus === 'pending' ? 'bg-white theme-text shadow-2xs' : 'text-slate-500'
                 }`}
               >
                 Chưa làm
@@ -228,7 +227,7 @@ export const TodosView: React.FC = () => {
               <button
                 onClick={() => setFilterStatus('done')}
                 className={`px-2.5 py-1 rounded-lg transition-all ${
-                  filterStatus === 'done' ? 'bg-white text-pink-700 shadow-2xs' : 'text-slate-500'
+                  filterStatus === 'done' ? 'bg-white theme-text shadow-2xs' : 'text-slate-500'
                 }`}
               >
                 Đã xong
@@ -257,7 +256,7 @@ export const TodosView: React.FC = () => {
                     className={`p-4 rounded-3xl border transition-all flex items-center justify-between gap-3 ${
                       t.isDone
                         ? 'bg-slate-50 border-slate-200 text-slate-400 line-through'
-                        : 'bg-white border-pink-100/90 shadow-2xs hover:border-pink-300 text-slate-800'
+                        : 'bg-white theme-card-border shadow-2xs text-slate-800'
                     }`}
                   >
                     <div
@@ -267,7 +266,7 @@ export const TodosView: React.FC = () => {
                       {t.isDone ? (
                         <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
                       ) : (
-                        <Circle className="w-6 h-6 text-pink-400 hover:text-pink-600 shrink-0 transition-colors" />
+                        <Circle className="w-6 h-6 theme-text shrink-0 transition-colors" />
                       )}
 
                       <div>

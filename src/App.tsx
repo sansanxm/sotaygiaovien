@@ -364,8 +364,9 @@ const AppContent: React.FC = () => {
         <footer className="hidden md:block w-full bg-white/80 backdrop-blur-md border-t border-slate-200/80 py-1.5 px-6 text-[10px] text-slate-400 font-bold tracking-wider uppercase text-center shrink-0">
           <span>THIẾT KẾ VÀ PHÁT TRIỂN BỞI <strong className="text-slate-600 font-black">XIAO SYSTEM</strong> © 2026</span>
           <span className="mx-2 text-slate-300">•</span>
-          <span className="text-pink-600 font-extrabold">HỖ TRỢ 24/7: 0971986343</span>
+          <span className="theme-text font-extrabold">HỖ TRỢ 24/7: 0971986343</span>
         </footer>
+
 
       </div>
 

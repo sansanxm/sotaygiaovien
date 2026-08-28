@@ -961,9 +961,9 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
           {/* Tab 4: Guide */}
           {activeTab === 'guide' && (
             <div className="space-y-3 text-xs text-slate-700 leading-relaxed">
-              <div className="p-4 rounded-2xl bg-pink-50 border border-pink-200">
-                <h4 className="font-extrabold text-pink-900 mb-1 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-pink-500" /> Bí quyết sử dụng hiệu quả:
+              <div className="p-4 rounded-2xl theme-soft-bg border theme-card-border">
+                <h4 className="font-extrabold theme-text mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 theme-text" /> Bí quyết sử dụng hiệu quả:
                 </h4>
                 <ul className="list-disc list-inside space-y-1 text-slate-600">
                   <li><strong>Tùy chọn Thầy/Cô:</strong> Trong tab "Giao diện & danh xưng", thầy/cô có thể chọn màu sắc và cách xưng hô phù hợp.</li>
@@ -974,12 +974,12 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
               </div>
 
               <div className="text-center pt-2 text-[10px] text-slate-400 font-medium">
-                Ứng dụng Sổ tay Giáo viên • Thiết kế và phát triển bởi <strong className="text-slate-600 font-bold">Xiao System</strong> © 2026 • <span className="text-pink-600 font-bold">HỖ TRỢ 24/7: 0971986343</span>
+                Ứng dụng Sổ tay Giáo viên • Thiết kế và phát triển bởi <strong className="text-slate-600 font-bold">Xiao System</strong> © 2026 • <span className="theme-text font-bold">HỖ TRỢ 24/7: 0971986343</span>
               </div>
-
 
             </div>
           )}
+
 
         </div>
 
