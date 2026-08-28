@@ -20,7 +20,9 @@ import {
   Crown,
   Zap,
   BookOpen,
+  Bot,
 } from 'lucide-react';
+
 
 import { useApp, THEME_CONFIGS } from '../context/AppContext';
 import { db, exportDatabaseBackup, importDatabaseBackup } from '../db/db';
@@ -598,8 +600,31 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
                 </div>
               </div>
 
+              {/* Google Gemini AI Box */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50/70 to-indigo-50/70 border border-purple-200/80 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-xl bg-purple-600 text-white shadow-2xs">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-purple-950">Mô hình Trợ lý AI Google Gemini Flash</h4>
+                      <p className="text-[11px] text-purple-800">Tốc độ xử lý siêu tốc, hỗ trợ viết nhận xét & nghiệp vụ sư phạm</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-[10px] font-black border border-purple-300 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                    Sẵn sàng (Online)
+                  </span>
+                </div>
+                <div className="text-[11px] text-purple-900 bg-white/80 p-2.5 rounded-xl border border-purple-100">
+                  <p>• <strong>Trạng thái</strong>: Đã tích hợp API Key Gemini Flash tốc độ cao. Dành riêng cho thành viên <strong>Online & VIP</strong>.</p>
+                </div>
+              </div>
+
               {/* Offline-First Information Box */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs text-slate-600">
+
                 <div className="font-bold text-slate-800 flex items-center gap-1">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" /> Nguyên lý hoạt động ngoại tuyến (offline-first):
                 </div>

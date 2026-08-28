@@ -18,7 +18,9 @@ import { MobileNavigation } from './components/MobileNavigation';
 
 import { TrialExpiredPaywall } from './components/TrialExpiredPaywall';
 import { AuthAndPlanOnboarding } from './components/AuthAndPlanOnboarding';
-import { Sparkles, RefreshCw, Crown } from 'lucide-react';
+import { AiAssistantModal } from './components/AiAssistantModal';
+import { Sparkles, RefreshCw, Crown, Bot } from 'lucide-react';
+
 
 
 interface ErrorBoundaryProps {
@@ -96,7 +98,9 @@ const AppContent: React.FC = () => {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
   const [isSyncingUpload, setIsSyncingUpload] = useState(false);
+
   const [isSyncingDownload, setIsSyncingDownload] = useState(false);
   const [hasChosenOffline, setHasChosenOffline] = useState<boolean>(() => {
     return localStorage.getItem('gvcn_offline_mode_selected') === 'true';
@@ -330,6 +334,16 @@ const AppContent: React.FC = () => {
               </button>
             )}
 
+            {/* AI Assistant Button */}
+            <button
+              onClick={() => setShowAiModal(true)}
+              className="px-3.5 py-1.5 rounded-2xl theme-btn-primary text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95 animate-pulse hover:animate-none"
+              title="Mở Trợ lý Sư phạm AI Gemini Flash"
+            >
+              <Bot className="w-4 h-4" />
+              <span className="hidden sm:inline">Trợ lý AI ✨</span>
+            </button>
+
             {/* Refresh App Button */}
             <button
               onClick={() => window.location.reload()}
@@ -375,6 +389,10 @@ const AppContent: React.FC = () => {
 
       {/* Auth & Login Modal */}
       {showAuthModal && <AuthAndPlanOnboarding onClose={() => setShowAuthModal(false)} />}
+
+      {/* Universal AI Assistant Modal */}
+      <AiAssistantModal isOpen={showAiModal} onClose={() => setShowAiModal(false)} />
+
 
 
 

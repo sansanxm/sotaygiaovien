@@ -8,12 +8,15 @@ import {
   Sparkles,
   Trash2,
   Wand2,
+  Crown,
+  Loader2,
+  BookmarkPlus,
 } from 'lucide-react';
 
 import { useApp } from '../context/AppContext';
 import { db } from '../db/db';
 import type { Student } from '../types';
-
+import { generateStudentCommentWithAi } from '../services/gemini';
 
 export interface CommentTemplate {
   id: string;
@@ -26,43 +29,49 @@ const DEFAULT_TEMPLATES: CommentTemplate[] = [
   {
     id: '1',
     category: 'Khen ngợi',
-    tags: ['Chăm chỉ', 'Lễ phép', 'Tự giác'],
-    content: 'Em chăm ngoan, lễ phép, có ý thức tự giác học tập cao và tích cực tham gia các hoạt động tập thể.',
+    tags: ['Học tập', 'Xuất sắc', 'Chăm chỉ'],
+    content: 'Em có ý thức học tập rất tốt, nắm vững kiến thức bài học, tích cực xây dựng bài và luôn gương mẫu trong mọi hoạt động.',
   },
   {
     id: '2',
     category: 'Khen ngợi',
-    tags: ['Xuất sắc', 'Tư duy tốt'],
-    content: 'Có tư duy nhanh nhẹn, tiếp thu bài tốt, luôn hoàn thành xuất sắc các nhiệm vụ học tập được giao.',
+    tags: ['Nề nếp', 'Gương mẫu'],
+    content: 'Chấp hành nghiêm túc nề nếp trường lớp, kính thầy yêu bạn, là tấm gương sáng cho các bạn trong lớp noi theo.',
   },
   {
     id: '3',
     category: 'Khích lệ',
-    tags: ['Tiến bộ', 'Tự tin'],
-    content: 'Em có nhiều tiến bộ rõ rệt trong học tập và rèn luyện. Cần tiếp tục phát huy sự tự tin trong phát biểu xây dựng bài.',
+    tags: ['Tiến bộ', 'Cố gắng'],
+    content: 'Có nhiều tiến bộ trong học tập, hoàn thành các nhiệm vụ được giao. Cần mạnh dạn, tự tin hơn khi phát biểu trước tập thể.',
   },
   {
     id: '4',
-    category: 'Cần cố gắng',
-    tags: ['Tập trung', 'Cẩn thận'],
-    content: 'Em ngoan, hòa đồng với bạn bè. Cần tập trung hơn trong giờ học và cẩn thận hơn khi làm bài kiểm tra.',
+    category: 'Khích lệ',
+    tags: ['Toán học', 'Tập trung'],
+    content: 'Tiếp thu bài nhanh, tính toán cẩn thận. Em nên duy trì thói quen đọc kĩ đề bài và rèn chữ viết sạch đẹp hơn.',
   },
   {
     id: '5',
-    category: 'Nề nếp',
-    tags: ['Nề nếp', 'Kỷ luật'],
-    content: 'Chấp hành tốt nội quy trường lớp, trang phục gọn gàng, đi học đúng giờ và có tinh thần giữ gìn vệ sinh chung.',
+    category: 'Cần cố gắng',
+    tags: ['Mất tập trung', 'Nhắc nhở'],
+    content: 'Còn đôi lúc chưa tập trung trong giờ học, cần chú ý nghe giảng hơn và chủ động hỏi thầy cô khi chưa hiểu bài.',
   },
   {
     id: '6',
+    category: 'Nề nếp',
+    tags: ['Trách nhiệm', 'Đoàn kết'],
+    content: 'Nhiệt tình tham gia phong trào của lớp, có tinh thần trách nhiệm cao và hòa đồng với bạn bè xung quanh.',
+  },
+  {
+    id: '7',
     category: 'Kỹ năng',
-    tags: ['Làm việc nhóm', 'Hòa đồng'],
+    tags: ['Làm việc nhóm', 'Thuyết trình'],
     content: 'Có kỹ năng làm việc nhóm tốt, có tinh thần tương thân tương ái, giúp đỡ bạn bè cùng tiến bộ.',
   },
 ];
 
 export const CommentBank: React.FC = () => {
-  const { currentClass } = useApp();
+  const { currentClass, teacherTitle, isVip, setShowVipModal, triggerConfetti } = useApp();
   const [students, setStudents] = useState<Student[]>([]);
 
   useEffect(() => {
@@ -85,6 +94,9 @@ export const CommentBank: React.FC = () => {
 
   // Smart AI Assistant state
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [aiPeriod, setAiPeriod] = useState<string>('Cuối học kỳ 1');
+  const [aiTone, setAiTone] = useState<'Khen ngợi' | 'Khích lệ' | 'Cần cố gắng' | 'Toàn diện'>('Khen ngợi');
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [generatedComment, setGeneratedComment] = useState<string>('');
 
   useEffect(() => {
@@ -92,7 +104,6 @@ export const CommentBank: React.FC = () => {
       setSelectedStudentId(students[0].id);
     }
   }, [students]);
-
 
   // Add Template Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -108,6 +119,7 @@ export const CommentBank: React.FC = () => {
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    triggerConfetti();
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -141,22 +153,62 @@ export const CommentBank: React.FC = () => {
     setNewTags('');
   };
 
-  const handleAutoGenerate = () => {
+  const handleAutoGenerate = async () => {
     const student = students.find((s) => s.id === selectedStudentId) || students[0];
     if (!student) {
       setGeneratedComment('Vui lòng chọn hoặc thêm học sinh vào danh sách lớp.');
       return;
     }
 
+    // If user is VIP, generate with Gemini Flash AI
+    if (isVip) {
+      setIsAiGenerating(true);
+      try {
+        const comment = await generateStudentCommentWithAi({
+          studentName: student.fullName,
+          gender: student.gender,
+          behaviorScore: 10,
+          period: aiPeriod,
+          tone: aiTone,
+          teacherTitle,
+          notes: student.healthNote || student.notes,
+        });
+        setGeneratedComment(comment);
+        triggerConfetti();
+      } catch (err: any) {
+        console.warn('Lỗi AI Gemini, chuyển sang thuật toán mẫu:', err?.message);
+        fallbackAlgorithmGenerate(student);
+      } finally {
+        setIsAiGenerating(false);
+      }
+    } else {
+      // Free / Offline fallback
+      fallbackAlgorithmGenerate(student);
+    }
+  };
+
+  const fallbackAlgorithmGenerate = (student: Student) => {
     const firstWord = student.gender === 'Nữ' ? 'Em' : 'Em';
     const commentsPool = [
-      `${firstWord} ${student.fullName} có ý thức học tập tốt, ngoan ngoãn, lễ phép. Cần phát huy hơn nữa tinh thần tự giác.`,
-      `${firstWord} ${student.fullName} hăng hái phát biểu xây dựng bài, tiếp thu bài nhanh và hoàn thành tốt nhiệm vụ học tập.`,
-      `${firstWord} ${student.fullName} chấp hành nghiêm túc nề nếp trường lớp, hòa đồng và luôn sẵn sàng giúp đỡ bạn bè.`,
+      `${firstWord} ${student.fullName} có ý thức học tập tốt, ngoan ngoãn, lễ phép. Cần phát huy hơn nữa tinh thần tự giác trong các giờ tự học.`,
+      `${firstWord} ${student.fullName} hăng hái phát biểu xây dựng bài, tiếp thu bài nhanh và hoàn thành tốt mọi nhiệm vụ học tập được giao.`,
+      `${firstWord} ${student.fullName} chấp hành nghiêm túc nề nếp trường lớp, hòa đồng, thân thiện và luôn sẵn sàng giúp đỡ bạn bè.`,
+      `${firstWord} ${student.fullName} có nhiều cố gắng trong rèn luyện chữ viết và tính toán, cần tự tin hơn khi trình bày trước lớp.`,
     ];
-
     const randomChoice = commentsPool[Math.floor(Math.random() * commentsPool.length)];
     setGeneratedComment(randomChoice);
+  };
+
+  const handleSaveGeneratedToTemplates = () => {
+    if (!generatedComment) return;
+    const newTpl: CommentTemplate = {
+      id: `ai-${Date.now()}`,
+      category: aiTone === 'Toàn diện' ? 'Khen ngợi' : (aiTone as any),
+      tags: ['AI Gemini', aiPeriod],
+      content: generatedComment,
+    };
+    saveToStorage([newTpl, ...templates]);
+    alert('Đã lưu câu nhận xét của AI vào Ngân hàng mẫu câu! 🌸');
   };
 
   const categories = ['Tất cả', 'Khen ngợi', 'Khích lệ', 'Cần cố gắng', 'Nề nếp', 'Kỹ năng'];
@@ -181,7 +233,7 @@ export const CommentBank: React.FC = () => {
             <BookOpen className="w-5 h-5 theme-text" /> Ngân hàng nhận xét học sinh
           </h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Kho câu nhận xét chuẩn Thông tư 27/22 & trợ lý gợi ý nhận xét thông minh
+            Kho câu nhận xét chuẩn Thông tư 27/22 & trợ lý AI Gemini Flash cá nhân hóa theo từng học sinh
           </p>
         </div>
 
@@ -193,51 +245,114 @@ export const CommentBank: React.FC = () => {
         </button>
       </div>
 
-      {/* Smart Assistant Card */}
-      <div className="theme-quote-box p-6 rounded-3xl">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-2 rounded-xl theme-btn-primary text-white">
-            <Wand2 className="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <h3 className="text-base font-black theme-text">Trợ lý gợi ý nhận xét thông minh</h3>
-            <p className="text-xs text-slate-500">Tự động phân tích điểm thi đua & nề nếp để tạo câu nhận xét phù hợp</p>
+      {/* Smart AI Assistant Card */}
+      <div className="theme-quote-box p-6 rounded-3xl space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl theme-btn-primary text-white shadow-xs">
+              <Wand2 className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-black theme-text">Trợ lý AI Gemini Flash gợi ý nhận xét</h3>
+                {isVip ? (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-extrabold text-[10px] border border-amber-300 flex items-center gap-1">
+                    <Crown className="w-3 h-3 text-amber-600" /> VIP AI
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setShowVipModal(true)}
+                    className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-800 font-bold text-[10px] border border-slate-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    Mở khóa AI VIP 👑
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">Tự động phân tích điểm thi đua & nề nếp để tạo câu nhận xét chuẩn mực</p>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <select
-            value={selectedStudentId}
-            onChange={(e) => setSelectedStudentId(e.target.value)}
-            className="px-4 py-2.5 rounded-2xl border theme-card-border bg-white text-xs sm:text-sm font-bold text-slate-700 focus:outline-none"
-          >
-            {students.map((st) => (
-              <option key={st.id} value={st.id}>
-                STT {st.rollNumber} - {st.fullName} ({st.gender})
-              </option>
-            ))}
-          </select>
+        {/* Options Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+          <div className="sm:col-span-2">
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Chọn học sinh cần nhận xét</label>
+            <select
+              value={selectedStudentId}
+              onChange={(e) => setSelectedStudentId(e.target.value)}
+              className="w-full px-3.5 py-2 rounded-2xl border theme-card-border bg-white text-xs font-bold text-slate-700 focus:outline-none"
+            >
+              {students.map((st) => (
+                <option key={st.id} value={st.id}>
+                  STT {st.rollNumber} - {st.fullName} ({st.gender})
+                </option>
+              ))}
+            </select>
+          </div>
 
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Dịp nhận xét</label>
+            <select
+              value={aiPeriod}
+              onChange={(e) => setAiPeriod(e.target.value)}
+              className="w-full px-3 py-2 rounded-2xl border theme-card-border bg-white text-xs font-bold text-slate-700 focus:outline-none"
+            >
+              <option value="Giữa học kỳ 1">Giữa học kỳ 1</option>
+              <option value="Cuối học kỳ 1">Cuối học kỳ 1</option>
+              <option value="Giữa học kỳ 2">Giữa học kỳ 2</option>
+              <option value="Cuối năm học">Cuối năm học</option>
+              <option value="Thường xuyên hàng tháng">Hàng tháng</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 mb-1">Phong cách</label>
+            <select
+              value={aiTone}
+              onChange={(e) => setAiTone(e.target.value as any)}
+              className="w-full px-3 py-2 rounded-2xl border theme-card-border bg-white text-xs font-bold text-slate-700 focus:outline-none"
+            >
+              <option value="Khen ngợi">Khen ngợi</option>
+              <option value="Khích lệ">Khích lệ tiến bộ</option>
+              <option value="Cần cố gắng">Cần cố gắng</option>
+              <option value="Toàn diện">Toàn diện</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
           <button
+            disabled={isAiGenerating}
             onClick={handleAutoGenerate}
-            className="px-5 py-2.5 rounded-2xl theme-btn-primary text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-95 transition-all"
+            className="px-5 py-2.5 rounded-2xl theme-btn-primary text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-95 transition-all disabled:opacity-50"
           >
-            <Sparkles className="w-4 h-4" /> Tạo gợi ý nhận xét
+            {isAiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            <span>{isAiGenerating ? 'AI Gemini đang suy nghĩ...' : 'Tạo Lời Nhận Xét AI ✨'}</span>
           </button>
         </div>
 
         {generatedComment && (
-          <div className="mt-4 p-4 rounded-2xl bg-white border theme-card-border shadow-2xs">
+          <div className="mt-4 p-4 rounded-2xl bg-white border theme-card-border shadow-2xs space-y-3 animate-in fade-in">
             <div className="flex items-start justify-between gap-3">
               <p className="text-xs sm:text-sm text-slate-800 font-semibold leading-relaxed">
                 "{generatedComment}"
               </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={handleSaveGeneratedToTemplates}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                title="Lưu câu này vào kho mẫu cá nhân"
+              >
+                <BookmarkPlus className="w-3.5 h-3.5" />
+                <span>Lưu vào ngân hàng mẫu</span>
+              </button>
               <button
                 onClick={() => handleCopy(generatedComment, 'gen-box')}
-                className="px-3 py-1.5 rounded-xl theme-btn-secondary text-xs font-bold flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-xl theme-btn-primary text-xs font-bold flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
               >
-                {copiedId === 'gen-box' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedId === 'gen-box' ? 'Đã chép!' : 'Sao chép'}</span>
+                {copiedId === 'gen-box' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedId === 'gen-box' ? 'Đã sao chép!' : 'Sao chép nhận xét'}</span>
               </button>
             </div>
           </div>
@@ -281,58 +396,51 @@ export const CommentBank: React.FC = () => {
         {filteredTemplates.map((tpl) => (
           <div
             key={tpl.id}
-            className="glass-card p-5 rounded-3xl flex flex-col justify-between group"
+            className="glass-card p-5 rounded-3xl border theme-card-border shadow-xs flex flex-col justify-between hover:shadow-md transition-all group"
           >
             <div>
-              {/* Category & Tags */}
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="px-2.5 py-0.5 rounded-full theme-badge font-extrabold text-[11px]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="px-2.5 py-1 rounded-xl text-[11px] font-extrabold theme-badge">
                   {tpl.category}
                 </span>
 
-                <div className="flex flex-wrap gap-1">
-                  {tpl.tags.map((t, idx) => (
-                    <span key={idx} className="text-[10px] text-slate-400 font-medium bg-slate-50 px-1.5 py-0.5 rounded-md">
-                      #{t}
-                    </span>
-                  ))}
+                <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => handleCopy(tpl.content, tpl.id)}
+                    className="p-1.5 rounded-lg theme-soft-bg hover:theme-text transition-colors cursor-pointer"
+                    title="Sao chép câu nhận xét"
+                  >
+                    {copiedId === tpl.id ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTemplate(tpl.id)}
+                    className="p-1.5 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    title="Xóa mẫu"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
-              {/* Content */}
-              <p className="text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed italic">
+              <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed mb-4">
                 "{tpl.content}"
               </p>
             </div>
 
-            {/* Bottom Copy & Delete Actions */}
-            <div className="mt-4 pt-3 border-t theme-card-border flex items-center justify-between">
-              <button
-                onClick={() => handleCopy(tpl.content, tpl.id)}
-                className="flex-1 py-1.5 rounded-xl theme-btn-secondary font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-              >
-                {copiedId === tpl.id ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700">Đã chép vào bộ nhớ!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Sao chép mẫu</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => handleDeleteTemplate(tpl.id)}
-                className="p-1.5 ml-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-                title="Xóa mẫu này"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+            <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-100">
+              {tpl.tags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="text-[10px] font-bold text-slate-600 theme-soft-bg px-2 py-0.5 rounded-md"
+                >
+                  #{tag}
+                </span>
+              ))}
             </div>
-
           </div>
         ))}
       </div>
@@ -342,16 +450,16 @@ export const CommentBank: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border theme-card-border shadow-2xl animate-in zoom-in-95">
             <h3 className="text-lg font-bold theme-text mb-4 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 theme-text" /> Thêm mẫu nhận xét mới
+              <Plus className="w-5 h-5" /> Thêm mẫu nhận xét mới
             </h3>
 
             <form onSubmit={handleSaveTemplate} className="space-y-4 text-xs sm:text-sm">
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Phân loại</label>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Phân loại danh mục</label>
                 <select
                   value={newCat}
                   onChange={(e) => setNewCat(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border font-semibold focus:outline-none"
                 >
                   <option value="Khen ngợi">Khen ngợi</option>
                   <option value="Khích lệ">Khích lệ</option>
@@ -362,39 +470,39 @@ export const CommentBank: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Nội dung câu nhận xét *</label>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Nội dung nhận xét *</label>
                 <textarea
-                  rows={4}
                   required
+                  rows={4}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  placeholder="Ví dụ: Em chăm ngoan, có ý thức học tập tốt..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
+                  placeholder="Ví dụ: Em có tinh thần học tập tự giác cao, tích cực tham gia các phong trào..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border font-medium focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Từ khóa gắn thẻ (cách nhau bởi dấu phẩy)</label>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Thẻ từ khóa (Cách nhau bằng dấu phẩy)</label>
                 <input
                   type="text"
                   value={newTags}
                   onChange={(e) => setNewTags(e.target.value)}
-                  placeholder="Chăm chỉ, Tiến bộ, Tự giác..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border focus:outline-none font-semibold"
+                  placeholder="Ví dụ: Toán, Tự giác, Gương mẫu"
+                  className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border font-medium focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t theme-card-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white theme-btn-primary rounded-xl shadow-md"
+                  className="px-5 py-2 text-xs font-bold text-white theme-btn-primary rounded-xl shadow-md cursor-pointer"
                 >
                   Lưu mẫu câu
                 </button>
