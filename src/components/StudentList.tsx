@@ -29,7 +29,8 @@ import { exportStudentsToExcel } from '../utils/excelExporter';
 
 
 export const StudentList: React.FC = () => {
-  const { currentClass, currentYear, teacherName, triggerConfetti } = useApp();
+  const { currentClass, currentYear, teacherName, triggerConfetti, user, syncWithCloud } = useApp();
+
 
   const [students, setStudents] = useState<Student[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,9 +156,15 @@ export const StudentList: React.FC = () => {
   const handleDeleteStudent = async (id: string, name: string) => {
     if (window.confirm(`Cô có chắc chắn muốn xóa học sinh "${name}" khỏi danh sách lớp không?`)) {
       await db.students.delete(id);
+      localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
       await loadStudents();
+      triggerConfetti();
+      if (user && navigator.onLine) {
+        syncWithCloud('upload');
+      }
     }
   };
+
 
   const handleExportExcel = async () => {
     if (students.length === 0 || !currentClass) {

@@ -156,7 +156,12 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
         await db.seats.where('classId').equals(c.id).delete();
         await db.classes.delete(c.id);
       }
+      localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
+      localStorage.removeItem('gvcn_active_class_id_universal');
       await refreshAppData();
+      if (user && navigator.onLine) {
+        syncWithCloud('upload');
+      }
     }
   };
 
@@ -181,8 +186,12 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
 
     setNewClassName('');
     setNewClassSubject('');
+    localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
     await refreshAppData();
     triggerConfetti();
+    if (user && navigator.onLine) {
+      syncWithCloud('upload');
+    }
   };
 
   const handleDeleteClass = async (classId: string, name: string) => {
@@ -193,9 +202,19 @@ export const SettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> =
       await db.behaviorLogs.where('classId').equals(classId).delete();
       await db.fundTransactions.where('classId').equals(classId).delete();
       await db.seats.where('classId').equals(classId).delete();
+      
+      localStorage.setItem('gvcn_local_last_modified', Date.now().toString());
+      localStorage.removeItem('gvcn_active_class_id_universal');
+      
       await refreshAppData();
+      triggerConfetti();
+      
+      if (user && navigator.onLine) {
+        syncWithCloud('upload');
+      }
     }
   };
+
 
   const handleExport = async () => {
     const json = await exportDatabaseBackup();
