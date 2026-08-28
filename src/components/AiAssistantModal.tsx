@@ -11,14 +11,18 @@ import {
   HelpCircle,
   Bot,
   Crown,
+  KeyRound,
+  ExternalLink,
+  ShieldAlert,
 } from 'lucide-react';
-
 import { useApp } from '../context/AppContext';
 import {
   generateHomeroomLessonPlan,
   generateZaloParentMessage,
   generateQuizQuestionsForClass,
   callGeminiFlash,
+  getGeminiApiKey,
+  setGeminiApiKey,
 } from '../services/gemini';
 
 interface Props {
@@ -35,6 +39,9 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [resultText, setResultText] = useState('');
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState(() => getGeminiApiKey());
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Tab 1: Lesson Plan Form
   const [lessonTopic, setLessonTopic] = useState('An toàn giao thông và xây dựng tình bạn đẹp');
@@ -69,10 +76,30 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleSaveKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    setGeminiApiKey(tempApiKey.trim());
+    setShowKeyModal(false);
+    setAuthError(null);
+    triggerConfetti();
+    alert('Đã lưu cấu hình Google Gemini API Key thành công! Thầy/Cô có thể sử dụng AI ngay bây giờ.');
+  };
+
+  const handleAiError = (err: any) => {
+    const msg = err?.message || String(err);
+    if (msg.includes('authentication') || msg.includes('401') || msg.includes('403') || msg.includes('OAuth') || msg.includes('API key')) {
+      setAuthError('Khóa API hiện tại chưa hợp lệ hoặc bị Google chặn CORS. Vui lòng lấy API Key Gemini (bắt đầu bằng AIzaSy...) miễn phí tại Google AI Studio và dán vào bên dưới!');
+      setShowKeyModal(true);
+    } else {
+      alert(`Lỗi AI: ${msg}`);
+    }
+  };
+
   const handleGenerateLessonPlan = async () => {
     if (!lessonTopic.trim()) return;
     setLoading(true);
     setResultText('');
+    setAuthError(null);
     try {
       const res = await generateHomeroomLessonPlan({
         topic: lessonTopic,
@@ -83,7 +110,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
       setResultText(res);
       triggerConfetti();
     } catch (err: any) {
-      alert(`Lỗi khi tạo giáo án: ${err.message}`);
+      handleAiError(err);
     } finally {
       setLoading(false);
     }
@@ -93,6 +120,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
     if (!zaloDetails.trim()) return;
     setLoading(true);
     setResultText('');
+    setAuthError(null);
     try {
       const res = await generateZaloParentMessage({
         purpose: zaloPurpose,
@@ -104,7 +132,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
       setResultText(res);
       triggerConfetti();
     } catch (err: any) {
-      alert(`Lỗi khi tạo tin nhắn: ${err.message}`);
+      handleAiError(err);
     } finally {
       setLoading(false);
     }
@@ -114,6 +142,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
     if (!quizTopic.trim()) return;
     setLoading(true);
     setResultText('');
+    setAuthError(null);
     try {
       const res = await generateQuizQuestionsForClass({
         topic: quizTopic,
@@ -122,7 +151,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
       setResultText(res);
       triggerConfetti();
     } catch (err: any) {
-      alert(`Lỗi khi tạo câu đố: ${err.message}`);
+      handleAiError(err);
     } finally {
       setLoading(false);
     }
@@ -136,6 +165,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setChatPrompt('');
     setChatHistory((prev) => [...prev, { role: 'user', text: userMsg }]);
     setLoading(true);
+    setAuthError(null);
 
     try {
       const aiReply = await callGeminiFlash({
@@ -144,9 +174,10 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
       });
       setChatHistory((prev) => [...prev, { role: 'assistant', text: aiReply }]);
     } catch (err: any) {
+      handleAiError(err);
       setChatHistory((prev) => [
         ...prev,
-        { role: 'assistant', text: `⚠️ Không thể phản hồi: ${err.message}. Vui lòng thử lại!` },
+        { role: 'assistant', text: `⚠️ Không thể phản hồi: ${err.message}. Vui lòng kiểm tra API Key trong mục Cài đặt Key!` },
       ]);
     } finally {
       setLoading(false);
@@ -155,7 +186,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-3xl w-full h-[90vh] max-h-[800px] border theme-card-border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95">
+      <div className="bg-white rounded-3xl max-w-3xl w-full h-[90vh] max-h-[800px] border theme-card-border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 relative">
         
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b theme-card-border flex items-center justify-between theme-soft-bg shrink-0">
@@ -167,7 +198,7 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-black theme-text">Trợ lý Sư phạm AI Gemini Flash</h3>
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-extrabold text-[10px] border border-amber-300 flex items-center gap-1 shadow-2xs">
-                  <Crown className="w-3 h-3 text-amber-600" /> VIP AI 3.5
+                  <Crown className="w-3 h-3 text-amber-600" /> VIP AI
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -176,12 +207,26 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setTempApiKey(getGeminiApiKey());
+                setShowKeyModal(true);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border theme-card-border font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+              title="Cài đặt Google Gemini API Key"
+            >
+              <KeyRound className="w-3.5 h-3.5 theme-text" />
+              <span className="hidden sm:inline">Cài Key AI</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* VIP Lock Banner if user is not VIP */}
@@ -453,6 +498,74 @@ export const AiAssistantModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 )
               )}
 
+            </div>
+          </div>
+        )}
+
+        {/* API Key Setup Sub-Modal */}
+        {showKeyModal && (
+          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 max-w-md w-full border theme-card-border shadow-2xl animate-in zoom-in-95 space-y-4">
+              <div className="flex items-center justify-between border-b theme-card-border pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-amber-100 text-amber-800">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-extrabold text-sm text-slate-800">Cài đặt Google Gemini API Key</h4>
+                </div>
+                <button
+                  onClick={() => setShowKeyModal(false)}
+                  className="text-slate-400 hover:text-slate-700"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {authError && (
+                <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold flex items-start gap-2">
+                  <ShieldAlert className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                  <span>{authError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSaveKey} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Google Gemini API Key (Bắt đầu bằng <code className="text-amber-600 bg-amber-50 px-1 py-0.5 rounded">AIzaSy...</code>)
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={tempApiKey}
+                    onChange={(e) => setTempApiKey(e.target.value)}
+                    placeholder="Dán mã API Key AIzaSy... vào đây"
+                    className="w-full px-3.5 py-2.5 rounded-xl border theme-card-border font-mono font-bold text-slate-800 focus:outline-none"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1.5">
+                  <p className="font-bold text-slate-700">💡 Hướng dẫn lấy Key Gemini hoàn toàn miễn phí:</p>
+                  <p>1. Nhấp vào <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 font-bold underline inline-flex items-center gap-0.5">Google AI Studio <ExternalLink className="w-3 h-3" /></a></p>
+                  <p>2. Đăng nhập tài khoản Google và bấm nút <strong>"Create API key"</strong>.</p>
+                  <p>3. Copy mã khóa (bắt đầu bằng <code>AIzaSy...</code>) và dán vào ô trên.</p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowKeyModal(false)}
+                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 text-xs font-bold text-white theme-btn-primary rounded-xl shadow-md cursor-pointer"
+                  >
+                    Lưu Khóa API
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
