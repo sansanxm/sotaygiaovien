@@ -54,7 +54,7 @@ const playTickSound = (speedRatio: number) => {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.035);
-  } catch {}
+  } catch { }
 };
 
 // Grand Victory Fanfare audio effect when wheel lands on winner
@@ -108,7 +108,7 @@ const playVictorySound = () => {
       });
     }, 450);
 
-  } catch {}
+  } catch { }
 };
 
 
@@ -383,7 +383,7 @@ export const RandomPicker: React.FC = () => {
 
     await db.behaviorLogs.bulkAdd(newLogs);
     triggerGrandConfetti();
-    alert(`Đã cộng +${points} điểm sao cho cả ${winners.length} học sinh được chọn! ⭐`);
+    alert(`Đã cộng +${points} điểm sao cho ${winners.length} học sinh được chọn! ⭐`);
   };
 
   const handleAddStarToSingleWinner = async (targetStudent: Student, points: number, title: string) => {
@@ -414,7 +414,7 @@ export const RandomPicker: React.FC = () => {
 
   return (
     <div ref={containerRef} className={`space-y-6 animate-in fade-in duration-300 ${isFullscreen ? 'bg-slate-900 p-6 overflow-y-auto min-h-screen text-white' : ''}`}>
-      
+
       {/* Header Bar */}
       <div className="glass-panel p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
@@ -434,11 +434,10 @@ export const RandomPicker: React.FC = () => {
           {/* Sound Toggle Button */}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`px-3.5 py-2.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer border ${
-              soundEnabled
+            className={`px-3.5 py-2.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all cursor-pointer border ${soundEnabled
                 ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100 shadow-xs'
                 : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
-            }`}
+              }`}
             title={soundEnabled ? 'Tắt âm thanh quay' : 'Bật âm thanh quay & nhạc mừng'}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 text-amber-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
@@ -459,10 +458,10 @@ export const RandomPicker: React.FC = () => {
 
       {/* Grid: Wheel (2 cols) & Winner History (1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Left Column: Canvas Wheel */}
         <div className="lg:col-span-2 glass-card p-6 sm:p-10 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden min-h-[520px]">
-          
+
           {/* Pick Count Selector Pills */}
           <div className="mb-4 z-20 flex flex-wrap items-center justify-center gap-1.5 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200">
             <span className="text-xs font-black text-slate-500 px-2 flex items-center gap-1">
@@ -478,11 +477,10 @@ export const RandomPicker: React.FC = () => {
                 key={item.count}
                 disabled={isSpinning}
                 onClick={() => setPickCount(item.count)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
-                  pickCount === item.count
+                className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${pickCount === item.count
                     ? 'theme-btn-primary text-white shadow-md transform scale-105'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                }`}
+                  }`}
               >
                 {item.label}
               </button>
@@ -579,7 +577,7 @@ export const RandomPicker: React.FC = () => {
       {showWinnerPopup && winners.length > 0 && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border theme-card-border shadow-2xl animate-in zoom-in-95 text-center relative overflow-hidden">
-            
+
             {/* Top Confetti & Trophy Header */}
             <div className="w-20 h-20 mx-auto rounded-full theme-soft-bg border-2 theme-card-border flex items-center justify-center text-3xl shadow-inner mb-3 animate-bounce">
               🎉
