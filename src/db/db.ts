@@ -202,18 +202,20 @@ export async function importNotebookBackup(jsonString: string): Promise<boolean>
     setInternalSyncing(true);
     try {
       await db.transaction('rw', [db.noteFolders, db.teacherNotes], async () => {
-        if (Array.isArray(data.noteFolders)) {
+        if (Array.isArray(data.noteFolders) && data.noteFolders.length > 0) {
           await db.noteFolders.clear();
-          if (data.noteFolders.length) await db.noteFolders.bulkAdd(data.noteFolders);
+          await db.noteFolders.bulkAdd(data.noteFolders);
         }
-        if (Array.isArray(data.teacherNotes)) {
+        if (Array.isArray(data.teacherNotes) && data.teacherNotes.length > 0) {
           await db.teacherNotes.clear();
-          if (data.teacherNotes.length) await db.teacherNotes.bulkAdd(data.teacherNotes);
+          await db.teacherNotes.bulkAdd(data.teacherNotes);
         }
       });
     } finally {
       setInternalSyncing(false);
+      notifyDatabaseChange();
     }
+
     return true;
   } catch (err) {
     console.error('Import notebook error:', err);

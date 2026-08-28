@@ -27,8 +27,10 @@ import {
 
 import { useApp } from '../context/AppContext';
 import { db, onDatabaseChanged, exportNotebookBackup, importNotebookBackup } from '../db/db';
+import { INITIAL_NOTE_FOLDERS } from '../db/initialData';
 import { firebaseService } from '../services/firebase';
 import type { NoteFolder, TeacherNote } from '../types';
+
 
 
 
@@ -175,12 +177,12 @@ export const TeacherNotebook: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
 
   // Local editor buffer state to guarantee 100% smooth typing with Windows UniKey/EVKey
-
   const [editorTitle, setEditorTitle] = useState<string>('');
   const [editorContent, setEditorContent] = useState<string>('');
   const [editorDate, setEditorDate] = useState<string>('');
   const [editorFolderId, setEditorFolderId] = useState<string>('');
   const debouncedSaveTimeoutRef = useRef<any>(null);
+  const currentNoteRef = useRef<TeacherNote | null>(null);
 
   // Keep ref of selectedNoteId to avoid stale closure in loadData
   const selectedNoteIdRef = useRef<string | null>(selectedNoteId);
@@ -191,7 +193,11 @@ export const TeacherNotebook: React.FC = () => {
   // Load Data
   const loadData = async () => {
     try {
-      const dbFolders = await db.noteFolders.toArray();
+      let dbFolders = await db.noteFolders.toArray();
+      if (dbFolders.length === 0) {
+        await db.noteFolders.bulkAdd(INITIAL_NOTE_FOLDERS);
+        dbFolders = await db.noteFolders.toArray();
+      }
       let dbNotes = await db.teacherNotes.toArray();
 
       // If no notes exist yet, create a helpful starter note
@@ -222,19 +228,26 @@ Thầy/Cô hãy gõ trực tiếp hoặc bấm nút "Viết Ghi Chép Mới" đ�
       setNotes(dbNotes);
 
       const currentSelected = selectedNoteIdRef.current;
-      if (!currentSelected && dbNotes.length > 0) {
-        const firstId = dbNotes[0].id;
-        setSelectedNoteId(firstId);
-        selectedNoteIdRef.current = firstId;
-      } else if (currentSelected && !dbNotes.some((n) => n.id === currentSelected) && dbNotes.length > 0) {
-        const firstId = dbNotes[0].id;
-        setSelectedNoteId(firstId);
-        selectedNoteIdRef.current = firstId;
+      let targetId = dbNotes[0].id;
+      if (currentSelected && dbNotes.some((n) => n.id === currentSelected)) {
+        targetId = currentSelected;
+      }
+      setSelectedNoteId(targetId);
+      selectedNoteIdRef.current = targetId;
+
+      const active = dbNotes.find((n) => n.id === targetId) || dbNotes[0];
+      if (active) {
+        currentNoteRef.current = { ...active };
+        setEditorTitle(active.title || '');
+        setEditorContent(active.content || '');
+        setEditorDate(active.date || '');
+        setEditorFolderId(active.folderId || '');
       }
     } catch (err) {
       console.error('Error loading notebook data:', err);
     }
   };
+
 
 
   const [isNotebookSyncing, setIsNotebookSyncing] = useState<boolean>(false);
@@ -460,14 +473,25 @@ Thầy/Cô hãy gõ trực tiếp hoặc bấm nút "Viết Ghi Chép Mới" đ�
 
     await db.teacherNotes.add(newNote);
     await loadData();
-    setSelectedNoteId(newNote.id);
-    setMobileView('editor');
+    handleSelectNote(newNote);
     if (user && navigator.onLine) syncWithCloud('upload');
+  };
+
+  const handleSelectNote = (note: TeacherNote) => {
+    setSelectedNoteId(note.id);
+    selectedNoteIdRef.current = note.id;
+    currentNoteRef.current = { ...note };
+    setEditorTitle(note.title || '');
+    setEditorContent(note.content || '');
+    setEditorDate(note.date || '');
+    setEditorFolderId(note.folderId || '');
+    setMobileView('editor');
   };
 
   // Sync local buffer when selected note changes
   useEffect(() => {
     if (currentNote) {
+      currentNoteRef.current = { ...currentNote };
       setEditorTitle(currentNote.title || '');
       setEditorContent(currentNote.content || '');
       setEditorDate(currentNote.date || '');
@@ -475,8 +499,8 @@ Thầy/Cô hãy gõ trực tiếp hoặc bấm nút "Viết Ghi Chép Mới" đ�
     }
   }, [currentNote?.id]);
 
-  const debouncedSaveNote = (field: keyof TeacherNote, value: any) => {
-    if (!currentNote) return;
+  const triggerDebouncedSave = () => {
+    if (!currentNoteRef.current) return;
     setSaveStatus('saving');
 
     if (debouncedSaveTimeoutRef.current) {
@@ -484,14 +508,14 @@ Thầy/Cô hãy gõ trực tiếp hoặc bấm nút "Viết Ghi Chép Mới" đ�
     }
 
     debouncedSaveTimeoutRef.current = setTimeout(async () => {
+      if (!currentNoteRef.current) return;
       try {
-        const updated: TeacherNote = {
-          ...currentNote,
-          [field]: value,
+        const toSave: TeacherNote = {
+          ...currentNoteRef.current,
           updatedAt: new Date().toISOString(),
         };
-        await db.teacherNotes.put(updated);
-        setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
+        await db.teacherNotes.put(toSave);
+        setNotes((prev) => prev.map((n) => (n.id === toSave.id ? toSave : n)));
         setSaveStatus('saved');
       } catch (err) {
         console.error('Error auto-saving note:', err);
@@ -501,23 +525,36 @@ Thầy/Cô hãy gõ trực tiếp hoặc bấm nút "Viết Ghi Chép Mới" đ�
 
   const handleTitleChange = (val: string) => {
     setEditorTitle(val);
-    debouncedSaveNote('title', val);
+    if (currentNoteRef.current) {
+      currentNoteRef.current.title = val;
+    }
+    triggerDebouncedSave();
   };
 
   const handleContentChange = (val: string) => {
     setEditorContent(val);
-    debouncedSaveNote('content', val);
+    if (currentNoteRef.current) {
+      currentNoteRef.current.content = val;
+    }
+    triggerDebouncedSave();
   };
 
   const handleDateChange = (val: string) => {
     setEditorDate(val);
-    debouncedSaveNote('date', val);
+    if (currentNoteRef.current) {
+      currentNoteRef.current.date = val;
+    }
+    triggerDebouncedSave();
   };
 
   const handleFolderChange = (val: string) => {
     setEditorFolderId(val);
-    debouncedSaveNote('folderId', val);
+    if (currentNoteRef.current) {
+      currentNoteRef.current.folderId = val;
+    }
+    triggerDebouncedSave();
   };
+
 
   const handleDeleteNote = async (noteId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa ghi chép này không?')) {
@@ -878,10 +915,7 @@ Thầy/Cô hãy gõ trực tiếp hoặc bấm nút "Viết Ghi Chép Mới" đ�
                 return (
                   <div
                     key={note.id}
-                    onClick={() => {
-                      setSelectedNoteId(note.id);
-                      setMobileView('editor');
-                    }}
+                    onClick={() => handleSelectNote(note)}
                     className={`p-3 rounded-2xl border transition-all cursor-pointer relative group ${
                       isSelected
                         ? 'border-pink-400 bg-pink-50/40 shadow-xs'
