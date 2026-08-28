@@ -149,7 +149,9 @@ export const AttendanceView: React.FC = () => {
     if (stStatus === 'present') presentCount++;
     else if (stStatus === 'late') lateCount++;
     else if (stStatus === 'excused') excusedCount++;
+    else if (stStatus === 'unexcused') unexcusedCount++;
   });
+
 
   return (
 
@@ -163,7 +165,7 @@ export const AttendanceView: React.FC = () => {
           {/* Prev Date */}
           <button
             onClick={() => changeDateBy(-1)}
-            className="p-2 rounded-2xl bg-white border border-pink-200 hover:bg-pink-50 text-pink-600 shadow-2xs transition-colors cursor-pointer"
+            className="p-2 rounded-2xl bg-white border theme-card-border hover:theme-soft-bg theme-text shadow-2xs transition-colors cursor-pointer"
             title="Ngày hôm trước"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -174,26 +176,26 @@ export const AttendanceView: React.FC = () => {
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2 rounded-2xl bg-white border border-pink-200 text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 shadow-2xs"
+            className="px-4 py-2 rounded-2xl bg-white border theme-card-border text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 theme-ring shadow-2xs"
           />
 
           {/* Next Date */}
           <button
             onClick={() => changeDateBy(1)}
-            className="p-2 rounded-2xl bg-white border border-pink-200 hover:bg-pink-50 text-pink-600 shadow-2xs transition-colors cursor-pointer"
+            className="p-2 rounded-2xl bg-white border theme-card-border hover:theme-soft-bg theme-text shadow-2xs transition-colors cursor-pointer"
             title="Ngày hôm sau"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
 
           {/* Session Selector */}
-          <div className="flex bg-pink-50 p-1 rounded-2xl border border-pink-200">
+          <div className="flex theme-soft-bg p-1 rounded-2xl border theme-card-border">
             {(['Sáng', 'Chiều'] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setSession(s)}
                 className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  session === s ? 'bg-pink-500 text-white shadow-xs' : 'text-slate-600 hover:text-pink-600'
+                  session === s ? 'theme-btn-primary text-white shadow-xs' : 'text-slate-600 hover:theme-text'
                 }`}
               >
                 Buổi {s}
@@ -206,14 +208,14 @@ export const AttendanceView: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleMarkAllPresent}
-            className="px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md shadow-emerald-200 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md shadow-emerald-200 transition-all cursor-pointer active:scale-95"
           >
             <CheckCheck className="w-4 h-4" /> Điểm danh cả lớp có mặt
           </button>
 
           <button
             onClick={() => setShowExportModal(true)}
-            className="px-3.5 py-2 rounded-2xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3.5 py-2 rounded-2xl theme-soft-bg hover:bg-white theme-text border theme-card-border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
             title="Xuất sổ điểm danh ra Excel theo tuần, tháng, học kỳ"
           >
             <Download className="w-4 h-4" /> Xuất Excel (tuần / tháng / kỳ)
@@ -226,29 +228,29 @@ export const AttendanceView: React.FC = () => {
 
       {/* Summary Badges Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="glass-card p-4 rounded-2xl border-emerald-200 bg-emerald-50/40 text-center">
+        <div className="glass-card p-4 rounded-2xl border-emerald-200 bg-emerald-50/40 text-center shadow-2xs">
           <div className="text-[11px] font-bold text-emerald-800 uppercase">Có mặt</div>
           <div className="text-2xl font-black text-emerald-600 mt-1">{presentCount}/{total}</div>
         </div>
-        <div className="glass-card p-4 rounded-2xl border-amber-200 bg-amber-50/40 text-center">
+        <div className="glass-card p-4 rounded-2xl border-amber-200 bg-amber-50/40 text-center shadow-2xs">
           <div className="text-[11px] font-bold text-amber-800 uppercase">Đi muộn</div>
           <div className="text-2xl font-black text-amber-600 mt-1">{lateCount}</div>
         </div>
-        <div className="glass-card p-4 rounded-2xl border-blue-200 bg-blue-50/40 text-center">
+        <div className="glass-card p-4 rounded-2xl border-blue-200 bg-blue-50/40 text-center shadow-2xs">
           <div className="text-[11px] font-bold text-blue-800 uppercase">Vắng có phép</div>
           <div className="text-2xl font-black text-blue-600 mt-1">{excusedCount}</div>
         </div>
-        <div className="glass-card p-4 rounded-2xl border-rose-200 bg-rose-50/40 text-center">
+        <div className="glass-card p-4 rounded-2xl border-rose-200 bg-rose-50/40 text-center shadow-2xs">
           <div className="text-[11px] font-bold text-rose-800 uppercase">Không phép</div>
           <div className="text-2xl font-black text-rose-600 mt-1">{unexcusedCount}</div>
         </div>
       </div>
 
       {/* Student Attendance List */}
-      <div className="glass-card rounded-3xl overflow-hidden shadow-xs border border-pink-200/80">
+      <div className="glass-card rounded-3xl overflow-hidden shadow-xs border theme-card-border">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-pink-100/70 text-pink-900 uppercase font-extrabold text-[11px]">
+            <thead className="theme-soft-bg theme-text uppercase font-extrabold text-[11px] border-b theme-card-border">
               <tr>
                 <th className="py-3 px-4 w-16">STT</th>
                 <th className="py-3 px-4">Họ và tên học sinh</th>
@@ -256,14 +258,15 @@ export const AttendanceView: React.FC = () => {
                 <th className="py-3 px-4">Lý do / Ghi chú của cô</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-pink-100">
+            <tbody className="divide-y theme-card-border">
               {students.map((st) => {
                 const currentStatus = records[st.id]?.status || 'present';
                 const currentNote = records[st.id]?.note || '';
 
                 return (
-                  <tr key={st.id} className="hover:bg-pink-50/40 transition-colors">
-                    <td className="py-3 px-4 font-bold text-pink-600">{st.rollNumber}</td>
+                  <tr key={st.id} className="hover:theme-soft-bg transition-colors">
+                    <td className="py-3 px-4 font-bold theme-text">{st.rollNumber}</td>
+
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <span
@@ -344,8 +347,9 @@ export const AttendanceView: React.FC = () => {
                         value={currentNote}
                         onChange={(e) => handleUpdateNote(st.id, e.target.value)}
                         placeholder="Ghi chú lý do..."
-                        className="w-full px-3 py-1.5 rounded-xl border border-pink-100 bg-white focus:outline-none focus:ring-2 focus:ring-pink-300 text-xs font-semibold"
+                        className="w-full px-3 py-1.5 rounded-xl border theme-card-border bg-white focus:outline-none focus:ring-2 theme-ring text-xs font-semibold"
                       />
+
                     </td>
                   </tr>
                 );
