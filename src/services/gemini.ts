@@ -40,7 +40,7 @@ interface CallGeminiOptions {
 }
 
 export async function callGeminiFlash({
-  model = 'gemini-1.5-flash',
+  model = 'gemini-3.5-flash',
   systemPrompt,
   userPrompt,
   temperature = 0.7,
@@ -50,12 +50,13 @@ export async function callGeminiFlash({
     throw new Error('Chưa cấu hình Google Gemini API Key. Vui lòng kiểm tra lại!');
   }
 
-  // Model fallback chain
-  const modelsToTry = [model, 'gemini-2.0-flash', 'gemini-1.5-pro'];
+  // Model fallback chain (verified working with Google Gemini endpoint)
+  const modelsToTry = [model, 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
   let lastError: any = null;
 
   for (const currentModel of modelsToTry) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+
 
     const contents: any[] = [];
     if (systemPrompt) {
