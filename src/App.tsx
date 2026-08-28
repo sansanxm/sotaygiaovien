@@ -218,13 +218,13 @@ const AppContent: React.FC = () => {
           </div>
 
           {/* Right: Cloud Sync Pill & User Account Card */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Cloud Sync & Backup Actions */}
-            <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-2xl border theme-card-border">
+            <div className="flex items-center gap-1 bg-slate-50 p-0.5 rounded-xl border theme-card-border">
               {/* Sync Status Badge */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-600">
+              <div className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-slate-600">
                 <span
-                  className={`w-2.5 h-2.5 rounded-full ${
+                  className={`w-2 h-2 rounded-full ${
                     syncState === 'synced'
                       ? 'bg-emerald-500'
                       : syncState === 'syncing'
@@ -259,7 +259,7 @@ const AppContent: React.FC = () => {
                     alert('❌ Không thể sao lưu. Vui lòng kiểm tra kết nối mạng.');
                   }
                 }}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 font-extrabold text-xs border border-emerald-200 flex items-center gap-1 cursor-pointer transition-all shadow-2xs active:scale-95"
+                className="px-2 py-1 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 font-extrabold text-[10px] border border-emerald-200 flex items-center gap-0.5 cursor-pointer transition-all shadow-2xs active:scale-95"
                 title="Sao lưu dữ liệu từ máy này lên Cloud"
               >
                 <span>{isSyncingUpload ? 'Đang lưu...' : '⬆️ Sao lưu'}</span>
@@ -286,7 +286,7 @@ const AppContent: React.FC = () => {
                     }
                   }
                 }}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-sky-50 text-sky-700 font-extrabold text-xs border border-sky-200 flex items-center gap-1 cursor-pointer transition-all shadow-2xs active:scale-95"
+                className="px-2 py-1 rounded-lg bg-white hover:bg-sky-50 text-sky-700 font-extrabold text-[10px] border border-sky-200 flex items-center gap-0.5 cursor-pointer transition-all shadow-2xs active:scale-95"
                 title="Khôi phục dữ liệu từ Cloud về máy"
               >
                 <span>{isSyncingDownload ? 'Đang tải...' : '⬇️ Khôi phục'}</span>
@@ -298,29 +298,29 @@ const AppContent: React.FC = () => {
             {user ? (
               <div
                 onClick={() => setShowSettings(true)}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-white border theme-card-border hover:border-pink-300 shadow-2xs cursor-pointer transition-all hover:scale-102"
+                className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white border theme-card-border hover:border-pink-300 shadow-2xs cursor-pointer transition-all hover:scale-102"
                 title="Bấm để mở Cài đặt & Quản lý tài khoản"
               >
-                <div className="w-8 h-8 rounded-full theme-avatar flex items-center justify-center font-bold text-sm shrink-0">
+                <div className="w-6 h-6 rounded-full theme-avatar flex items-center justify-center font-bold text-xs shrink-0">
                   {(user.user_metadata?.full_name || user.email || 'GV').slice(0, 1).toUpperCase()}
                 </div>
 
                 <div className="text-left hidden sm:block">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-800">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] font-bold text-slate-800">
                       {user.user_metadata?.full_name || 'Giáo viên'}
                     </span>
                     {isVip ? (
-                      <span className="text-[10px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-0.5">
-                        <Crown className="w-3 h-3 fill-amber-500 text-amber-500" /> VIP
+                      <span className="text-[9px] font-black px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-0.5">
+                        <Crown className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> VIP
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600">
+                      <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-slate-100 text-slate-600">
                         Dùng thử
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-slate-500 font-semibold truncate max-w-[140px]">
+                  <div className="text-[9px] text-slate-400 font-medium truncate max-w-[120px]">
                     {user.email}
                   </div>
                 </div>
@@ -328,29 +328,29 @@ const AppContent: React.FC = () => {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="px-3.5 py-1.5 rounded-2xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="px-2.5 py-1 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 font-extrabold text-[10px] flex items-center gap-1 transition-all cursor-pointer shadow-2xs active:scale-95"
               >
-                <span>🔑 Đăng Nhập Cloud</span>
+                <span>🔑 Đăng Nhập</span>
               </button>
             )}
 
             {/* AI Assistant Button */}
             <button
               onClick={() => setShowAiModal(true)}
-              className="px-3.5 py-1.5 rounded-2xl theme-btn-primary text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95 animate-pulse hover:animate-none"
+              className="px-2.5 py-1 rounded-xl theme-btn-primary text-white font-extrabold text-[10px] flex items-center gap-1 shadow-xs cursor-pointer transition-all active:scale-95 animate-pulse hover:animate-none"
               title="Mở Trợ lý Sư phạm AI Gemini Flash"
             >
-              <Bot className="w-4 h-4" />
+              <Bot className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Trợ lý AI ✨</span>
             </button>
 
             {/* Refresh App Button */}
             <button
               onClick={() => window.location.reload()}
-              className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border theme-card-border shadow-2xs transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border theme-card-border shadow-2xs transition-colors cursor-pointer"
               title="Làm mới / Tải lại ứng dụng"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
         </header>
@@ -375,11 +375,12 @@ const AppContent: React.FC = () => {
         </main>
 
         {/* Footer info bar (hidden on mobile to maximize screen area) */}
-        <footer className="hidden md:block w-full bg-white/70 backdrop-blur-md border-t border-slate-200/60 py-0.5 px-6 text-[7px] text-slate-400 font-medium tracking-wider uppercase text-center shrink-0">
-          <span>THIẾT KẾ VÀ PHÁT TRIỂN BỞI <strong className="text-slate-500 font-bold">XIAO SYSTEM</strong> © 2026</span>
-          <span className="mx-1.5 text-slate-300">•</span>
-          <span className="theme-text font-bold">HỖ TRỢ 24/7: 0971986343</span>
+        <footer className="hidden md:block w-full bg-white/90 backdrop-blur-md border-t border-slate-200/80 py-1.5 px-6 text-[10px] text-slate-500 font-semibold tracking-wider uppercase text-center shrink-0">
+          <span>THIẾT KẾ VÀ PHÁT TRIỂN BỞI <strong className="text-slate-700 font-black">XIAO SYSTEM</strong> © 2026</span>
+          <span className="mx-2 text-slate-300">•</span>
+          <span className="theme-text font-black">HỖ TRỢ 24/7: 0971986343</span>
         </footer>
+
 
 
 
