@@ -173,7 +173,14 @@ export const TeacherNotebook: React.FC = () => {
 
   // Editor Auto-save Status
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
-  const saveTimeoutRef = useRef<any>(null);
+
+  // Local editor buffer state to guarantee 100% smooth typing with Windows UniKey/EVKey
+
+  const [editorTitle, setEditorTitle] = useState<string>('');
+  const [editorContent, setEditorContent] = useState<string>('');
+  const [editorDate, setEditorDate] = useState<string>('');
+  const [editorFolderId, setEditorFolderId] = useState<string>('');
+  const debouncedSaveTimeoutRef = useRef<any>(null);
 
   // Keep ref of selectedNoteId to avoid stale closure in loadData
   const selectedNoteIdRef = useRef<string | null>(selectedNoteId);
@@ -185,7 +192,32 @@ export const TeacherNotebook: React.FC = () => {
   const loadData = async () => {
     try {
       const dbFolders = await db.noteFolders.toArray();
-      const dbNotes = await db.teacherNotes.toArray();
+      let dbNotes = await db.teacherNotes.toArray();
+
+      // If no notes exist yet, create a helpful starter note
+      if (dbNotes.length === 0) {
+        const welcomeNote: TeacherNote = {
+          id: `note-welcome-${Date.now()}`,
+          folderId: dbFolders[0]?.id || 'folder-ghi-chu-chung',
+          title: '📝 Ghi chép sư phạm & Biên bản cuộc họp',
+          content: `## 🌸 Chào mừng Thầy/Cô đến với Sổ ghi chép 4.0!
+- **Tính năng nổi bật**:
+  - ✨ Tự động lưu mọi ký tự ngay khi gõ.
+  - ☁️ Đồng bộ hóa an toàn với Cloud Đám mây.
+  - 📋 Mẫu biên bản có sẵn: Họp hội đồng, Sinh hoạt chuyên môn, Gặp phụ huynh...
+  - 🖨️ Xuất PDF và in ấn tiện lợi chỉ với 1 cú click!
+
+Thầy/Cô hãy gõ trực tiếp hoặc bấm nút "Viết Ghi Chép Mới" để bắt đầu nhé!`,
+          date: new Date().toISOString().slice(0, 10),
+          tags: ['Hướng dẫn', 'Quan trọng'],
+          isPinned: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await db.teacherNotes.add(welcomeNote);
+        dbNotes = [welcomeNote];
+      }
+
       setFolders(dbFolders);
       setNotes(dbNotes);
 
@@ -203,6 +235,7 @@ export const TeacherNotebook: React.FC = () => {
       console.error('Error loading notebook data:', err);
     }
   };
+
 
   const [isNotebookSyncing, setIsNotebookSyncing] = useState<boolean>(false);
 
@@ -432,29 +465,59 @@ export const TeacherNotebook: React.FC = () => {
     if (user && navigator.onLine) syncWithCloud('upload');
   };
 
-  const handleUpdateNote = (field: keyof TeacherNote, value: any) => {
+  // Sync local buffer when selected note changes
+  useEffect(() => {
+    if (currentNote) {
+      setEditorTitle(currentNote.title || '');
+      setEditorContent(currentNote.content || '');
+      setEditorDate(currentNote.date || '');
+      setEditorFolderId(currentNote.folderId || '');
+    }
+  }, [currentNote?.id]);
+
+  const debouncedSaveNote = (field: keyof TeacherNote, value: any) => {
     if (!currentNote) return;
-
-    const updated = {
-      ...currentNote,
-      [field]: value,
-      updatedAt: new Date().toISOString(),
-    };
-
-    // 1. Update local state immediately for snappy typing
-    setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
     setSaveStatus('saving');
 
-    // 2. Put into Dexie DB immediately (<1ms) so IndexedDB is always up-to-date
-    db.teacherNotes.put(updated).then(() => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => {
+    if (debouncedSaveTimeoutRef.current) {
+      clearTimeout(debouncedSaveTimeoutRef.current);
+    }
+
+    debouncedSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const updated: TeacherNote = {
+          ...currentNote,
+          [field]: value,
+          updatedAt: new Date().toISOString(),
+        };
+        await db.teacherNotes.put(updated);
+        setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
         setSaveStatus('saved');
-      }, 500);
-    }).catch(console.error);
+      } catch (err) {
+        console.error('Error auto-saving note:', err);
+      }
+    }, 300);
   };
 
+  const handleTitleChange = (val: string) => {
+    setEditorTitle(val);
+    debouncedSaveNote('title', val);
+  };
 
+  const handleContentChange = (val: string) => {
+    setEditorContent(val);
+    debouncedSaveNote('content', val);
+  };
+
+  const handleDateChange = (val: string) => {
+    setEditorDate(val);
+    debouncedSaveNote('date', val);
+  };
+
+  const handleFolderChange = (val: string) => {
+    setEditorFolderId(val);
+    debouncedSaveNote('folderId', val);
+  };
 
   const handleDeleteNote = async (noteId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa ghi chép này không?')) {
@@ -482,20 +545,21 @@ export const TeacherNotebook: React.FC = () => {
     const textarea = document.getElementById('note-editor-textarea') as HTMLTextAreaElement;
     if (!textarea || !currentNote) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const oldContent = currentNote.content || '';
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const oldContent = editorContent || '';
     const selected = oldContent.substring(start, end);
     const replacement = prefix + selected + suffix;
     const newContent = oldContent.substring(0, start) + replacement + oldContent.substring(end);
 
-    handleUpdateNote('content', newContent);
+    handleContentChange(newContent);
 
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
-    }, 50);
+    }, 30);
   };
+
 
   // Print Note
   const handlePrintNote = () => {
@@ -938,8 +1002,8 @@ export const TeacherNotebook: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-slate-400 shrink-0">Thư mục:</span>
                   <select
-                    value={currentNote.folderId}
-                    onChange={(e) => handleUpdateNote('folderId', e.target.value)}
+                    value={editorFolderId}
+                    onChange={(e) => handleFolderChange(e.target.value)}
                     className="flex-1 py-1.5 px-2.5 rounded-xl bg-slate-50 border theme-card-border font-bold text-slate-700 focus:outline-hidden"
                   >
                     {folders.map((f) => (
@@ -955,8 +1019,8 @@ export const TeacherNotebook: React.FC = () => {
                   <span className="font-bold text-slate-400 shrink-0">Ngày ghi:</span>
                   <input
                     type="date"
-                    value={currentNote.date}
-                    onChange={(e) => handleUpdateNote('date', e.target.value)}
+                    value={editorDate}
+                    onChange={(e) => handleDateChange(e.target.value)}
                     className="flex-1 py-1 px-2.5 rounded-xl bg-slate-50 border theme-card-border font-bold text-slate-700 focus:outline-hidden"
                   />
                 </div>
@@ -1028,8 +1092,10 @@ export const TeacherNotebook: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Nhập tiêu đề cuộc họp / ghi chép..."
-                  value={currentNote.title}
-                  onChange={(e) => handleUpdateNote('title', e.target.value)}
+                  value={editorTitle}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  spellCheck={false}
+                  autoComplete="off"
                   className="w-full text-base sm:text-lg font-black text-slate-900 focus:outline-hidden placeholder:text-slate-300 border-b pb-2 border-slate-100"
                 />
 
@@ -1037,11 +1103,14 @@ export const TeacherNotebook: React.FC = () => {
                 <textarea
                   id="note-editor-textarea"
                   placeholder="Nhập nội dung biên bản, ý kiến thảo luận, nhiệm vụ được giao..."
-                  value={currentNote.content}
-                  onChange={(e) => handleUpdateNote('content', e.target.value)}
+                  value={editorContent}
+                  onChange={(e) => handleContentChange(e.target.value)}
+                  spellCheck={false}
+                  autoComplete="off"
                   className="w-full flex-1 resize-none font-sans text-xs sm:text-sm text-slate-700 leading-relaxed focus:outline-hidden custom-scrollbar bg-transparent"
                 />
               </div>
+
             </>
           ) : (
             <div className="h-full flex flex-col items-center justify-center p-6 text-center text-slate-400">

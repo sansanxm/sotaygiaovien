@@ -172,9 +172,12 @@ export async function exportDatabaseBackup(email?: string | null): Promise<strin
     evaluations: await db.evaluations.toArray(),
     todos: await db.todos.toArray(),
     timetable: await db.timetable.toArray(),
+    noteFolders: await db.noteFolders.toArray(),
+    teacherNotes: await db.teacherNotes.toArray(),
   };
   return JSON.stringify(data, null, 2);
 }
+
 
 // Export Notebook separately for manual cloud backup
 export async function exportNotebookBackup(email?: string | null): Promise<string> {
@@ -295,6 +298,8 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
           db.evaluations,
           db.todos,
           db.timetable,
+          db.noteFolders,
+          db.teacherNotes,
         ], async () => {
           const importedYears = Array.isArray(data.years) && data.years.length > 0 ? data.years : [
             {
@@ -361,7 +366,16 @@ export async function importDatabaseBackup(jsonString: string, email?: string | 
             await db.timetable.clear();
             if (data.timetable.length) await db.timetable.bulkAdd(data.timetable);
           }
+          if (Array.isArray(data.noteFolders) && data.noteFolders.length > 0) {
+            await db.noteFolders.clear();
+            await db.noteFolders.bulkAdd(data.noteFolders);
+          }
+          if (Array.isArray(data.teacherNotes) && data.teacherNotes.length > 0) {
+            await db.teacherNotes.clear();
+            await db.teacherNotes.bulkAdd(data.teacherNotes);
+          }
         });
+
       } finally {
         setInternalSyncing(false);
         notifyDatabaseChange();
